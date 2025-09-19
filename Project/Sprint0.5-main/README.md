@@ -1,5 +1,6 @@
 # Sprint0.5Fall25
-- Austin
+- Austin Chan
 - Shreya
 - Yitian
 - Bogdan Perlroth
+- Jeremy

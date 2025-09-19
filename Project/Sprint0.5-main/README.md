@@ -3,3 +3,4 @@
 - Shreya
 - Yitian Yu
 - Bogdan Perlroth
+- Joseph Sherrier

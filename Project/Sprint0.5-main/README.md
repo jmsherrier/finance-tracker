@@ -2,4 +2,3 @@
 - Austin
 - Shreya
 - Bogdan
-- Yitian 

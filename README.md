@@ -1,4 +1,4 @@
-Joseph, Yitian, Shreya, Austin, Bogdan
+Joseph, Yitian, Shreya, Austin, Bogdan, Nehal
 
 # CS 2340 Fall 2025 Repository
 This repository is meant to be used throughout the semester to help you organize your work. This will be the repository you send out to your teammates as you work on your various group assignments throught the semester.

@@ -3016,6 +3016,7 @@ drawable material_ic_keyboard_arrow_previous_black_24dp
 drawable material_ic_keyboard_arrow_right_black_24dp
 drawable material_ic_menu_arrow_down_black_24dp
 drawable material_ic_menu_arrow_up_black_24dp
+drawable money_image
 drawable mtrl_bottomsheet_drag_handle
 drawable mtrl_checkbox_button
 drawable mtrl_checkbox_button_checked_unchecked
@@ -3180,6 +3181,7 @@ id center_vertical
 id chain
 id chain2
 id chains
+id chatbot
 id checkbox
 id checked
 id chronometer
@@ -3307,7 +3309,9 @@ id line3
 id linear
 id listMode
 id list_item
+id logoImg
 id m3_side_sheet
+id mainTitle
 id marquee
 id masked
 id match_constraint
@@ -3422,6 +3426,7 @@ id postLayout
 id pressed
 id progress_circular
 id progress_horizontal
+id quitBtn
 id radio
 id ratio
 id rectangles
@@ -3435,6 +3440,7 @@ id rounded
 id row_index_key
 id save_non_transition_alpha
 id save_overlay_view
+id savings_circles
 id sawtooth
 id scale
 id screen
@@ -3484,6 +3490,7 @@ id src_in
 id src_over
 id standard
 id start
+id startBtn
 id startHorizontal
 id startToEnd
 id startVertical
@@ -3677,7 +3684,9 @@ layout abc_search_dropdown_item_icons_2line
 layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
+layout activity_chatbot
 layout activity_main
+layout activity_savings_circles
 layout custom_dialog
 layout design_bottom_navigation_item
 layout design_bottom_sheet_dialog

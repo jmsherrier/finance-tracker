@@ -4,7 +4,16 @@ color black
 color white
 drawable ic_launcher_background
 drawable ic_launcher_foreground
+drawable money_image
+id chatbot
+id logoImg
+id mainTitle
+id quitBtn
+id savings_circles
+id startBtn
+layout activity_chatbot
 layout activity_main
+layout activity_savings_circles
 mipmap ic_launcher
 mipmap ic_launcher_round
 string app_name

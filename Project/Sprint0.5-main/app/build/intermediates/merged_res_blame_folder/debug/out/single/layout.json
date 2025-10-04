@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "/Users/shreyaprakash/.gradle/daemon/8.2/com.example.sprintproject.app-mergeDebugResources-30:/layout/activity_savings_circles.xml",
+        "source": "/Users/shreyaprakash/.gradle/daemon/8.2/com.example.sprintproject.app-main-33:/layout/activity_savings_circles.xml"
+    },
+    {
+        "merged": "/Users/shreyaprakash/.gradle/daemon/8.2/com.example.sprintproject.app-mergeDebugResources-30:/layout/activity_main.xml",
+        "source": "/Users/shreyaprakash/.gradle/daemon/8.2/com.example.sprintproject.app-main-33:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.example.sprintproject.app-mergeDebugResources-30:/layout/activity_savings_circles.xml",
+        "source": "com.example.sprintproject.app-main-33:/layout/activity_savings_circles.xml"
+    },
+    {
+        "merged": "com.example.sprintproject.app-mergeDebugResources-30:/layout/activity_chatbot.xml",
+        "source": "com.example.sprintproject.app-main-33:/layout/activity_chatbot.xml"
+    }
+]

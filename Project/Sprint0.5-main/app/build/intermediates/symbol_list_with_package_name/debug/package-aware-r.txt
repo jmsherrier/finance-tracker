@@ -3180,6 +3180,8 @@ id bounce
 id bounceBoth
 id bounceEnd
 id bounceStart
+id btn_budgets
+id btn_expense_log
 id buttonPanel
 id cache_measures
 id callMeasure

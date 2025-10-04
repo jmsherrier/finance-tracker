@@ -6,6 +6,8 @@ drawable ic_launcher_background
 drawable ic_launcher_foreground
 id add_budget
 id add_expense
+id btn_budgets
+id btn_expense_log
 id form_placeholder
 id header
 id main

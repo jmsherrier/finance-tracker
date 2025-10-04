@@ -13,7 +13,15 @@
         android:theme="@style/Theme.SprintProject"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".view.BudgetsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.ExpenseLogActivity"
+            android:exported="false"
+            android:label="@string/title_activity_expense_log"
+            android:theme="@style/Theme.SprintProject" />
+        <activity
+            android:name=".view.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -28,7 +28,15 @@
         android:testOnly="true"
         android:theme="@style/Theme.SprintProject" >
         <activity
-            android:name="com.example.sprintproject.MainActivity"
+            android:name="com.example.sprintproject.view.BudgetsActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.example.sprintproject.view.ExpenseLogActivity"
+            android:exported="false"
+            android:label="@string/title_activity_expense_log"
+            android:theme="@style/Theme.SprintProject" />
+        <activity
+            android:name="com.example.sprintproject.view.MainActivity"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,6 +44,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="androidx.compose.ui.tooling.PreviewActivity"
+            android:exported="true" />
+        <activity
+            android:name="androidx.activity.ComponentActivity"
+            android:exported="true" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"

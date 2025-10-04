@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SprintProject</string>
+    <string name="title_activity_expense_log">ExpenseLogActivity</string>
 </resources>

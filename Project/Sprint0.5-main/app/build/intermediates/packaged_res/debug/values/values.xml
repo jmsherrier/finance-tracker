@@ -3,6 +3,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <string name="app_name">SprintProject</string>
+    <string name="title_activity_expense_log">ExpenseLogActivity</string>
     <style name="Base.Theme.SprintProject" parent="Theme.Material3.DayNight.NoActionBar">
         
         

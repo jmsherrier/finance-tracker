@@ -11,9 +11,9 @@ import androidx.fragment.app.Fragment;
 
 import com.example.sprintproject.R;
 
-public class ChatbotFragment extends Fragment {
+public class BudgetFragment extends Fragment {
 
-    public ChatbotFragment() {
+    public BudgetFragment() {
         // Required empty public constructor
     }
 
@@ -23,6 +23,6 @@ public class ChatbotFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.activity_chatbot, container, false);
+        return inflater.inflate(R.layout.activity_budgets, container, false);
     }
 }

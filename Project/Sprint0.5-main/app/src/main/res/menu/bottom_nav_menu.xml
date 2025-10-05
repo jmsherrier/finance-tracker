@@ -1,4 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-  
+    <item
+        android:id="@+id/nav_dashboard"
+        android:icon="@drawable/ic_launcher_foreground"
+        android:title="Dashboard" />
+
+    <item
+        android:id="@+id/nav_expense"
+        android:icon="@drawable/ic_launcher_foreground"
+        android:title="Expense"/>
+
+    <item
+        android:id='@+id/nav_budgets'
+        android:icon="@drawable/ic_launcher_foreground"
+        android:title='Budget'/>
+
+    <item
+        android:id="@+id/nav_saving_circles"
+        android:icon='@drawable/ic_launcher_foreground'
+        android:title='Saving Circle'/>
+
+    <item
+        android:id="@+id/nav_chatbot"
+        android:icon='@drawable/ic_launcher_foreground'
+        android:title="Chatbot"/>
+
 </menu>

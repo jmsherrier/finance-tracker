@@ -15,14 +15,6 @@
         android:icon="@drawable/ic_launcher_foreground"
         android:title='Budget'/>
 
-    <item
-        android:id="@+id/nav_saving_circles"
-        android:icon='@drawable/ic_launcher_foreground'
-        android:title='Saving Circle'/>
 
-    <item
-        android:id="@+id/nav_chatbot"
-        android:icon='@drawable/ic_launcher_foreground'
-        android:title="Chatbot"/>
 
 </menu>

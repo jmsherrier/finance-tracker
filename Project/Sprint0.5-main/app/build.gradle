@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'checkstyle'
 }
 
 android {
@@ -36,4 +37,30 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+// CheckStyle configuration
+checkstyle {
+    toolVersion = '10.12.3'
+    configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
+    ignoreFailures = false
+    showViolations = true
+}
+
+task checkstyle(type: Checkstyle) {
+    description = 'Check code style'
+    group = 'verification'
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+    exclude '**/R.java'
+    exclude '**/BuildConfig.java'
+
+    classpath = files()
+
+    reports {
+        xml.required = true
+        html.required = true
+        html.outputLocation = file("$project.buildDir/reports/checkstyle/checkstyle.html")
+    }
 }

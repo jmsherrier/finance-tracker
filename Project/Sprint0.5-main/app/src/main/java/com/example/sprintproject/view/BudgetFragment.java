@@ -26,3 +26,4 @@ public class BudgetFragment extends Fragment {
         return inflater.inflate(R.layout.activity_budgets, container, false);
     }
 }
+

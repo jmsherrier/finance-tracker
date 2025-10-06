@@ -97,20 +97,6 @@ During Sprint 1 the team held sprint planning to define work for the sprint, dai
 
 ---
 
-## Repository housekeeping & recent changes
-
-- `.gitignore` updated to ignore `.gradle/` caches; previously tracked Gradle cache files were removed from the index.
-- CheckStyle configured (see `config/checkstyle/checkstyle.xml`) and can be run with `./gradlew checkstyle`.
-- MVVM template files added (models, repository, ViewModel) and `MainActivity` wired to `AuthViewModel` as an example.
-- Merge conflicts in `MainActivity.java` were resolved (kept joseph branch changes) and merged with `main`; branch `joseph` pushed to origin.
-
-## Files to add (if you want full evidence)
-
-Add or replace these images in `docs/` to complete the deliverables:
-- `docs/Use_Case.png` (use case diagram)
-- `docs/MVVM.png` (architecture diagram)
-- `docs/Jira.png` (project management screenshot)
-
 ## How to run CheckStyle locally
 
 ```powershell

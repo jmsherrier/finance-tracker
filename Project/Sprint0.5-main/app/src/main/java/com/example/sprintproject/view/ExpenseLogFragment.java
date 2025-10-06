@@ -25,4 +25,5 @@ public class ExpenseLogFragment extends Fragment {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.activity_expense_log, container, false);
     }
+
 }

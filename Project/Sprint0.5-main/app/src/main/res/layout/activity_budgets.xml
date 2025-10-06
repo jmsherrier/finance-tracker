@@ -9,6 +9,7 @@
     android:background="#D3D3D3"
     tools:context=".view.BudgetFragment">
 
+
     <!-- Title (same Chatbot-style layout) -->
     <TextView
         android:id="@+id/budgetTitle"

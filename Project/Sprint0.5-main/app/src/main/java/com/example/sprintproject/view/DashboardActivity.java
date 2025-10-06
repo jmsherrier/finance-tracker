@@ -34,6 +34,10 @@ public class DashboardActivity extends AppCompatActivity {
                 selectedFragment = new ExpenseLogFragment();
             } else if (item.getItemId() == R.id.nav_budgets) {
                 selectedFragment = new BudgetFragment();
+            } else if (item.getItemId() == R.id.nav_chatbot) {
+                selectedFragment = new ChatbotFragment();
+            } else if (item.getItemId() == R.id.nav_saving_circles) {
+                selectedFragment = new SavingsCirclesFragment();
             }
 
             if (selectedFragment != null) {

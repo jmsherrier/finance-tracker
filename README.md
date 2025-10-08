@@ -1,7 +1,5 @@
-Joseph, Yitian, Shreya, Austin, Bogdan, Nehal
-
 # CS 2340 Fall 2025 Repository
-This repository is meant to be used throughout the semester to help you organize your work. This will be the repository you send out to your teammates as you work on your various group assignments throught the semester.
+This repository is meant to be used throughout the semester to help you organize your work. This will be the repository you send out to your teammates as you work on your various group assignments throughout the semester.
 
 **Please note the current directory structure, which should be maintained as you use this repository in the future.**
 - `Project` This directory currently contains an Android Studio Project called `Sprint0.5-main`. This is a template project you should feel free to use in order to set up your group's project for the semester. If you decide to start your own Android Studio Project from scratch, we recommend that you save it inside the `Project` folder as well.
@@ -21,40 +19,34 @@ We use the following branches:
 - **main**: The stable version of the project. Only tested code should go here.
 - **original**: The starting point or template code.
 - **individual-name branches**: Each team member creates a branch with their name (e.g., `alice`, `bob`) for their work.
-````
+
 ### Basic Git Procedures
 
-0. **Set up coding environment**
-   
-    * (Optional - Highly Recommended) download [GitHub Desktop](https://docs.github.com/en/desktop/overview/about-github-desktop)
-    * (Optional) Verify Git Pro status with student ID
-    * Follow canvas directions to install Git and contribute
-
-2. **Clone the repo**
+1. **Clone the repo**
    ```bash
    git clone <repo-url>
-   ```
-   
-3. **Create a branch**
+````
+
+2. **Create a branch**
 
    ```bash
    git checkout -b yourname
    ```
 
-4. **Work and commit changes**
+3. **Work and commit changes**
 
    ```bash
    git add .
    git commit -m "PROJ-123: short description of changes"
    ```
 
-5. **Push your branch**
+4. **Push your branch**
 
    ```bash
    git push origin yourname
    ```
 
-6. **Update main**
+5. **Update main**
 
    * Pull latest changes from `main` before merging:
 
@@ -63,7 +55,7 @@ We use the following branches:
      git pull origin main
      ```
 
-7. **Merge your work**
+6. **Merge your work**
 
    * Open a Pull Request (PR) to merge your branch into `main` after review.
    * Resolve any conflicts before merging.
@@ -72,7 +64,7 @@ We use the following branches:
 
 ## Jira Usage
 
-* Each task or feature should have a Jira issue. Create Jira issues on the [Jira project page.](https://jmsherrier.atlassian.net/jira/software/projects/MBA/summary?atlOrigin=eyJpIjoiZjJhOGUzNjFlNjIzNDNlNDhiNjIzMjZiNzZmZDVlYjEiLCJwIjoiaiJ9)
+* Each task or feature should have a Jira issue.
 * Include the **Jira issue key** in branch names and commit messages:
 
   ```

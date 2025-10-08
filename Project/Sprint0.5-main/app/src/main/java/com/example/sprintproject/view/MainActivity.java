@@ -27,6 +27,11 @@ public class MainActivity extends AppCompatActivity {
         startBtn = findViewById(R.id.startBtn);
         quitBtn = findViewById(R.id.quitBtn);
 
+        startBtn.setOnClickListener(v ->
+                startActivity(new Intent(this, LoginActivity.class))
+        );
+
+    }
         // Obtain ViewModel
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 

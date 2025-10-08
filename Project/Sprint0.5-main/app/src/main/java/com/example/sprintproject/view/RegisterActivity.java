@@ -13,6 +13,23 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class RegisterActivity extends AppCompatActivity {
 
+// TODO: Future Enhancements for Registration
+// 1. Enforce stronger email validation (regex for domain structure).
+// 2. Disallow temporary/disposable email providers.
+// 3. Require passwords with at least one uppercase, lowercase, digit, and symbol.
+// 4. Implement a password strength meter to guide users interactively.
+// 5. Add rate limiting or captcha to prevent bot signups.
+// 6. Restrict weak/common passwords like "123456" or "password".
+// 7. Add multi-factor authentication setup right after registration.
+// 8. Prevent registration if email is already associated with a banned account.
+// 9. Introduce a minimum/maximum password length policy.
+// 10. Enforce Unicode normalization to avoid lookalike characters in emails.
+// 11. Require confirm email field to reduce typos.
+// 12. Consider region-specific restrictions (e.g., blocking certain domains).
+// 13. Log failed registration attempts for monitoring suspicious activity.
+// 14. Notify user via email verification before granting full access.
+// 15. Keep all validation logic centralized for easy maintenance.
+
     private EditText emailField, passwordField, confirmPasswordField;
     private Button registerBtn, backToLoginBtn;
     private FirebaseAuth auth;

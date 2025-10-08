@@ -1,6 +1,7 @@
 package com.example.sprintproject.view;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -54,6 +55,14 @@ public class MainActivity extends AppCompatActivity {
             authViewModel.createUser("demo@example.com", "password");
         });
 
-        quitBtn.setOnClickListener(v -> finish());
-    }
+        quitBtn.setOnClickListener(v -> {
+        new AlertDialog.Builder(this)
+                .setTitle("Quit app?")
+                .setMessage("Are you sure you want to exit?")
+                .setPositiveButton("Yes", (d, which) -> finish())
+                .setNegativeButton("No", (d, which) -> d.dismiss())
+                .show();
+    });
+
+}
 }

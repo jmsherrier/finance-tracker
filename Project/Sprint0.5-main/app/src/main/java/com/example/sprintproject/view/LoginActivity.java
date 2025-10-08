@@ -60,6 +60,7 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(this, "Please fix the errors above", Toast.LENGTH_SHORT).show();
             return;
         }
+        loginBtn.setEnabled(false);
 
 
         auth.signInWithEmailAndPassword(email, password)
@@ -68,7 +69,10 @@ public class LoginActivity extends AppCompatActivity {
                     startActivity(new Intent(this, MainActivity.class));
                     finish();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    loginBtn.setEnabled(true);
+                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+
     }
 }

@@ -17,6 +17,15 @@ public class RegisterActivity extends AppCompatActivity {
     private Button registerBtn, backToLoginBtn;
     private FirebaseAuth auth;
 
+    private boolean looksLikeEmail(String e) {
+        return e != null && e.contains("@") && e.contains(".");
+    }
+
+    private boolean looksLikePassword(String p) {
+        return p != null && p.length() >= 6;
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,15 +50,25 @@ public class RegisterActivity extends AppCompatActivity {
         String password = passwordField.getText().toString().trim();
         String confirm = confirmPasswordField.getText().toString().trim();
 
-        if (email.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+        boolean ok = true;
+
+        if (!looksLikeEmail(email)) {
+            emailField.setError("Enter a valid email");
+            ok = false;
+        }
+        if (!looksLikePassword(password)) {
+            passwordField.setError("Password must be at least 6 characters");
+            ok = false;
+        }
+        if (!password.equals(confirm)) {
+            confirmPasswordField.setError("Passwords do not match");
+            ok = false;
+        }
+        if (!ok) {
+            Toast.makeText(this, "Please fix the errors above", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (!password.equals(confirm)) {
-            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {

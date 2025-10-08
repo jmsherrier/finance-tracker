@@ -4,6 +4,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
@@ -27,11 +28,6 @@ public class MainActivity extends AppCompatActivity {
         startBtn = findViewById(R.id.startBtn);
         quitBtn = findViewById(R.id.quitBtn);
 
-        startBtn.setOnClickListener(v ->
-                startActivity(new Intent(this, LoginActivity.class))
-        );
-
-    }
         // Obtain ViewModel
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
@@ -50,8 +46,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         startBtn.setOnClickListener(v -> {
-            // For template purposes, create a demo user
-            authViewModel.createUser("demo@example.com", "password");
+            startActivity(new Intent(this, LoginActivity.class));
         });
 
         quitBtn.setOnClickListener(v -> finish());

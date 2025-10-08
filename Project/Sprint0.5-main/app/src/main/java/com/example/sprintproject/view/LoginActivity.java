@@ -13,8 +13,10 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText emailField, passwordField;
-    private Button loginBtn, registerBtn;
+    private EditText emailField;
+    private EditText passwordField;
+    private Button loginBtn;
+    private Button registerBtn;
     private FirebaseAuth auth;
 
     @Override
@@ -51,6 +53,7 @@ public class LoginActivity extends AppCompatActivity {
                     finish();
                 })
                 .addOnFailureListener(e ->
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                        Toast.makeText(this, "Error: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show());
     }
 }

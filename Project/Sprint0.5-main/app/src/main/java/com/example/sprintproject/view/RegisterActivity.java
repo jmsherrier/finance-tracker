@@ -13,8 +13,11 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText emailField, passwordField, confirmPasswordField;
-    private Button registerBtn, backToLoginBtn;
+    private EditText emailField;
+    private EditText passwordField;
+    private EditText confirmPasswordField;
+    private Button registerBtn;
+    private Button backToLoginBtn;
     private FirebaseAuth auth;
 
     @Override
@@ -58,6 +61,7 @@ public class RegisterActivity extends AppCompatActivity {
                     finish();
                 })
                 .addOnFailureListener(e ->
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                        Toast.makeText(this, "Error: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show());
     }
 }

@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Intent;  // <-- you also need this for Intent
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
@@ -28,12 +29,7 @@ public class MainActivity extends AppCompatActivity {
         startBtn = findViewById(R.id.startBtn);
         quitBtn = findViewById(R.id.quitBtn);
 
-        startBtn.setOnClickListener(v ->
-                startActivity(new Intent(this, LoginActivity.class))
-        );
-
-    }
-        // Obtain ViewModel
+        // ViewModel setup
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
         // Observe user changes
@@ -50,19 +46,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        startBtn.setOnClickListener(v -> {
-            // For template purposes, create a demo user
-            authViewModel.createUser("demo@example.com", "password");
-        });
+        // Button actions
+        startBtn.setOnClickListener(v ->
+                startActivity(new Intent(this, LoginActivity.class))
+        );
 
         quitBtn.setOnClickListener(v -> {
-        new AlertDialog.Builder(this)
-                .setTitle("Quit app?")
-                .setMessage("Are you sure you want to exit?")
-                .setPositiveButton("Yes", (d, which) -> finish())
-                .setNegativeButton("No", (d, which) -> d.dismiss())
-                .show();
-    });
-
-}
+            new AlertDialog.Builder(this)
+                    .setTitle("Quit app?")
+                    .setMessage("Are you sure you want to exit?")
+                    .setPositiveButton("Yes", (d, which) -> finish())
+                    .setNegativeButton("No", (d, which) -> d.dismiss())
+                    .show();
+        });
+    }
 }

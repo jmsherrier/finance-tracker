@@ -17,6 +17,14 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginBtn, registerBtn;
     private FirebaseAuth auth;
 
+    private boolean looksLikeEmail(String e) {
+        return e != null && e.contains("@") && e.contains(".");
+    }
+
+    private boolean looksLikePassword(String p) {
+        return p != null && p.length() >= 6;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,11 +46,22 @@ public class LoginActivity extends AppCompatActivity {
     private void loginUser() {
         String email = emailField.getText().toString().trim();
         String password = passwordField.getText().toString().trim();
+        boolean ok = true;
 
-        if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+        if (!looksLikeEmail(email)) {
+            emailField.setError("Enter a valid email");
+            ok = false;
+        }
+        if (!looksLikePassword(password)) {
+            passwordField.setError("Password must be at least 6 characters");
+            ok = false;
+        }
+        if (!ok) {
+            Toast.makeText(this, "Please fix the errors above", Toast.LENGTH_SHORT).show();
             return;
         }
+        loginBtn.setEnabled(false);
+
 
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
@@ -50,7 +69,10 @@ public class LoginActivity extends AppCompatActivity {
                     startActivity(new Intent(this, DashboardActivity.class));
                     finish();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    loginBtn.setEnabled(true);
+                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+
     }
 }

@@ -9,8 +9,6 @@
     android:background="#D3D3D3"
     tools:context=".view.BudgetFragment">
 
-
-    <!-- Title (same Chatbot-style layout) -->
     <TextView
         android:id="@+id/budgetTitle"
         android:layout_width="match_parent"
@@ -26,7 +24,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Placeholder for content -->
     <TextView
         android:id="@+id/budget_placeholder"
         android:layout_width="wrap_content"
@@ -38,5 +35,50 @@
         app:layout_constraintTop_toBottomOf="@id/budgetTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Floating action button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addBudgetFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="Add Budget"
+        app:srcCompat="@android:drawable/ic_input_add"
+        app:backgroundTint="@android:color/holo_purple"
+        app:tint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="24dp"/>
+
+    <!-- Hidden form overlay -->
+    <LinearLayout
+        android:id="@+id/budgetFormLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@android:color/white"
+        android:elevation="6dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <EditText
+            android:id="@+id/budgetNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Budget Name" />
+
+        <EditText
+            android:id="@+id/budgetAmountInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Amount"
+            android:inputType="numberDecimal" />
+
+        <Button
+            android:id="@+id/saveBudgetButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

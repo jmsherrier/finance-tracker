@@ -57,6 +57,7 @@ public class DashboardActivity extends AppCompatActivity {
 
             return true;
         });
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new DashboardFragment()).commit();
     }
 }
 

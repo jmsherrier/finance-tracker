@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,13 +24,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DashboardFragment extends Fragment {
-    private TextView tvTotalSpent, tvTotalRemaining;
-    private RecyclerView recyclerCategorySummary;
-    private CategoryAdapter adapter;
+    private TextView totalSpentText, totalRemainingText;
+    private LinearLayout categoriesContainer;
     private FirebaseFirestore db;
-
-    private Map<String, Double> categorySpending = new HashMap<>();
-    private Map<String, Double> categoryBudgets = new HashMap<>();
+    private double totalSpent = 0.0;
+    private double totalBudget = 0.0;
 
 
     public DashboardFragment() {
@@ -42,59 +41,49 @@ public class DashboardFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.activity_dashboard, container, false);
+        View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
 
-        tvTotalSpent - view.findById(R.id.tvTotalSpent);
-        tvTotalRemaining = view.findViewById(R.id.tvTotalRemaining);
-        recyclerCategorySummary = view.findVieyById(R.id.recyclerCategorySummary);
-        recyclerCategorySummary.setLayoutManager((new LinearLayoutManager(getContext())));
 
         db = FirebaseFirestore.getInstance();
+        totalSpentText = view.findViewById(R.id.text_total_spent);
+        totalRemainingText = view.findViewById(R.id.text_total_remaining);
+        categoriesContainer = view.findViewById(R.id.categories_container);
 
         loadDashboardData();
         return view;
     }
 
     private void loadDashboardData() {
-        db.collection("budgets").get().addOnSuccessListener(budgetSnapshots -> {
-            for (QueryDocumentSnapshot doc : budgetSnapshots) {
+        totalSpent = 0.0;
+        db.collection("expenses").get().addOnSuccessListener(querySnapshot -> {
+            Map<String, Double> categoryTotals = new HashMap<>();
+            for (QueryDocumentSnapshot doc : querySnapshot) {
+                Double amount = doc.getDouble("amount");
                 String category = doc.getString("category");
-                Double limit = doc.getDouble("limit");
-                if (category != null && limit != null) {
-                    categoryBudgets.put(category, limit);
-                }
+                if (amount == null) amount = 0.0;
+                if (category == null) category = "Uncategorized";
+                totalSpent += amount;
+                categoryTotals.put(category, categoryTotals.getOrDefault(category, 0.0) + amount);
             }
-            db.collection("expenses").get().addOnSuccessListener(expenseSnapshots -> {
-                for (QueryDocumentSnapshot doc : expenseSnapshots) {
-                    String category = doc.getString("category");
-                    Double amount = doc.getDouble("amount");
-                    if (category != null && amount != null) {
-                        categoryBudgets.put(category, categorySpending.getOrDefault(category, 0.0) + amount);
-                    }
+            totalSpentText.setText("Total Spent This Period: $" + totalSpent);
+            db.collection("budgets").get().addOnSuccessListener(budgetSnapshot -> {
+                double totalBudgetLocal = 0.0;
+                for (QueryDocumentSnapshot budgetDoc : budgetSnapshot) {
+                    Double amt = budgetDoc.getDouble("amount");
+                    if (amt != null) totalBudgetLocal += amt;
                 }
-                updateDashboard();
-            }).addOnFailureListener(e -> Log.e("Firestore", "Error loading expenses", e));
-        }).addOnFailureListener(e -> Log.e("Firesotore", "Error loading budgets", e));
-    }
+                double remaining = totalBudgetLocal - totalSpent;
+                totalRemainingText.setText("Remaining Budget: $" + remaining);
 
-    private void updateDashboard() {
-        List<CategorySummary> categoryList = new ArrayList<>();
-        double totalSpent = 0;
-        double totalBudget = 0;
-
-        for (String category : categoryBudgets.keySet()) {
-            double budget = categoryBudgets.get(category);
-            double spent = categorySpending.getOrDefault(category, 0.0);
-            totalSpent += spent;
-            totalBudget += budget;
-            categoryList.add(new CategorySummary(category, spent, budget));
-        }
-
-        double totalRemaining = totalBudget - totalSpent;
-        tvTotalSpent.setText(String.format("$%.2f", totalSpent));
-        tvTotalRemaining.setText(String.format("$%.2f", totalRemaining));
-
-        adapter = new CategoryAdapter(categoryList);
-        recyclerCategorySummary.setAdapter(adapter);
+                categoriesContainer.removeAllViews();
+                for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
+                    TextView tv = new TextView(getContext());
+                    tv.setText(entry.getKey() + ": $" + entry.getValue());
+                    tv.setTextSize(16);
+                    tv.setPadding(0, 4, 0, 4);
+                    categoriesContainer.addView(tv);
+                }
+            });
+        });
     }
 }

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/text_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Groceries"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Category & Frequency -->
+        <TextView
+            android:id="@+id/text_category_freq"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Food &amp; Dining • Monthly"
+            android:textSize="15sp"
+            android:textColor="#666666"
+            android:gravity="center"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Budget Amount -->
+        <TextView
+            android:id="@+id/text_target_amount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Budget: $300.00"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#6366F1"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Date Range -->
+        <TextView
+            android:id="@+id/text_date_range"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Jan 1, 2025 - Jan 31, 2025"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Progress Indicator -->
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progress_budget"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            app:trackThickness="10dp"
+            app:indicatorColor="#6366F1"
+            app:trackColor="#E5E7EB"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Utilization Stats -->
+        <TextView
+            android:id="@+id/text_used_amount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Used: $150.00"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:gravity="center"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/text_surplus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Remaining: $150.00"
+            android:textSize="16sp"
+            android:textColor="#10B981"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Status -->
+        <TextView
+            android:id="@+id/text_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status: In Progress"
+            android:textSize="15sp"
+            android:textColor="#FFA500"
+            android:gravity="center" />
+
+    </LinearLayout>
+</ScrollView>

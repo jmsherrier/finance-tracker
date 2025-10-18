@@ -36,7 +36,7 @@ public class DashboardActivity extends AppCompatActivity {
                 android.widget.Toast.makeText(this, "Expense Log", android.widget.Toast.LENGTH_SHORT).show();
 
             } else if (item.getItemId() == R.id.nav_budgets) {
-                selectedFragment = new BudgetFragment();
+                selectedFragment = new BudgetListFragment();
                 android.widget.Toast.makeText(this, "Budgets", android.widget.Toast.LENGTH_SHORT).show();
 
             } else if (item.getItemId() == R.id.nav_chatbot) {

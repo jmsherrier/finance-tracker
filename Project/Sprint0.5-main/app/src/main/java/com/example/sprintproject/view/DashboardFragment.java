@@ -1,12 +1,18 @@
 package com.example.sprintproject.view;
 
+import android.app.DatePickerDialog;
+import android.media.Image;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ImageView;
+import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,9 +25,15 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import org.w3c.dom.Text;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class DashboardFragment extends Fragment {
     private TextView totalSpentText, totalRemainingText;
@@ -30,10 +42,14 @@ public class DashboardFragment extends Fragment {
     private double totalSpent = 0.0;
     private double totalBudget = 0.0;
 
+    // Calendar, Timer
+    private TextView timeDisplay;
+    private final Handler handler = new Handler();
+    private Runnable updateTimeRunnable;
+
 
     public DashboardFragment() {
         // Required empty public constructor
-
     }
 
     @Nullable
@@ -48,6 +64,40 @@ public class DashboardFragment extends Fragment {
         totalSpentText = view.findViewById(R.id.text_total_spent);
         totalRemainingText = view.findViewById(R.id.text_total_remaining);
         categoriesContainer = view.findViewById(R.id.categories_container);
+
+        // Calendar, Timer
+        timeDisplay = view.findViewById(R.id.time_display);
+        ImageView calendarIcon = view.findViewById(R.id.calendar_icon);
+        Button logoutButton = view.findViewById(R.id.logout_button);
+
+        // Calendar
+        calendarIcon.setOnClickListener(v -> {
+            final Calendar calendar = Calendar.getInstance();
+            int year = calendar.get(Calendar.YEAR);
+            int month = calendar.get(Calendar.MONTH);
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(
+                    getContext(),
+                    (view1, selectedYear, selectedMonth, selectedDay) -> {
+                        String selectedDate = (selectedMonth + 1) + "/" + selectedDay + "/" + selectedYear;
+                        Toast.makeText(getContext(), "Selected data: " + selectedDate, Toast.LENGTH_SHORT).show();
+                    },
+                    year, month, day
+            );
+            datePickerDialog.show();
+        });
+
+        // Timer
+        updateTimeRunnable = new Runnable() {
+            @Override
+            public void run() {
+                SimpleDateFormat fmt = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+                timeDisplay.setText(fmt.format(new Date()));
+                handler.postDelayed(this, 1000);
+            }
+        };
+        handler.post(updateTimeRunnable);
 
         loadDashboardData();
         return view;

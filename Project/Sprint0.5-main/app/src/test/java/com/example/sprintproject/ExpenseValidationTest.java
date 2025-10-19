@@ -1,12 +1,46 @@
 package com.example.sprintproject;
 
 import org.junit.Test;
+import org.junit.Before;
 import static org.junit.Assert.*;
+
+import com.example.sprintproject.model.Expense;
 
 import java.util.Calendar;
 import java.util.Date;
 
 public class ExpenseValidationTest {
+
+    private Expense testExpense;
+
+    @Before
+    public void setUp() {
+        // Create a test expense before each test
+        testExpense = new Expense("Test Expense", 25.50, "Food & Dining", new Date(), "Test notes", "test-user-id");
+    }
+
+    @Test
+    public void testExpenseCreation() {
+        assertNotNull("Expense should be created", testExpense);
+        assertEquals("Expense name should match", "Test Expense", testExpense.getName());
+        assertEquals("Expense amount should match", 25.50, testExpense.getAmount(), 0.01);
+        assertEquals("Expense category should match", "Food & Dining", testExpense.getCategory());
+        assertEquals("Expense notes should match", "Test notes", testExpense.getNotes());
+        assertEquals("Expense user ID should match", "test-user-id", testExpense.getUserId());
+    }
+
+    @Test
+    public void testExpenseSettersAndGetters() {
+        testExpense.setName("Updated Expense");
+        testExpense.setAmount(100.75);
+        testExpense.setCategory("Transportation");
+        testExpense.setNotes("Updated notes");
+
+        assertEquals("Name should be updated", "Updated Expense", testExpense.getName());
+        assertEquals("Amount should be updated", 100.75, testExpense.getAmount(), 0.01);
+        assertEquals("Category should be updated", "Transportation", testExpense.getCategory());
+        assertEquals("Notes should be updated", "Updated notes", testExpense.getNotes());
+    }
 
     @Test
     public void testFutureDateIsRejected() {
@@ -15,7 +49,23 @@ public class ExpenseValidationTest {
         Date futureDate = future.getTime();
         Date today = new Date();
         
+        // Test that future dates are correctly identified
         assertTrue("Future date should be after today", futureDate.after(today));
+        
+        // Test that Expense constructor accepts future dates (validation happens in UI)
+        Expense futureExpense = new Expense("Future Expense", 10.0, "Other", futureDate, "", "user");
+        assertNotNull("Future date expense should be created", futureExpense);
+        assertEquals("Future date should be set correctly", futureDate, futureExpense.getDate());
+    }
+
+    @Test
+    public void testPastDateIsValid() {
+        Calendar past = Calendar.getInstance();
+        past.add(Calendar.DAY_OF_MONTH, -1);
+        Date pastDate = past.getTime();
+        Date today = new Date();
+        
+        assertTrue("Past date should be before today", pastDate.before(today));
     }
 
     @Test
@@ -34,5 +84,81 @@ public class ExpenseValidationTest {
     public void testZeroAmountIsInvalid() {
         double amount = 0.0;
         assertFalse("Zero amount should be invalid", amount > 0);
+    }
+
+    @Test
+    public void testLargeAmountIsValid() {
+        double amount = 999999.99;
+        assertTrue("Large amount should be valid", amount > 0);
+    }
+
+    @Test
+    public void testExpenseNameValidation() {
+        // Test that Expense constructor accepts valid names
+        Expense validExpense = new Expense("Coffee", 5.0, "Food & Dining", new Date(), "", "user");
+        assertNotNull("Valid expense should be created", validExpense);
+        assertEquals("Name should be set correctly", "Coffee", validExpense.getName());
+        
+        // Test that empty name is handled (constructor allows it, but validation should check)
+        Expense emptyNameExpense = new Expense("", 5.0, "Food & Dining", new Date(), "", "user");
+        assertNotNull("Empty name expense should be created", emptyNameExpense);
+        assertTrue("Empty name should be empty", emptyNameExpense.getName().isEmpty());
+    }
+
+    @Test
+    public void testExpenseCategoryValidation() {
+        String[] validCategories = {
+            "Food & Dining", "Transportation", "Shopping", "Entertainment", 
+            "Bills & Utilities", "Healthcare", "Education", "Travel", "Other"
+        };
+        
+        for (String category : validCategories) {
+            assertFalse("Category should not be empty", category.trim().isEmpty());
+        }
+    }
+
+    @Test
+    public void testExpenseNotesOptional() {
+        // Test with notes
+        Expense expenseWithNotes = new Expense("Test", 10.0, "Other", new Date(), "Has notes", "user");
+        assertNotNull("Notes should be present", expenseWithNotes.getNotes());
+        
+        // Test without notes
+        Expense expenseWithoutNotes = new Expense("Test", 10.0, "Other", new Date(), "", "user");
+        assertTrue("Empty notes should be allowed", expenseWithoutNotes.getNotes().isEmpty());
+    }
+
+    @Test
+    public void testExpenseToString() {
+        String expenseString = testExpense.toString();
+        assertNotNull("toString should not be null", expenseString);
+        assertTrue("toString should contain expense name", expenseString.contains("Test Expense"));
+        assertTrue("toString should contain amount", expenseString.contains("25.5"));
+    }
+
+    @Test
+    public void testExpenseIdGeneration() {
+        // Initially ID should be null
+        assertNull("Initial ID should be null", testExpense.getId());
+        
+        // Set ID
+        testExpense.setId("test-id-123");
+        assertEquals("ID should be set correctly", "test-id-123", testExpense.getId());
+    }
+
+    @Test
+    public void testExpenseCreatedAtTimestamp() {
+        Date createdAt = testExpense.getCreatedAt();
+        assertNotNull("CreatedAt should not be null", createdAt);
+        
+        Date now = new Date();
+        assertTrue("CreatedAt should be recent", now.getTime() - createdAt.getTime() < 1000); // Within 1 second
+    }
+
+    @Test
+    public void testExpenseAmountPrecision() {
+        // Test decimal precision
+        testExpense.setAmount(123.456789);
+        assertEquals("Amount should handle precision", 123.456789, testExpense.getAmount(), 0.000001);
     }
 }

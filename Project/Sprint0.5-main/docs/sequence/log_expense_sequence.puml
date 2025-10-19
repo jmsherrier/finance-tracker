@@ -1,62 +1,140 @@
 @startuml
-title Sequence Diagram: Log Expense (MVVM)
+title Sequence Diagram: Log Expense (MVVM Architecture)
 autonumber
 
-' Small humanizing caption
 note top
-    Joseph — Sprint 1
+    Joseph — Sprint 2
+    Tracking how a lunch expense gets logged in the system
 end note
 
-' Lifelines in MVVM flow (project-specific names)
+' MVVM Lifelines with actual project classes
 actor User
-participant ExpenseLog as "ExpenseLogFragment\n(Fragment)"
-participant TimeVM as "TimeViewModel\n(ViewModel)"
-participant Dashboard as "DashboardFragment\n(Fragment)"
-participant Firestore as "FirestoreManager\n(Firestore singleton)"
+participant ExpenseLog as "ExpenseLogFragment\n(View/Fragment)"
+participant ExpenseVM as "ExpenseViewModel\n(ViewModel)"
+participant BudgetVM as "BudgetViewModel\n(ViewModel)"
+participant ExpenseRepo as "ExpenseRepository\n(Repository)"
+participant Firestore as "FirestoreManager\n(Data Layer)"
 participant ExpenseModel as "Expense\n(Model)"
 
-' User opens entry view
-User -> ExpenseLog: openExpenseEntry()
+' === Initial Setup ===
+User -> ExpenseLog: taps "Add Expense" button
 activate ExpenseLog
-ExpenseLog -> TimeVM: getCurrentDate().observe(...)
-activate TimeVM
-' TimeVM observes a global date via GlobalDateManager and notifies ExpenseLog
-TimeVM --> ExpenseLog: onDateChanged(date)
-deactivate TimeVM
+ExpenseLog -> ExpenseLog: showExpenseDialog()
+note right: A fresh dialog pops up,\nready for input
 
-' User fills form and taps Save
-User -> ExpenseLog: press Save (dialog)
+' Observe current date from ViewModel
+ExpenseLog -> ExpenseVM: observeCurrentDate()
+activate ExpenseVM
+ExpenseVM -> ExpenseVM: _currentDate.value
+ExpenseVM --> ExpenseLog: LiveData<LocalDate>
+deactivate ExpenseVM
+ExpenseLog -> ExpenseLog: updateDatePicker(date)
+
+' === User Input Phase ===
+User -> ExpenseLog: fills in amount, category,\ndescription, date
+note left
+    Sarah types in her lunch details:
+    • Amount: $45.50
+    • Category: "Food"
+    • Description: "Lunch with the team"
+    • Date: today's date
+end note
+
+' === Validation & Save ===
+User -> ExpenseLog: presses "Save"
 activate ExpenseLog
-ExpenseLog -> ExpenseLog: validateForm(...)
-alt invalid
-    ExpenseLog -> ExpenseLog: showValidationError()
-    deactivate ExpenseLog
-else valid
-    ExpenseLog -> ExpenseModel: new Expense(...)
-    ExpenseLog -> Firestore: getInstance()
-    activate Firestore
-    Firestore -> Firestore: getDb()
-    Firestore --> ExpenseLog: db
-    ExpenseLog -> Firestore: db.collection("expenses").add(expense)
-    note right: This triggers addOnSuccessListener / addOnFailureListener
-    Firestore --> ExpenseLog: addOnSuccess(documentReference)
-    ExpenseLog -> ExpenseLog: expense.setId(documentReference.getId())
-    ExpenseLog -> ExpenseLog: expenses.add(expense); expenseAdapter.updateExpenses(expenses); updateUI()
-    deactivate Firestore
-    ExpenseLog -> ExpenseLog: showSaveResult(success)
-    deactivate ExpenseLog
+
+loop for each input field
+    ExpenseLog -> ExpenseLog: validateInput(field)
 end
 
-' Notify BudgetViewModel to update aggregates (observer)
-opt update dashboard
-    TimeVM -> Dashboard: notifyExpenseAdded(expense)
-    activate Dashboard
-    Dashboard -> Firestore: queryTotalsForPeriod(month)
+alt validation fails
+    ExpenseLog -> ExpenseLog: showError("Please fill all required fields")
+    ExpenseLog --> User: displays error message
+    note right: Oops! Missing fields get\nhighlighted in red
+else validation succeeds
+    
+    ' Create expense model
+    ExpenseLog -> ExpenseModel: new Expense(amount, category,\ndescription, date, userId)
+    activate ExpenseModel
+    ExpenseModel --> ExpenseLog: expense object
+    deactivate ExpenseModel
+    
+    ' Pass to ViewModel
+    ExpenseLog -> ExpenseVM: addExpense(expense)
+    activate ExpenseVM
+    
+    ExpenseVM -> ExpenseRepo: saveExpense(expense)
+    activate ExpenseRepo
+    
+    ' Repository interacts with Firestore
+    ExpenseRepo -> Firestore: getInstance()
     activate Firestore
-    Firestore --> Dashboard: totals
-    deactivate Firestore
-    Dashboard --> ExpenseLog: updateDashboard(totals)
-    deactivate Dashboard
+    Firestore --> ExpenseRepo: firestoreManager
+    
+    ExpenseRepo -> Firestore: addExpense(expense)
+    Firestore -> Firestore: getDb().collection("expenses").add(expenseMap)
+    
+    alt Firestore success
+        Firestore --> ExpenseRepo: Task<DocumentReference>
+        ExpenseRepo -> ExpenseRepo: updateExpenseId(documentId)
+        ExpenseRepo --> ExpenseVM: Result.Success(expense)
+        deactivate Firestore
+        deactivate ExpenseRepo
+        
+        ' Update LiveData
+        ExpenseVM -> ExpenseVM: _expenses.postValue(updatedList)
+        ExpenseVM -> ExpenseVM: _addExpenseResult.postValue(Success)
+        ExpenseVM --> ExpenseLog: LiveData<Result>
+        deactivate ExpenseVM
+        
+        ' Update UI
+        ExpenseLog -> ExpenseLog: observeAddResult()
+        ExpenseLog -> ExpenseLog: dismissDialog()
+        ExpenseLog -> ExpenseLog: showSuccess("Expense saved!")
+        ExpenseLog -> ExpenseLog: refreshExpenseList()
+        
+        ' Notify other ViewModels
+        opt update budget totals
+            ExpenseLog -> BudgetVM: notifyExpenseChanged()
+            activate BudgetVM
+            BudgetVM -> BudgetVM: recalculateTotals()
+            BudgetVM -> BudgetVM: _totalSpent.postValue(newTotal)
+            BudgetVM --> ExpenseLog: updates observers
+            deactivate BudgetVM
+            note right: Budget automatically updates\nto reflect new spending
+        end
+        
+    else Firestore failure
+        Firestore --> ExpenseRepo: Task<Exception>
+        activate Firestore
+        activate ExpenseRepo
+        ExpenseRepo --> ExpenseVM: Result.Error(exception)
+        deactivate Firestore
+        deactivate ExpenseRepo
+        activate ExpenseVM
+        ExpenseVM -> ExpenseVM: _addExpenseResult.postValue(Error)
+        ExpenseVM --> ExpenseLog: LiveData<Result.Error>
+        deactivate ExpenseVM
+        
+        ExpenseLog -> ExpenseLog: showError("Failed to save.\nPlease try again.")
+        note right: Something went wrong with\nthe network — user can retry
+    end
+    
 end
+
+deactivate ExpenseLog
+
+' === Final State ===
+ExpenseLog --> User: returns to expense list\nwith new expense visible
+
+note bottom
+    Architecture Overview:
+    • Fragment handles UI and user interactions
+    • ViewModel manages business logic and data state
+    • Repository coordinates data operations
+    • Firestore provides cloud persistence
+    • Model represents expense data structure
+end note
 
 @enduml

@@ -3,6 +3,7 @@ package com.example.sprintproject.view;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,6 +25,7 @@ import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.R;
 import com.example.sprintproject.adapter.ExpenseAdapter;
 import com.example.sprintproject.model.Expense;
+import com.example.sprintproject.viewmodel.TimeViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -36,6 +39,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class ExpenseLogFragment extends Fragment {
+    private TimeViewModel timeViewModel;
 
     private RecyclerView recyclerView;
     private TextView emptyText;
@@ -62,6 +66,14 @@ public class ExpenseLogFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_expense_log, container, false);
+
+        timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
+
+        timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
+            SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+            Log.d("ExpenseFragment", "Global date changed to " + fmt.format(date));
+            reloadExpensesFor(date);
+        });
         
         // Initialize Firestore
         FirestoreManager firestoreManager = FirestoreManager.getInstance();
@@ -86,6 +98,10 @@ public class ExpenseLogFragment extends Fragment {
         loadExpenses();
         
         return view;
+    }
+
+    private void reloadExpensesFor(Date date) {
+        // Use this date to filter or validate expenses
     }
     
     private void showAddExpenseDialog() {

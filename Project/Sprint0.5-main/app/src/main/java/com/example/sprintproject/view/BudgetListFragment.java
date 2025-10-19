@@ -3,6 +3,7 @@ package com.example.sprintproject.view;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,6 +24,7 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.adapter.BudgetAdapter;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
+import com.example.sprintproject.viewmodel.TimeViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -40,6 +43,7 @@ import java.util.Locale;
  * Displays all budgets, allows creation, and opens details on tap.
  */
 public class BudgetListFragment extends Fragment {
+    private TimeViewModel timeViewModel;
 
     private RecyclerView recyclerBudgets;
     private FloatingActionButton fabAddBudget;
@@ -67,6 +71,14 @@ public class BudgetListFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_budget_list, container, false);
 
+        timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
+
+        timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
+            SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+            Log.d("ExpenseFragment", "Global date changed to " + fmt.format(date));
+            reloadExpensesFor(date);
+        });
+
         FirestoreManager fm = FirestoreManager.getInstance();
         db = fm.getDb();
         auth = fm.getAuth();
@@ -86,6 +98,11 @@ public class BudgetListFragment extends Fragment {
         loadExpenses();
 
         return view;
+    }
+
+
+    private void reloadExpensesFor(Date date) {
+        // Use this date to filter or validate expenses
     }
 
     private String uid() {

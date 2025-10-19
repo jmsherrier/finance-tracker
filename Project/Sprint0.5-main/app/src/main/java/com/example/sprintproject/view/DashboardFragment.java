@@ -17,10 +17,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.viewmodel.TimeViewModel;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -43,9 +45,11 @@ public class DashboardFragment extends Fragment {
     private double totalBudget = 0.0;
 
     // Calendar, Timer
-    private TextView timeDisplay;
+    private TextView timeDisplay, selectedDateDisplay;
     private final Handler handler = new Handler();
     private Runnable updateTimeRunnable;
+
+    private TimeViewModel timeViewModel;
 
 
     public DashboardFragment() {
@@ -58,7 +62,7 @@ public class DashboardFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
-
+        timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
 
         db = FirebaseFirestore.getInstance();
         totalSpentText = view.findViewById(R.id.text_total_spent);
@@ -70,6 +74,17 @@ public class DashboardFragment extends Fragment {
         ImageView calendarIcon = view.findViewById(R.id.calendar_icon);
         Button logoutButton = view.findViewById(R.id.logout_button);
 
+        selectedDateDisplay = new TextView(getContext());
+        selectedDateDisplay.setTextSize(16);
+        selectedDateDisplay.setTextColor(getResources().getColor(R.color.black));
+        ((LinearLayout) view.findViewById(R.id.top_bar)).addView(selectedDateDisplay, 0);
+
+        timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
+            SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+            selectedDateDisplay.setText("Date: " + fmt.format(date));
+            loadDashboardData();
+        });
+
         // Calendar
         calendarIcon.setOnClickListener(v -> {
             final Calendar calendar = Calendar.getInstance();
@@ -80,8 +95,15 @@ public class DashboardFragment extends Fragment {
             DatePickerDialog datePickerDialog = new DatePickerDialog(
                     getContext(),
                     (view1, selectedYear, selectedMonth, selectedDay) -> {
-                        String selectedDate = (selectedMonth + 1) + "/" + selectedDay + "/" + selectedYear;
-                        Toast.makeText(getContext(), "Selected data: " + selectedDate, Toast.LENGTH_SHORT).show();
+                        Calendar selectedCal = Calendar.getInstance();
+                        selectedCal.set(selectedYear, selectedMonth, selectedDay);
+                        Date selectedDate = selectedCal.getTime();
+                        timeViewModel.setCurrentDate(selectedDate);
+
+                        SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                        Toast.makeText(getContext(),
+                                "Current date set to: " + fmt.format(selectedDate),
+                                Toast.LENGTH_SHORT).show();
                     },
                     year, month, day
             );

@@ -34,6 +34,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -101,7 +103,8 @@ public class ExpenseLogFragment extends Fragment {
     }
 
     private void reloadExpensesFor(Date date) {
-        // Use this date to filter or validate expenses
+        // Filter expenses for the selected date
+        loadExpenses();
     }
     
     private void showAddExpenseDialog() {
@@ -126,8 +129,9 @@ public class ExpenseLogFragment extends Fragment {
             android.R.layout.simple_dropdown_item_1line, categories);
         dropdownCategory.setAdapter(categoryAdapter);
         
-        // Setup date picker
+        // Setup date picker with future date restriction
         Calendar calendar = Calendar.getInstance();
+        Calendar maxDate = Calendar.getInstance();
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
         editDate.setText(dateFormat.format(calendar.getTime()));
         
@@ -141,6 +145,8 @@ public class ExpenseLogFragment extends Fragment {
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
             );
+            // Restrict future dates
+            datePickerDialog.getDatePicker().setMaxDate(maxDate.getTimeInMillis());
             datePickerDialog.show();
         });
         
@@ -201,6 +207,23 @@ public class ExpenseLogFragment extends Fragment {
         }
         
         // Date is always valid since we set it by default
+        // Additional validation: ensure date is not in the future
+        String dateStr = editDate.getText().toString().trim();
+        if (!dateStr.isEmpty()) {
+            try {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+                Date selectedDate = dateFormat.parse(dateStr);
+                if (selectedDate != null && selectedDate.after(new Date())) {
+                    editDate.setError("Date cannot be in the future");
+                    isValid = false;
+                } else {
+                    editDate.setError(null);
+                }
+            } catch (Exception e) {
+                editDate.setError("Invalid date format");
+                isValid = false;
+            }
+        }
         
         return isValid;
     }
@@ -241,16 +264,90 @@ public class ExpenseLogFragment extends Fragment {
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 expenses.clear();
+                
+                // If no expenses exist, create seed expenses
+                if (queryDocumentSnapshots.isEmpty()) {
+                    createSeedExpenses(userId);
+                    return;
+                }
+                
                 for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
                     Expense expense = document.toObject(Expense.class);
                     expense.setId(document.getId());
                     expenses.add(expense);
                 }
+                
+                // Sort expenses by date (newest first)
+                Collections.sort(expenses, new Comparator<Expense>() {
+                    @Override
+                    public int compare(Expense e1, Expense e2) {
+                        return e2.getDate().compareTo(e1.getDate());
+                    }
+                });
+                
                 expenseAdapter.updateExpenses(expenses);
                 updateUI();
             })
             .addOnFailureListener(e -> {
                 Toast.makeText(getContext(), "Error loading expenses: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private void createSeedExpenses(String userId) {
+        Calendar calendar = Calendar.getInstance();
+        
+        // Seed Expense 1: Grocery shopping from 3 days ago
+        calendar.add(Calendar.DAY_OF_MONTH, -3);
+        Expense expense1 = new Expense(
+            "Grocery Shopping",
+            85.50,
+            "Food & Dining",
+            calendar.getTime(),
+            "Weekly groceries from supermarket",
+            userId
+        );
+        
+        // Seed Expense 2: Gas fill-up from 1 day ago
+        calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        Expense expense2 = new Expense(
+            "Gas Fill-up",
+            45.00,
+            "Transportation",
+            calendar.getTime(),
+            "Regular gas at local station",
+            userId
+        );
+        
+        // Save both seed expenses to Firestore
+        db.collection("expenses").add(expense1)
+            .addOnSuccessListener(doc1 -> {
+                expense1.setId(doc1.getId());
+                expenses.add(expense1);
+                
+                db.collection("expenses").add(expense2)
+                    .addOnSuccessListener(doc2 -> {
+                        expense2.setId(doc2.getId());
+                        expenses.add(expense2);
+                        
+                        // Sort expenses by date (newest first)
+                        Collections.sort(expenses, new Comparator<Expense>() {
+                            @Override
+                            public int compare(Expense e1, Expense e2) {
+                                return e2.getDate().compareTo(e1.getDate());
+                            }
+                        });
+                        
+                        expenseAdapter.updateExpenses(expenses);
+                        updateUI();
+                        Toast.makeText(getContext(), "Welcome! Sample expenses loaded.", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("ExpenseLog", "Error creating seed expense 2", e);
+                    });
+            })
+            .addOnFailureListener(e -> {
+                Log.e("ExpenseLog", "Error creating seed expense 1", e);
             });
     }
     

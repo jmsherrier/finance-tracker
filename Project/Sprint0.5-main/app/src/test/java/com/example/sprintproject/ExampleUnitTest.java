@@ -3,7 +3,7 @@ package com.example.sprintproject;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 
 import com.example.sprintproject.view.DashboardFragment;
@@ -17,7 +17,7 @@ import java.lang.reflect.Field;
  */
 public class ExampleUnitTest {
     @Test
-    public void addition_isCorrect() {
+    public void additionIsCorrect() {
         assertEquals(4, 2 + 2);
     }
 

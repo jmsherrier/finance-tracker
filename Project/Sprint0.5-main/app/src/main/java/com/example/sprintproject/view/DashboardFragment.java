@@ -126,8 +126,15 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadDashboardData() {
+        String userId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
+        if (userId == null) {
+            Toast.makeText(getContext(), "No user logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
         totalSpent = 0.0;
-        db.collection("expenses").get().addOnSuccessListener(querySnapshot -> {
+        totalBudget = 0.0;
+        categoriesContainer.removeAllViews();
+        db.collection("expenses").whereEqualTo("userId", userId).get().addOnSuccessListener(querySnapshot -> {
             Map<String, Double> categoryTotals = new HashMap<>();
             for (QueryDocumentSnapshot doc : querySnapshot) {
                 Double amount = doc.getDouble("amount");
@@ -138,7 +145,7 @@ public class DashboardFragment extends Fragment {
                 categoryTotals.put(category, categoryTotals.getOrDefault(category, 0.0) + amount);
             }
             totalSpentText.setText("Total Spent This Period: $" + totalSpent);
-            db.collection("budgets").get().addOnSuccessListener(budgetSnapshot -> {
+            db.collection("budgets").whereEqualTo("userId", userId).get().addOnSuccessListener(budgetSnapshot -> {
                 double totalBudgetLocal = 0.0;
                 for (QueryDocumentSnapshot budgetDoc : budgetSnapshot) {
                     Double amt = budgetDoc.getDouble("amount");
@@ -147,7 +154,6 @@ public class DashboardFragment extends Fragment {
                 double remaining = totalBudgetLocal - totalSpent;
                 totalRemainingText.setText("Remaining Budget: $" + remaining);
 
-                categoriesContainer.removeAllViews();
                 for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
                     TextView tv = new TextView(getContext());
                     tv.setText(entry.getKey() + ": $" + entry.getValue());
@@ -157,5 +163,10 @@ public class DashboardFragment extends Fragment {
                 }
             });
         });
+    }
+
+    public void resetDashboardData() {
+        totalSpent = 0.0;
+        totalBudget = 0.0;
     }
 }

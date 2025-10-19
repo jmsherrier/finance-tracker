@@ -84,10 +84,10 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
             textMeta.setText(budget.getCategory() + " • " +
                     budget.getFrequency() + " • " +
                     dateFormat.format(budget.getStartDate()));
-            textAmount.setText(String.format("$%.2f", budget.getAmount()));
+            textAmount.setText(String.format("$%.2f", budget.getTotalAmount()));
 
             double used = computeUsed(budget);
-            int percent = (int) Math.min(100, (used / Math.max(1e-9, budget.getAmount())) * 100);
+            int percent = (int) Math.min(100, (used / Math.max(1e-9, budget.getTotalAmount())) * 100);
             progress.setProgress(percent);
 
             int color = getStatusColor(itemView, budget, used);
@@ -131,8 +131,8 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
             int yellow = v.getResources().getColor(android.R.color.holo_orange_dark);
             int red = v.getResources().getColor(android.R.color.holo_red_dark);
             boolean past = new Date().after(windowEnd(budget));
-            if (used >= budget.getAmount()) return green;
-            if (past && used < budget.getAmount()) return red;
+            if (used >= budget.getTotalAmount()) return green;
+            if (past && used < budget.getTotalAmount()) return red;
             return yellow;
         }
     }

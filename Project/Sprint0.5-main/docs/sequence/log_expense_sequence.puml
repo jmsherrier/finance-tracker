@@ -1,0 +1,62 @@
+@startuml
+title Sequence Diagram: Log Expense (MVVM)
+autonumber
+
+' Small humanizing caption
+note top
+    Joseph — Sprint 1
+end note
+
+' Lifelines in MVVM flow (project-specific names)
+actor User
+participant ExpenseLog as "ExpenseLogFragment\n(Fragment)"
+participant TimeVM as "TimeViewModel\n(ViewModel)"
+participant Dashboard as "DashboardFragment\n(Fragment)"
+participant Firestore as "FirestoreManager\n(Firestore singleton)"
+participant ExpenseModel as "Expense\n(Model)"
+
+' User opens entry view
+User -> ExpenseLog: openExpenseEntry()
+activate ExpenseLog
+ExpenseLog -> TimeVM: getCurrentDate().observe(...)
+activate TimeVM
+' TimeVM observes a global date via GlobalDateManager and notifies ExpenseLog
+TimeVM --> ExpenseLog: onDateChanged(date)
+deactivate TimeVM
+
+' User fills form and taps Save
+User -> ExpenseLog: press Save (dialog)
+activate ExpenseLog
+ExpenseLog -> ExpenseLog: validateForm(...)
+alt invalid
+    ExpenseLog -> ExpenseLog: showValidationError()
+    deactivate ExpenseLog
+else valid
+    ExpenseLog -> ExpenseModel: new Expense(...)
+    ExpenseLog -> Firestore: getInstance()
+    activate Firestore
+    Firestore -> Firestore: getDb()
+    Firestore --> ExpenseLog: db
+    ExpenseLog -> Firestore: db.collection("expenses").add(expense)
+    note right: This triggers addOnSuccessListener / addOnFailureListener
+    Firestore --> ExpenseLog: addOnSuccess(documentReference)
+    ExpenseLog -> ExpenseLog: expense.setId(documentReference.getId())
+    ExpenseLog -> ExpenseLog: expenses.add(expense); expenseAdapter.updateExpenses(expenses); updateUI()
+    deactivate Firestore
+    ExpenseLog -> ExpenseLog: showSaveResult(success)
+    deactivate ExpenseLog
+end
+
+' Notify BudgetViewModel to update aggregates (observer)
+opt update dashboard
+    TimeVM -> Dashboard: notifyExpenseAdded(expense)
+    activate Dashboard
+    Dashboard -> Firestore: queryTotalsForPeriod(month)
+    activate Firestore
+    Firestore --> Dashboard: totals
+    deactivate Firestore
+    Dashboard --> ExpenseLog: updateDashboard(totals)
+    deactivate Dashboard
+end
+
+@enduml

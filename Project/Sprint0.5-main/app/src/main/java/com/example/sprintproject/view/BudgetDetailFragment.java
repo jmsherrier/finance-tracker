@@ -112,15 +112,15 @@ public class BudgetDetailFragment extends Fragment {
     private void updateUI() {
         textTitle.setText(budget.getTitle());
         textCategoryFreq.setText(budget.getCategory() + " • " + budget.getFrequency());
-        textTarget.setText(String.format("Budget: $%.2f", budget.getAmount()));
+        textTarget.setText(String.format("Budget: $%.2f", budget.getTotalAmount()));
 
         Date start = budget.getStartDate();
         Date end = getEndDate(budget);
         textRange.setText(fmt.format(start) + " - " + fmt.format(end));
 
         double used = calculateUsed(start, end);
-        double remaining = Math.max(0, budget.getAmount() - used);
-        int percent = (int) Math.min(100, (used / Math.max(1e-9, budget.getAmount())) * 100);
+        double remaining = Math.max(0, budget.getTotalAmount() - used);
+        int percent = (int) Math.min(100, (used / Math.max(1e-9, budget.getTotalAmount())) * 100);
 
         textUsed.setText(String.format("Used: $%.2f", used));
         textSurplus.setText(String.format("Remaining: $%.2f", remaining));
@@ -129,7 +129,7 @@ public class BudgetDetailFragment extends Fragment {
         String status;
         int color;
         boolean past = new Date().after(end);
-        if (used >= budget.getAmount()) {
+        if (used >= budget.getTotalAmount()) {
             status = "Completed";
             color = getResources().getColor(android.R.color.holo_green_dark);
         } else if (past) {

@@ -7,15 +7,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".view.ExpenseLogFragment">
+    tools:context=".view.BudgetListFragment">
 
-    <!-- Modern Header Card -->
+    <!-- Header Card -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/header_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:layout_marginBottom="8dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
         app:cardBackgroundColor="@color/white"
@@ -39,37 +38,34 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Expense Log"
+                    android:text="Budgets"
                     android:textColor="@color/black"
                     android:textSize="28sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-medium" />
 
                 <TextView
-                    android:id="@+id/expense_count"
+                    android:id="@+id/budget_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="0 expenses"
+                    android:text="0 budgets"
                     android:textColor="#666666"
                     android:textSize="14sp"
                     android:fontFamily="sans-serif" />
-
             </LinearLayout>
 
-            <!-- Modern Add Button -->
+            <!-- Add Button -->
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fab_add_expense"
+                android:id="@+id/fab_add_budget"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:contentDescription="Add expense"
+                android:contentDescription="Add budget"
                 app:srcCompat="@android:drawable/ic_input_add"
                 app:backgroundTint="#6366F1"
                 app:tint="@color/white"
                 app:fabSize="mini" />
-
         </LinearLayout>
-
     </com.google.android.material.card.MaterialCardView>
 
     <!-- Empty State Card -->
@@ -102,11 +98,11 @@
                 android:tint="#6366F1" />
 
             <TextView
-                android:id="@+id/text_empty"
+                android:id="@+id/text_empty_budgets"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="No expenses yet"
+                android:text="No budgets yet"
                 android:textColor="#64748B"
                 android:textSize="18sp"
                 android:fontFamily="sans-serif-medium" />
@@ -115,31 +111,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Tap the + button to add your first expense"
+                android:text="Tap the + button to add your first budget"
                 android:textColor="#94A3B8"
                 android:textSize="14sp"
                 android:gravity="center"
                 android:fontFamily="sans-serif" />
-
         </LinearLayout>
-
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Progress while loading -->
-    <ProgressBar
-        android:id="@+id/progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:indeterminateTint="#6366F1"
-        app:layout_constraintTop_toBottomOf="@id/header_card"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Scrollable list of expenses -->
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_expenses"
+        android:id="@+id/recycler_budgets"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
@@ -153,5 +135,4 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

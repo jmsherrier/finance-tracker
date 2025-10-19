@@ -100,3 +100,4 @@ Desktop.ini
 *~
 *.swp
 *.bak
+.gradle/

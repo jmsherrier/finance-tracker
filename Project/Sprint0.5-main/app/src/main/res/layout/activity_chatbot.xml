@@ -4,9 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SavingsCirclesActivity"
-    android:background="@color/white">
-    tools:context=".view.SavingsCirclesFragment"
+    android:background="@color/white"
+    tools:context=".view.SavingsCirclesFragment">
 
     <LinearLayout
         android:id="@+id/chatbot_header"

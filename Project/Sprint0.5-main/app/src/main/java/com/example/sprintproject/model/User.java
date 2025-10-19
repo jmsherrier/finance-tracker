@@ -4,7 +4,7 @@ public class User {
     private String uid;
     private String email;
 
-    public User() {}
+    public User() { }
 
     public User(String uid, String email) {
         this.uid = uid;

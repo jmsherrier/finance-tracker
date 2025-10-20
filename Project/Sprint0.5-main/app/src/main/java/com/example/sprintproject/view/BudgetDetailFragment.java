@@ -37,13 +37,19 @@ public class BudgetDetailFragment extends Fragment {
     private Budget budget;
     private List<Expense> expenses = new ArrayList<>();
 
-    private TextView textTitle, textCategoryFreq, textTarget, textRange,
-            textUsed, textSurplus, textStatus;
+    private TextView textTitle;
+    private TextView textCategoryFreq;
+    private TextView textTarget;
+    private TextView textRange;
+    private TextView textUsed;
+    private TextView textSurplus;
+    private TextView textStatus;
     private LinearProgressIndicator progress;
 
-    private final SimpleDateFormat fmt = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+    private final SimpleDateFormat fmt =
+            new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
 
-    public BudgetDetailFragment() {}
+    public BudgetDetailFragment() { }
 
     @Nullable
     @Override
@@ -101,7 +107,9 @@ public class BudgetDetailFragment extends Fragment {
                     expenses.clear();
                     for (DocumentSnapshot d : snaps) {
                         Expense e = d.toObject(Expense.class);
-                        if (e == null) continue;
+                        if (e == null) {
+                            continue;
+                        }
                         e.setId(d.getId());
                         expenses.add(e);
                     }
@@ -120,7 +128,8 @@ public class BudgetDetailFragment extends Fragment {
 
         double used = calculateUsed(start, end);
         double remaining = Math.max(0, budget.getAmount() - used);
-        int percent = (int) Math.min(100, (used / Math.max(1e-9, budget.getAmount())) * 100);
+        int percent =
+                (int) Math.min(100, (used / Math.max(1e-9, budget.getAmount())) * 100);
 
         textUsed.setText(String.format("Used: $%.2f", used));
         textSurplus.setText(String.format("Remaining: $%.2f", remaining));
@@ -147,7 +156,9 @@ public class BudgetDetailFragment extends Fragment {
         double total = 0;
         for (Expense e : expenses) {
             Date d = e.getDate();
-            if (d.before(start) || d.after(end)) continue;
+            if (d.before(start) || d.after(end)) {
+                continue;
+            }
             total += e.getAmount();
         }
         return total;

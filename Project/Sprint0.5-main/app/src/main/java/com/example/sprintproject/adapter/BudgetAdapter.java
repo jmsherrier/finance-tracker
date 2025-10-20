@@ -35,7 +35,8 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
     private OnBudgetClickListener listener;
     private SimpleDateFormat dateFormat;
 
-    public BudgetAdapter(List<Budget> budgets, List<Expense> expenses, OnBudgetClickListener listener) {
+    public BudgetAdapter(List<Budget> budgets, List<Expense> expenses,
+                         OnBudgetClickListener listener) {
         this.budgets = budgets;
         this.expenses = expenses;
         this.listener = listener;
@@ -69,7 +70,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         private View statusDot;
         private LinearProgressIndicator progress;
 
-        public BudgetViewHolder(@NonNull View itemView) {
+        BudgetViewHolder(@NonNull View itemView) {
             super(itemView);
             iconCategory = itemView.findViewById(R.id.icon_category);
             textTitle = itemView.findViewById(R.id.text_title);
@@ -79,31 +80,38 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
             progress = itemView.findViewById(R.id.progress);
         }
 
-        public void bind(Budget budget) {
+        void bind(Budget budget) {
             textTitle.setText(budget.getTitle());
-            textMeta.setText(budget.getCategory() + " • " +
-                    budget.getFrequency() + " • " +
-                    dateFormat.format(budget.getStartDate()));
+            textMeta.setText(budget.getCategory() + " • "
+                    + budget.getFrequency() + " • "
+                    + dateFormat.format(budget.getStartDate()));
             textAmount.setText(String.format("$%.2f", budget.getAmount()));
 
             double used = computeUsed(budget);
-            int percent = (int) Math.min(100, (used / Math.max(1e-9, budget.getAmount())) * 100);
+            int percent =
+                    (int) Math.min(100, (used / Math.max(1e-9, budget.getAmount())) * 100);
             progress.setProgress(percent);
 
             int color = getStatusColor(itemView, budget, used);
             statusDot.setBackgroundTintList(ColorStateList.valueOf(color));
 
             itemView.setOnClickListener(v -> {
-                if (listener != null) listener.onBudgetClick(budget);
+                if (listener != null) {
+                    listener.onBudgetClick(budget);
+                }
             });
         }
 
         private double computeUsed(Budget budget) {
             double total = 0;
             for (Expense e : expenses) {
-                if (!budget.getCategory().equalsIgnoreCase(e.getCategory())) continue;
+                if (!budget.getCategory().equalsIgnoreCase(e.getCategory())) {
+                    continue;
+                }
                 Date d = e.getDate();
-                if (d.after(windowEnd(budget)) || d.before(windowStart(budget))) continue;
+                if (d.after(windowEnd(budget)) || d.before(windowStart(budget))) {
+                    continue;
+                }
                 total += e.getAmount();
             }
             return total;
@@ -131,8 +139,12 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
             int yellow = v.getResources().getColor(android.R.color.holo_orange_dark);
             int red = v.getResources().getColor(android.R.color.holo_red_dark);
             boolean past = new Date().after(windowEnd(budget));
-            if (used >= budget.getAmount()) return green;
-            if (past && used < budget.getAmount()) return red;
+            if (used >= budget.getAmount()) {
+                return green;
+            }
+            if (past && used < budget.getAmount()) {
+                return red;
+            }
             return yellow;
         }
     }

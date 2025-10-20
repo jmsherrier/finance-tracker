@@ -1,6 +1,7 @@
 package com.example.sprintproject.view;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.utils.Utils;
 import com.example.sprintproject.viewmodel.TimeViewModel;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -117,6 +119,26 @@ public class DashboardFragment extends Fragment {
             }
         };
         handler.post(updateTimeRunnable);
+
+        logoutButton.setOnClickListener(v -> {
+            // Sign out
+            com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
+
+            // Clear cache
+            Utils.clearCache(requireContext());
+
+            //clear view model store
+            requireActivity().getViewModelStore().clear();
+
+            // Navigate to LoginActivity
+            Intent intent = new Intent(requireContext(), com.example.sprintproject.view.LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+
+            // Finish curr activity
+            requireActivity().finish();
+            Toast.makeText(getContext(), "Logged out successfully!", Toast.LENGTH_SHORT).show();
+        });
 
         loadDashboardData();
         return view;

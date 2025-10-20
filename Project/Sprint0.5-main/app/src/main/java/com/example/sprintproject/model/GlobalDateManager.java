@@ -3,7 +3,7 @@ package com.example.sprintproject.model;
 import java.util.Calendar;
 import java.util.Date;
 
-public class GlobalDateManager {
+public final class GlobalDateManager {
     private static GlobalDateManager manager;
     private Date currentDate;
 

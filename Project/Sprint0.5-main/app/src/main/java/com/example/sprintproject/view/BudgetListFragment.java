@@ -57,12 +57,13 @@ public class BudgetListFragment extends Fragment {
     private BudgetAdapter adapter;
 
     private final String[] categories = {
-            "Food & Dining", "Transportation", "Shopping", "Entertainment",
-            "Bills & Utilities", "Healthcare", "Education", "Travel", "Other"
+        "Food & Dining", "Transportation", "Shopping", "Entertainment",
+        "Bills & Utilities", "Healthcare", "Education", "Travel", "Other"
     };
     private final String[] frequencies = {"weekly", "monthly"};
 
-    public BudgetListFragment() {}
+    public BudgetListFragment() {
+    }
 
     @Nullable
     @Override
@@ -74,7 +75,8 @@ public class BudgetListFragment extends Fragment {
         timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
 
         timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
-            SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+            SimpleDateFormat fmt =
+                    new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
             Log.d("ExpenseFragment", "Global date changed to " + fmt.format(date));
             reloadExpensesFor(date);
         });
@@ -113,11 +115,15 @@ public class BudgetListFragment extends Fragment {
         db.collection("users").document(uid()).collection("budgets")
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .addSnapshotListener((snapshots, e) -> {
-                    if (e != null || snapshots == null) return;
+                    if (e != null || snapshots == null) {
+                        return;
+                    }
                     budgets.clear();
                     for (DocumentSnapshot doc : snapshots.getDocuments()) {
                         Budget b = doc.toObject(Budget.class);
-                        if (b == null) continue;
+                        if (b == null) {
+                            continue;
+                        }
                         b.setId(doc.getId());
                         budgets.add(b);
                     }
@@ -129,11 +135,15 @@ public class BudgetListFragment extends Fragment {
         db.collection("expenses")
                 .whereEqualTo("userId", uid())
                 .addSnapshotListener((snapshots, e) -> {
-                    if (e != null || snapshots == null) return;
+                    if (e != null || snapshots == null) {
+                        return;
+                    }
                     expenses.clear();
                     for (DocumentSnapshot doc : snapshots.getDocuments()) {
                         Expense ex = doc.toObject(Expense.class);
-                        if (ex == null) continue;
+                        if (ex == null) {
+                            continue;
+                        }
                         ex.setId(doc.getId());
                         expenses.add(ex);
                     }
@@ -141,9 +151,12 @@ public class BudgetListFragment extends Fragment {
                 });
     }
 
-    private void updateUI() {
-        adapter.notifyDataSetChanged();
-        ((android.widget.TextView) textCount).setText(budgets.size() + " budgets");
+    private boolean validateForm(TextInputEditText editTitle,
+                                TextInputEditText editAmount,
+                                AutoCompleteTextView dropdownCategory,
+                                AutoCompleteTextView dropdownFrequency) {
+        boolean valid = true;
+                .setText(budgets.size() + " budgets");
 
         if (budgets.isEmpty()) {
             textEmpty.setVisibility(View.VISIBLE);
@@ -156,7 +169,8 @@ public class BudgetListFragment extends Fragment {
 
     private void showAddBudgetDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_budget, null);
+        View dialogView = LayoutInflater.from(getContext())
+                .inflate(R.layout.dialog_add_budget, null);
         builder.setView(dialogView);
 
         AlertDialog dialog = builder.create();
@@ -202,8 +216,8 @@ public class BudgetListFragment extends Fragment {
         dialog.show();
     }
 
-    private boolean validateForm(TextInputEditText editTitle, TextInputEditText editAmount,
-                                 AutoCompleteTextView dropdownCategory, AutoCompleteTextView dropdownFrequency) {
+    private boolean validateForm(TextInputEditText editTitle, TextInputEditText
+                                editAmount, AutoCompleteTextView dropdownCategory, AutoCompleteTextView dropdownFrequency) {
         boolean valid = true;
 
         if (editTitle.getText() == null || editTitle.getText().toString().trim().isEmpty()) {
@@ -222,12 +236,14 @@ public class BudgetListFragment extends Fragment {
             valid = false;
         }
 
-        if (dropdownCategory.getText() == null || dropdownCategory.getText().toString().trim().isEmpty()) {
+        if (dropdownCategory.getText() == null
+                || dropdownCategory.getText().toString().trim().isEmpty()) {
             dropdownCategory.setError("Select category");
             valid = false;
         }
 
-        if (dropdownFrequency.getText() == null || dropdownFrequency.getText().toString().trim().isEmpty()) {
+        if (dropdownFrequency.getText() == null
+                || dropdownFrequency.getText().toString().trim().isEmpty()) {
             dropdownFrequency.setError("Select frequency");
             valid = false;
         }
@@ -250,8 +266,14 @@ public class BudgetListFragment extends Fragment {
 
         db.collection("users").document(userId).collection("budgets")
                 .add(budget)
-                .addOnSuccessListener(ref -> Toast.makeText(getContext(), "Budget saved", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnSuccessListener(ref ->
+                        Toast.makeText(getContext(),
+                                "Budget saved",
+                                Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(),
+                                "Error: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show());
     }
 
     private Date normalizeStart(Date picked, String frequency) {

@@ -1,10 +1,12 @@
 package com.example.sprintproject;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import java.util.Calendar;
 import java.util.Date;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class ExpenseValidationTest {
 
@@ -14,7 +16,7 @@ public class ExpenseValidationTest {
         future.add(Calendar.DAY_OF_MONTH, 1);
         Date futureDate = future.getTime();
         Date today = new Date();
-        
+
         assertTrue("Future date should be after today", futureDate.after(today));
     }
 

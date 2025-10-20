@@ -1,0 +1,11 @@
+# Handle line endings automatically for files detected as text
+* text=auto
+
+# Force Unix line endings for gradlew (and mark as executable)
+gradlew text eol=lf
+
+# Force Windows line endings for batch files
+*.bat text eol=crlf
+
+# Mark gradlew as executable
+gradlew binary

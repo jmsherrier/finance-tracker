@@ -72,7 +72,8 @@ public class ExpenseLogFragment extends Fragment {
         timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
 
         timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
-            SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+            SimpleDateFormat fmt =
+                    new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
             Log.d("ExpenseFragment", "Global date changed to " + fmt.format(date));
             reloadExpensesFor(date);
         });
@@ -109,7 +110,8 @@ public class ExpenseLogFragment extends Fragment {
     
     private void showAddExpenseDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_expense, null);
+        View dialogView = LayoutInflater.from(getContext())
+                .inflate(R.layout.dialog_add_expense, null);
         builder.setView(dialogView);
         
         AlertDialog dialog = builder.create();
@@ -125,14 +127,16 @@ public class ExpenseLogFragment extends Fragment {
         Button btnSave = dialogView.findViewById(R.id.btn_save);
         
         // Setup category dropdown
-        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(getContext(), 
-            android.R.layout.simple_dropdown_item_1line, categories);
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
+                getContext(),
+                android.R.layout.simple_dropdown_item_1line, categories);
         dropdownCategory.setAdapter(categoryAdapter);
         
         // Setup date picker with future date restriction
         Calendar calendar = Calendar.getInstance();
         Calendar maxDate = Calendar.getInstance();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+        SimpleDateFormat dateFormat =
+                new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
         editDate.setText(dateFormat.format(calendar.getTime()));
         
         editDate.setOnClickListener(v -> {
@@ -211,7 +215,8 @@ public class ExpenseLogFragment extends Fragment {
         String dateStr = editDate.getText().toString().trim();
         if (!dateStr.isEmpty()) {
             try {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+                SimpleDateFormat dateFormat =
+                        new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
                 Date selectedDate = dateFormat.parse(dateStr);
                 if (selectedDate != null && selectedDate.after(new Date())) {
                     editDate.setError("Date cannot be in the future");
@@ -237,7 +242,8 @@ public class ExpenseLogFragment extends Fragment {
         String category = dropdownCategory.getText().toString().trim();
         String notes = editNotes.getText().toString().trim();
         Date date = calendar.getTime();
-        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "anonymous";
+        String userId = auth.getCurrentUser() != null
+                ? auth.getCurrentUser().getUid() : "anonymous";
         
         Expense expense = new Expense(name, amount, category, date, notes, userId);
         
@@ -249,15 +255,18 @@ public class ExpenseLogFragment extends Fragment {
                 expenses.add(expense);
                 expenseAdapter.updateExpenses(expenses);
                 updateUI();
-                Toast.makeText(getContext(), "Expense saved successfully!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Expense saved successfully!",
+                        Toast.LENGTH_SHORT).show();
             })
             .addOnFailureListener(e -> {
-                Toast.makeText(getContext(), "Error saving expense: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Error saving expense: "
+                        + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
     
     private void loadExpenses() {
-        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "anonymous";
+        String userId = auth.getCurrentUser() != null
+                ? auth.getCurrentUser().getUid() : "anonymous";
         
         db.collection("expenses")
             .whereEqualTo("userId", userId)
@@ -271,7 +280,8 @@ public class ExpenseLogFragment extends Fragment {
                     return;
                 }
                 
-                for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                for (com.google.firebase.firestore.DocumentSnapshot document
+                        : queryDocumentSnapshots.getDocuments()) {
                     Expense expense = document.toObject(Expense.class);
                     expense.setId(document.getId());
                     expenses.add(expense);
@@ -289,7 +299,9 @@ public class ExpenseLogFragment extends Fragment {
                 updateUI();
             })
             .addOnFailureListener(e -> {
-                Toast.makeText(getContext(), "Error loading expenses: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(),
+                        "Error loading expenses: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
             });
     }
     
@@ -340,7 +352,9 @@ public class ExpenseLogFragment extends Fragment {
                         
                         expenseAdapter.updateExpenses(expenses);
                         updateUI();
-                        Toast.makeText(getContext(), "Welcome! Sample expenses loaded.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(),
+                                "Welcome! Sample expenses loaded.",
+                                Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
                         Log.e("ExpenseLog", "Error creating seed expense 2", e);

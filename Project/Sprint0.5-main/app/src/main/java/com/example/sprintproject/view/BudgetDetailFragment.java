@@ -4,7 +4,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +17,7 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -30,20 +33,27 @@ import java.util.Locale;
  * Shows detailed info and utilization for a single budget.
  */
 public class BudgetDetailFragment extends Fragment {
-
+    private TextInputEditText calcTotal, calcSpent, calcRemaining;
+    private Button btnCalculate;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private String budgetId;
     private Budget budget;
     private List<Expense> expenses = new ArrayList<>();
 
-    private TextView textTitle, textCategoryFreq, textTarget, textRange,
-            textUsed, textSurplus, textStatus;
+    private TextView textTitle;
+    private TextView textCategoryFreq;
+    private TextView textTarget;
+    private TextView textRange;
+    private TextView textUsed;
+    private TextView textSurplus;
+    private TextView textStatus;
     private LinearProgressIndicator progress;
 
-    private final SimpleDateFormat fmt = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+    private final SimpleDateFormat fmt =
+            new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
 
-    public BudgetDetailFragment() {}
+    public BudgetDetailFragment() { }
 
     @Nullable
     @Override
@@ -56,6 +66,11 @@ public class BudgetDetailFragment extends Fragment {
         db = fm.getDb();
         auth = fm.getAuth();
 
+        calcTotal = v.findViewById(R.id.calc_total);
+        calcSpent = v.findViewById(R.id.calc_spent);
+        calcRemaining = v.findViewById(R.id.calc_remaining);
+        btnCalculate = v.findViewById(R.id.btn_calculate);
+        btnCalculate.setOnClickListener(view -> calculateBudget());
         textTitle = v.findViewById(R.id.text_title);
         textCategoryFreq = v.findViewById(R.id.text_category_freq);
         textTarget = v.findViewById(R.id.text_target_amount);
@@ -101,7 +116,9 @@ public class BudgetDetailFragment extends Fragment {
                     expenses.clear();
                     for (DocumentSnapshot d : snaps) {
                         Expense e = d.toObject(Expense.class);
-                        if (e == null) continue;
+                        if (e == null) {
+                            continue;
+                        }
                         e.setId(d.getId());
                         expenses.add(e);
                     }
@@ -112,15 +129,16 @@ public class BudgetDetailFragment extends Fragment {
     private void updateUI() {
         textTitle.setText(budget.getTitle());
         textCategoryFreq.setText(budget.getCategory() + " • " + budget.getFrequency());
-        textTarget.setText(String.format("Budget: $%.2f", budget.getTotalAmount()));
+        textTarget.setText(String.format("Budget: $%.2f", budget.getAmount()));
 
         Date start = budget.getStartDate();
         Date end = getEndDate(budget);
         textRange.setText(fmt.format(start) + " - " + fmt.format(end));
 
         double used = calculateUsed(start, end);
-        double remaining = Math.max(0, budget.getTotalAmount() - used);
-        int percent = (int) Math.min(100, (used / Math.max(1e-9, budget.getTotalAmount())) * 100);
+        double remaining = Math.max(0, budget.getAmount() - used);
+        int percent =
+                (int) Math.min(100, (used / Math.max(1e-9, budget.getAmount())) * 100);
 
         textUsed.setText(String.format("Used: $%.2f", used));
         textSurplus.setText(String.format("Remaining: $%.2f", remaining));
@@ -129,7 +147,7 @@ public class BudgetDetailFragment extends Fragment {
         String status;
         int color;
         boolean past = new Date().after(end);
-        if (used >= budget.getTotalAmount()) {
+        if (used >= budget.getAmount()) {
             status = "Completed";
             color = getResources().getColor(android.R.color.holo_green_dark);
         } else if (past) {
@@ -143,11 +161,65 @@ public class BudgetDetailFragment extends Fragment {
         textStatus.setTextColor(color);
     }
 
+    private void calculateBudget() {
+        String totalStr = calcTotal.getText().toString().trim();
+        String spentStr = calcSpent.getText().toString().trim();
+        String remainStr = calcRemaining.getText().toString().trim();
+
+        // Count how many are filled
+        int filled = 0;
+        if (!totalStr.isEmpty()) filled++;
+        if (!spentStr.isEmpty()) filled++;
+        if (!remainStr.isEmpty()) filled++;
+
+        // Need exactly 2
+        if (filled != 2) {
+            Toast.makeText(getContext(), "Fill exactly 2 fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Calculate the missing one
+        if (totalStr.isEmpty()) {
+            double spent = Double.parseDouble(spentStr);
+            double remaining = Double.parseDouble(remainStr);
+            double total = spent + remaining;
+            calcTotal.setText(String.valueOf(total));
+            saveBudgetAmount(total, spent);
+        } else if (spentStr.isEmpty()) {
+            double total = Double.parseDouble(totalStr);
+            double remaining = Double.parseDouble(remainStr);
+            double spent = total - remaining;
+            calcSpent.setText(String.valueOf(spent));
+            saveBudgetAmount(total, spent);
+        } else {
+            double total = Double.parseDouble(totalStr);
+            double spent = Double.parseDouble(spentStr);
+            double remaining = total - spent;
+            calcRemaining.setText(String.valueOf(remaining));
+            saveBudgetAmount(total, spent);
+        }
+    }
+
+    private void saveBudgetAmount(double total, double spent) {
+        db.collection("users").document(uid())
+                .collection("budgets").document(budgetId)
+                .update("totalAmount", total, "spentAmount", spent)
+                .addOnSuccessListener(v -> {
+                    Toast.makeText(getContext(), "Budget updated!", Toast.LENGTH_SHORT).show();
+                    loadBudget();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+    }
+
     private double calculateUsed(Date start, Date end) {
         double total = 0;
         for (Expense e : expenses) {
             Date d = e.getDate();
-            if (d.before(start) || d.after(end)) continue;
+            if (d.before(start) || d.after(end)) {
+                continue;
+            }
             total += e.getAmount();
         }
         return total;

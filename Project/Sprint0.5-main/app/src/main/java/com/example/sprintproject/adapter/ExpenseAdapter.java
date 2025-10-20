@@ -58,7 +58,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         private TextView textAmount;
         private TextView textNotesIndicator;
 
-        public ExpenseViewHolder(@NonNull View itemView) {
+        ExpenseViewHolder(@NonNull View itemView) {
             super(itemView);
             iconCategory = itemView.findViewById(R.id.icon_category);
             textExpenseName = itemView.findViewById(R.id.text_expense_name);
@@ -68,7 +68,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             textNotesIndicator = itemView.findViewById(R.id.text_notes_indicator);
         }
 
-        public void bind(Expense expense) {
+        void bind(Expense expense) {
             textExpenseName.setText(expense.getName());
             textCategory.setText(expense.getCategory());
             textDate.setText(dateFormat.format(expense.getDate()));

@@ -1,11 +1,8 @@
 package com.example.sprintproject.view;
 
 import android.app.DatePickerDialog;
-import android.content.Intent;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,20 +16,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.TimeViewModel;
-import com.example.sprintproject.utils.Utils;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-import org.w3c.dom.Text;
-
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Calendar;
@@ -40,14 +30,16 @@ import java.util.Date;
 import java.util.Locale;
 
 public class DashboardFragment extends Fragment {
-    private TextView totalSpentText, totalRemainingText;
+    private TextView totalSpentText;
+    private TextView totalRemainingText;
     private LinearLayout categoriesContainer;
     private FirebaseFirestore db;
     private double totalSpent = 0.0;
     private double totalBudget = 0.0;
 
     // Calendar, Timer
-    private TextView timeDisplay, selectedDateDisplay;
+    private TextView timeDisplay;
+    private TextView selectedDateDisplay;
     private final Handler handler = new Handler();
     private Runnable updateTimeRunnable;
 
@@ -82,7 +74,8 @@ public class DashboardFragment extends Fragment {
         ((LinearLayout) view.findViewById(R.id.top_bar)).addView(selectedDateDisplay, 0);
 
         timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
-            SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+            SimpleDateFormat fmt =
+                    new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
             selectedDateDisplay.setText("Date: " + fmt.format(date));
             loadDashboardData();
         });
@@ -102,7 +95,8 @@ public class DashboardFragment extends Fragment {
                         Date selectedDate = selectedCal.getTime();
                         timeViewModel.setCurrentDate(selectedDate);
 
-                        SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                        SimpleDateFormat fmt =
+                                new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
                         Toast.makeText(getContext(),
                                 "Current date set to: " + fmt.format(selectedDate),
                                 Toast.LENGTH_SHORT).show();
@@ -116,66 +110,48 @@ public class DashboardFragment extends Fragment {
         updateTimeRunnable = new Runnable() {
             @Override
             public void run() {
-                SimpleDateFormat fmt = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+                SimpleDateFormat fmt =
+                        new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
                 timeDisplay.setText(fmt.format(new Date()));
                 handler.postDelayed(this, 1000);
             }
         };
         handler.post(updateTimeRunnable);
 
-        logoutButton.setOnClickListener(v -> {
-            // Sign out
-            com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
-
-            // Clear cache
-            Utils.clearCache(requireContext());
-
-            //clear view model store
-            requireActivity().getViewModelStore().clear();
-
-            // Navigate to LoginActivity
-            Intent intent = new Intent(requireContext(), com.example.sprintproject.view.LoginActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-
-            // Finish curr activity
-            requireActivity().finish();
-            Toast.makeText(getContext(), "Logged out successfully!", Toast.LENGTH_SHORT).show();
-        });
-
         loadDashboardData();
         return view;
     }
 
     private void loadDashboardData() {
-        String userId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
-        if (userId == null) {
-            Toast.makeText(getContext(), "No user logged in", Toast.LENGTH_SHORT).show();
-            return;
-        }
         totalSpent = 0.0;
-        totalBudget = 0.0;
-        categoriesContainer.removeAllViews();
-        db.collection("expenses").whereEqualTo("userId", userId).get().addOnSuccessListener(querySnapshot -> {
+        db.collection("expenses").get().addOnSuccessListener(querySnapshot -> {
             Map<String, Double> categoryTotals = new HashMap<>();
             for (QueryDocumentSnapshot doc : querySnapshot) {
                 Double amount = doc.getDouble("amount");
                 String category = doc.getString("category");
-                if (amount == null) amount = 0.0;
-                if (category == null) category = "Uncategorized";
+                if (amount == null) {
+                    amount = 0.0;
+                }
+                if (category == null) {
+                    category = "Uncategorized";
+                }
                 totalSpent += amount;
-                categoryTotals.put(category, categoryTotals.getOrDefault(category, 0.0) + amount);
+                categoryTotals.put(category,
+                        categoryTotals.getOrDefault(category, 0.0) + amount);
             }
             totalSpentText.setText("Total Spent This Period: $" + totalSpent);
-            db.collection("budgets").whereEqualTo("userId", userId).get().addOnSuccessListener(budgetSnapshot -> {
+            db.collection("budgets").get().addOnSuccessListener(budgetSnapshot -> {
                 double totalBudgetLocal = 0.0;
                 for (QueryDocumentSnapshot budgetDoc : budgetSnapshot) {
                     Double amt = budgetDoc.getDouble("amount");
-                    if (amt != null) totalBudgetLocal += amt;
+                    if (amt != null) {
+                        totalBudgetLocal += amt;
+                    }
                 }
                 double remaining = totalBudgetLocal - totalSpent;
                 totalRemainingText.setText("Remaining Budget: $" + remaining);
 
+                categoriesContainer.removeAllViews();
                 for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
                     TextView tv = new TextView(getContext());
                     tv.setText(entry.getKey() + ": $" + entry.getValue());
@@ -185,10 +161,5 @@ public class DashboardFragment extends Fragment {
                 }
             });
         });
-    }
-
-    public void resetDashboardData() {
-        totalSpent = 0.0;
-        totalBudget = 0.0;
     }
 }

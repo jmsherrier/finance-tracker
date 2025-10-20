@@ -1,62 +1,45 @@
 @startuml
-title Sequence Diagram: Log Expense (MVVM)
+title System Sequence Diagram: Log Expense
 autonumber
 
-' Small humanizing caption
 note top
-    Joseph — Sprint 1
+    System Sequence Diagram for Expense Tracking App
+    Shows user interaction with system as a black box
 end note
 
-' Lifelines in MVVM flow (project-specific names)
-actor User
-participant ExpenseLog as "ExpenseLogFragment\n(Fragment)"
-participant TimeVM as "TimeViewModel\n(ViewModel)"
-participant Dashboard as "DashboardFragment\n(Fragment)"
-participant Firestore as "FirestoreManager\n(Firestore singleton)"
-participant ExpenseModel as "Expense\n(Model)"
+actor "User" as User
+participant ":System" as System
 
-' User opens entry view
-User -> ExpenseLog: openExpenseEntry()
-activate ExpenseLog
-ExpenseLog -> TimeVM: getCurrentDate().observe(...)
-activate TimeVM
-' TimeVM observes a global date via GlobalDateManager and notifies ExpenseLog
-TimeVM --> ExpenseLog: onDateChanged(date)
-deactivate TimeVM
+User -> System: openAddExpense()
+activate System
+System --> User: expense form
+deactivate System
 
-' User fills form and taps Save
-User -> ExpenseLog: press Save (dialog)
-activate ExpenseLog
-ExpenseLog -> ExpenseLog: validateForm(...)
-alt invalid
-    ExpenseLog -> ExpenseLog: showValidationError()
-    deactivate ExpenseLog
-else valid
-    ExpenseLog -> ExpenseModel: new Expense(...)
-    ExpenseLog -> Firestore: getInstance()
-    activate Firestore
-    Firestore -> Firestore: getDb()
-    Firestore --> ExpenseLog: db
-    ExpenseLog -> Firestore: db.collection("expenses").add(expense)
-    note right: This triggers addOnSuccessListener / addOnFailureListener
-    Firestore --> ExpenseLog: addOnSuccess(documentReference)
-    ExpenseLog -> ExpenseLog: expense.setId(documentReference.getId())
-    ExpenseLog -> ExpenseLog: expenses.add(expense); expenseAdapter.updateExpenses(expenses); updateUI()
-    deactivate Firestore
-    ExpenseLog -> ExpenseLog: showSaveResult(success)
-    deactivate ExpenseLog
+note right of User
+    User fills in:
+    • Amount: $45.50
+    • Category: "Food"
+    • Description: "Lunch with team"
+    • Date: today's date
+end note
+
+loop [while adding expense details]
+    User -> System: enterExpenseDetail(field, value)
+    activate System
+    System --> User: field updated
+    deactivate System
 end
 
-' Notify BudgetViewModel to update aggregates (observer)
-opt update dashboard
-    TimeVM -> Dashboard: notifyExpenseAdded(expense)
-    activate Dashboard
-    Dashboard -> Firestore: queryTotalsForPeriod(month)
-    activate Firestore
-    Firestore --> Dashboard: totals
-    deactivate Firestore
-    Dashboard --> ExpenseLog: updateDashboard(totals)
-    deactivate Dashboard
+User -> System: submitExpense(amount, category, description, date)
+activate System
+
+alt [all fields valid]
+    System --> User: expense saved confirmation
+    System --> User: updated expense list
+else [validation fails]
+    System --> User: error message("Please fill all required fields")
 end
+
+deactivate System
 
 @enduml

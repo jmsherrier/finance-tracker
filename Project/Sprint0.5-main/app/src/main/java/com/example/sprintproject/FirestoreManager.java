@@ -7,7 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
  * Singleton class that manages Firestore and Firebase Auth instances.
  * Ensures only one instance of database connection exists throughout the app.
  */
-public class FirestoreManager {
+public final class FirestoreManager {
     private static FirestoreManager instance;
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;

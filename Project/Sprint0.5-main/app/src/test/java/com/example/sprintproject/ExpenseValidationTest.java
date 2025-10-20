@@ -9,6 +9,9 @@ import com.example.sprintproject.model.Expense;
 import java.util.Calendar;
 import java.util.Date;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 public class ExpenseValidationTest {
 
     private Expense testExpense;

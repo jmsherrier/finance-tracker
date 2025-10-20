@@ -12,7 +12,7 @@ public class Budget {
     private String category;
     private String frequency; // "weekly" or "monthly"
     private Date startDate;
-    private Date createdDate;
+    private Date createdAt;
     private String userId;
     private double spentAmount;
 
@@ -28,7 +28,7 @@ public class Budget {
         this.frequency = frequency;
         this.startDate = startDate;
         this.userId = userId;
-        this.createdDate = new Date();
+        this.createdAt = new Date();
         this.spentAmount = 0.0;
     }
 
@@ -51,8 +51,8 @@ public class Budget {
     public Date getStartDate() { return startDate; }
     public void setStartDate(Date startDate) { this.startDate = startDate; }
 
-    public Date getCreatedDate() { return createdDate; }
-    public void setCreatedDate(Date createdDate) { this.createdDate = createdDate; }
+    public Date getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
@@ -86,7 +86,7 @@ public class Budget {
                 ", frequency='" + frequency + '\'' +
                 ", startDate=" + startDate +
                 ", userId='" + userId + '\'' +
-                ", createdDate=" + createdDate +
+                ", createdAt=" + createdAt +
                 ", spentAmount=" + spentAmount +
                 '}';
     }

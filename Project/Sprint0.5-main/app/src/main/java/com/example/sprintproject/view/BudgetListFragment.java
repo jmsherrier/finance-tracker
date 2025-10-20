@@ -24,13 +24,10 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.adapter.BudgetAdapter;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
+import com.example.sprintproject.repository.BudgetRepository;
+import com.example.sprintproject.repository.ExpenseRepository;
+import com.example.sprintproject.viewmodel.BudgetViewModel;
 import com.example.sprintproject.viewmodel.TimeViewModel;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,13 +41,14 @@ import java.util.Locale;
  */
 public class BudgetListFragment extends Fragment {
     private TimeViewModel timeViewModel;
+    private BudgetViewModel budgetViewModel;
+    private ExpenseViewModel expenseViewModel;
+    private FirebaseAuth auth;
 
     private RecyclerView recyclerBudgets;
     private FloatingActionButton fabAddBudget;
     private View textEmpty;
     private View textCount;
-    private FirebaseFirestore db;
-    private FirebaseAuth auth;
 
     private List<Budget> budgets = new ArrayList<>();
     private List<Expense> expenses = new ArrayList<>();
@@ -73,17 +71,9 @@ public class BudgetListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_budget_list, container, false);
 
         timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
-
-        timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
-            SimpleDateFormat fmt =
-                    new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
-            Log.d("ExpenseFragment", "Global date changed to " + fmt.format(date));
-            reloadExpensesFor(date);
-        });
-
-        FirestoreManager fm = FirestoreManager.getInstance();
-        db = fm.getDb();
-        auth = fm.getAuth();
+        budgetViewModel = new ViewModelProvider(this).get(BudgetViewModel.class);
+        expenseViewModel = new ViewModelProvider(this).get(ExpenseViewModel.class);
+        auth = FirestoreManager.getInstance().getAuth();
 
         recyclerBudgets = view.findViewById(R.id.recycler_budgets);
         fabAddBudget = view.findViewById(R.id.fab_add_budget);
@@ -94,66 +84,38 @@ public class BudgetListFragment extends Fragment {
         adapter = new BudgetAdapter(budgets, expenses, this::openBudgetDetails);
         recyclerBudgets.setAdapter(adapter);
 
+        String userId = uid();
+        
+        // Observe budgets
+        budgetViewModel.getBudgets(userId).observe(getViewLifecycleOwner(), budgetList -> {
+            budgets.clear();
+            if (budgetList != null) {
+                budgets.addAll(budgetList);
+            }
+            updateUI();
+        });
+        
+        // Observe expenses
+        expenseViewModel.getExpenses(userId).observe(getViewLifecycleOwner(), expenseList -> {
+            expenses.clear();
+            if (expenseList != null) {
+                expenses.addAll(expenseList);
+            }
+            adapter.notifyDataSetChanged();
+        });
+
         fabAddBudget.setOnClickListener(v -> showAddBudgetDialog());
 
-        loadBudgets();
-        loadExpenses();
-
         return view;
-    }
-
-
-    private void reloadExpensesFor(Date date) {
-        // Use this date to filter or validate expenses
     }
 
     private String uid() {
         return auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "anonymous";
     }
 
-    private void loadBudgets() {
-        db.collection("users").document(uid()).collection("budgets")
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null || snapshots == null) {
-                        return;
-                    }
-                    budgets.clear();
-                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
-                        Budget b = doc.toObject(Budget.class);
-                        if (b == null) {
-                            continue;
-                        }
-                        b.setId(doc.getId());
-                        budgets.add(b);
-                    }
-                    updateUI();
-                });
-    }
-
-    private void loadExpenses() {
-        db.collection("expenses")
-                .whereEqualTo("userId", uid())
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null || snapshots == null) {
-                        return;
-                    }
-                    expenses.clear();
-                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
-                        Expense ex = doc.toObject(Expense.class);
-                        if (ex == null) {
-                            continue;
-                        }
-                        ex.setId(doc.getId());
-                        expenses.add(ex);
-                    }
-                    adapter.notifyDataSetChanged();
-                });
-    }
-
     private void updateUI() {
         adapter.notifyDataSetChanged();
-        ((android.widget.TextView) textCount).setText(budgets.size() + "budgets");
+        ((android.widget.TextView) textCount).setText(budgets.size() + " budgets");
 
         if (budgets.isEmpty()) {
             textEmpty.setVisibility(View.VISIBLE);
@@ -259,18 +221,22 @@ public class BudgetListFragment extends Fragment {
         String frequencyVal = frequency.getText().toString().trim();
         Date startDate = normalizeStart(calendar.getTime(), frequencyVal);
 
-        Budget budget = new Budget(titleVal, amountVal, categoryVal, frequencyVal, startDate, userId);
+        Budget budget = new Budget(titleVal, amountVal, categoryVal,
+                frequencyVal, startDate, userId);
 
-        db.collection("users").document(userId).collection("budgets")
-                .add(budget)
-                .addOnSuccessListener(ref ->
-                        Toast.makeText(getContext(),
-                                "Budget saved",
-                                Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(),
-                                "Error: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show());
+        budgetViewModel.saveBudget(budget, userId, new BudgetRepository.OnCompleteListener() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(getContext(), "Budget saved",
+                        Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(getContext(), "Error: " + error,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private Date normalizeStart(Date picked, String frequency) {

@@ -11,11 +11,16 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.R;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
+import com.example.sprintproject.repository.BudgetRepository;
+import com.example.sprintproject.repository.ExpenseRepository;
+import com.example.sprintproject.viewmodel.BudgetViewModel;
+import com.example.sprintproject.viewmodel.ExpenseViewModel;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,13 +38,16 @@ import java.util.Locale;
  * Shows detailed info and utilization for a single budget.
  */
 public class BudgetDetailFragment extends Fragment {
-    private TextInputEditText calcTotal, calcSpent, calcRemaining;
-    private Button btnCalculate;
-    private FirebaseFirestore db;
+    private BudgetViewModel budgetViewModel;
+    private ExpenseViewModel expenseViewModel;
     private FirebaseAuth auth;
     private String budgetId;
     private Budget budget;
     private List<Expense> expenses = new ArrayList<>();
+
+    private TextInputEditText calcTotal, calcSpent, calcRemaining;
+    private Button btnCalculate;
+    private FirebaseFirestore db;
 
     private TextView textTitle;
     private TextView textCategoryFreq;
@@ -62,9 +70,9 @@ public class BudgetDetailFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_budget_detail, container, false);
 
-        FirestoreManager fm = FirestoreManager.getInstance();
-        db = fm.getDb();
-        auth = fm.getAuth();
+        budgetViewModel = new ViewModelProvider(this).get(BudgetViewModel.class);
+        expenseViewModel = new ViewModelProvider(this).get(ExpenseViewModel.class);
+        auth = FirestoreManager.getInstance().getAuth();
 
         calcTotal = v.findViewById(R.id.calc_total);
         calcSpent = v.findViewById(R.id.calc_spent);
@@ -84,7 +92,16 @@ public class BudgetDetailFragment extends Fragment {
             budgetId = getArguments().getString("budgetId");
         }
 
-        loadBudget();
+        String userId = uid();
+        
+        // Observe budget
+        budgetViewModel.getBudget(userId, budgetId).observe(getViewLifecycleOwner(), b -> {
+            if (b != null) {
+                budget = b;
+                loadExpenses();
+            }
+        });
+
         return v;
     }
 
@@ -92,38 +109,18 @@ public class BudgetDetailFragment extends Fragment {
         return auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "anonymous";
     }
 
-    private void loadBudget() {
-        db.collection("users").document(uid())
-                .collection("budgets").document(budgetId)
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    if (snapshot.exists()) {
-                        budget = snapshot.toObject(Budget.class);
-                        if (budget != null) {
-                            budget.setId(snapshot.getId());
-                            loadExpenses();
-                        }
-                    }
-                });
-    }
-
     private void loadExpenses() {
-        db.collection("expenses")
-                .whereEqualTo("userId", uid())
-                .whereEqualTo("category", budget.getCategory())
-                .get()
-                .addOnSuccessListener(snaps -> {
-                    expenses.clear();
-                    for (DocumentSnapshot d : snaps) {
-                        Expense e = d.toObject(Expense.class);
-                        if (e == null) {
-                            continue;
-                        }
-                        e.setId(d.getId());
+        expenseViewModel.getExpenses(uid()).observe(getViewLifecycleOwner(), expenseList -> {
+            expenses.clear();
+            if (expenseList != null) {
+                for (Expense e : expenseList) {
+                    if (budget.getCategory().equalsIgnoreCase(e.getCategory())) {
                         expenses.add(e);
                     }
-                    updateUI();
-                });
+                }
+            }
+            updateUI();
+        });
     }
 
     private void updateUI() {
@@ -201,16 +198,20 @@ public class BudgetDetailFragment extends Fragment {
     }
 
     private void saveBudgetAmount(double total, double spent) {
-        db.collection("users").document(uid())
-                .collection("budgets").document(budgetId)
-                .update("totalAmount", total, "spentAmount", spent)
-                .addOnSuccessListener(v -> {
-                    Toast.makeText(getContext(), "Budget updated!", Toast.LENGTH_SHORT).show();
-                    loadBudget();
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                );
+        budgetViewModel.updateBudget(uid(), budgetId, total, spent,
+            new BudgetRepository.OnCompleteListener() {
+                @Override
+                public void onSuccess() {
+                    Toast.makeText(getContext(), "Budget updated!",
+                            Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    Toast.makeText(getContext(), "Error: " + error,
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
     }
 
     private double calculateUsed(Date start, Date end) {

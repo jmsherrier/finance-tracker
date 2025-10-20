@@ -25,23 +25,24 @@ import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.R;
 import com.example.sprintproject.adapter.ExpenseAdapter;
 import com.example.sprintproject.model.Expense;
+import com.example.sprintproject.repository.ExpenseRepository;
+import com.example.sprintproject.viewmodel.ExpenseViewModel;
 import com.example.sprintproject.viewmodel.TimeViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class ExpenseLogFragment extends Fragment {
     private TimeViewModel timeViewModel;
+    private ExpenseViewModel expenseViewModel;
+    private FirebaseAuth auth;
 
     private RecyclerView recyclerView;
     private TextView emptyText;
@@ -49,8 +50,6 @@ public class ExpenseLogFragment extends Fragment {
     private FloatingActionButton fabAddExpense;
     private List<Expense> expenses = new ArrayList<>();
     private ExpenseAdapter expenseAdapter;
-    private FirebaseFirestore db;
-    private FirebaseAuth auth;
 
     // Categories for dropdown
     private final String[] categories = {
@@ -70,18 +69,8 @@ public class ExpenseLogFragment extends Fragment {
         View view = inflater.inflate(R.layout.activity_expense_log, container, false);
 
         timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
-
-        timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
-            SimpleDateFormat fmt =
-                    new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
-            Log.d("ExpenseFragment", "Global date changed to " + fmt.format(date));
-            reloadExpensesFor(date);
-        });
-        
-        // Initialize Firestore
-        FirestoreManager firestoreManager = FirestoreManager.getInstance();
-        db = firestoreManager.getDb();
-        auth = firestoreManager.getAuth();
+        expenseViewModel = new ViewModelProvider(this).get(ExpenseViewModel.class);
+        auth = FirestoreManager.getInstance().getAuth();
         
         // Initialize views
         recyclerView = view.findViewById(R.id.recycler_expenses);
@@ -94,20 +83,31 @@ public class ExpenseLogFragment extends Fragment {
         expenseAdapter = new ExpenseAdapter(expenses);
         recyclerView.setAdapter(expenseAdapter);
         
+        // Observe expenses from ViewModel
+        String userId = auth.getCurrentUser() != null 
+            ? auth.getCurrentUser().getUid() : "anonymous";
+        
+        expenseViewModel.getExpenses(userId).observe(getViewLifecycleOwner(), expenseList -> {
+            expenses.clear();
+            if (expenseList != null) {
+                expenses.addAll(expenseList);
+            }
+            expenseAdapter.updateExpenses(expenses);
+            updateUI();
+        });
+
+        timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
+            SimpleDateFormat fmt =
+                    new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+            Log.d("ExpenseFragment", "Global date changed to " + fmt.format(date));
+        });
+        
         // Setup FloatingActionButton
         fabAddExpense.setOnClickListener(v -> showAddExpenseDialog());
-        
-        // Load expenses from Firestore
-        loadExpenses();
         
         return view;
     }
 
-    private void reloadExpensesFor(Date date) {
-        // Filter expenses for the selected date
-        loadExpenses();
-    }
-    
     private void showAddExpenseDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         View dialogView = LayoutInflater.from(getContext())
@@ -247,122 +247,19 @@ public class ExpenseLogFragment extends Fragment {
         
         Expense expense = new Expense(name, amount, category, date, notes, userId);
         
-        // Save to Firestore
-        db.collection("expenses")
-            .add(expense)
-            .addOnSuccessListener(documentReference -> {
-                expense.setId(documentReference.getId());
-                expenses.add(expense);
-                expenseAdapter.updateExpenses(expenses);
-                updateUI();
+        expenseViewModel.saveExpense(expense, new ExpenseRepository.OnCompleteListener() {
+            @Override
+            public void onSuccess() {
                 Toast.makeText(getContext(), "Expense saved successfully!",
                         Toast.LENGTH_SHORT).show();
-            })
-            .addOnFailureListener(e -> {
-                Toast.makeText(getContext(), "Error saving expense: "
-                        + e.getMessage(), Toast.LENGTH_SHORT).show();
-            });
-    }
-    
-    private void loadExpenses() {
-        String userId = auth.getCurrentUser() != null
-                ? auth.getCurrentUser().getUid() : "anonymous";
-        
-        db.collection("expenses")
-            .whereEqualTo("userId", userId)
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                expenses.clear();
-                
-                // If no expenses exist, create seed expenses
-                if (queryDocumentSnapshots.isEmpty()) {
-                    createSeedExpenses(userId);
-                    return;
-                }
-                
-                for (com.google.firebase.firestore.DocumentSnapshot document
-                        : queryDocumentSnapshots.getDocuments()) {
-                    Expense expense = document.toObject(Expense.class);
-                    expense.setId(document.getId());
-                    expenses.add(expense);
-                }
-                
-                // Sort expenses by date (newest first)
-                Collections.sort(expenses, new Comparator<Expense>() {
-                    @Override
-                    public int compare(Expense e1, Expense e2) {
-                        return e2.getDate().compareTo(e1.getDate());
-                    }
-                });
-                
-                expenseAdapter.updateExpenses(expenses);
-                updateUI();
-            })
-            .addOnFailureListener(e -> {
-                Toast.makeText(getContext(),
-                        "Error loading expenses: " + e.getMessage(),
+            }
+            
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(getContext(), "Error: " + error,
                         Toast.LENGTH_SHORT).show();
-            });
-    }
-    
-    private void createSeedExpenses(String userId) {
-        Calendar calendar = Calendar.getInstance();
-        
-        // Seed Expense 1: Grocery shopping from 3 days ago
-        calendar.add(Calendar.DAY_OF_MONTH, -3);
-        Expense expense1 = new Expense(
-            "Grocery Shopping",
-            85.50,
-            "Food & Dining",
-            calendar.getTime(),
-            "Weekly groceries from supermarket",
-            userId
-        );
-        
-        // Seed Expense 2: Gas fill-up from 1 day ago
-        calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_MONTH, -1);
-        Expense expense2 = new Expense(
-            "Gas Fill-up",
-            45.00,
-            "Transportation",
-            calendar.getTime(),
-            "Regular gas at local station",
-            userId
-        );
-        
-        // Save both seed expenses to Firestore
-        db.collection("expenses").add(expense1)
-            .addOnSuccessListener(doc1 -> {
-                expense1.setId(doc1.getId());
-                expenses.add(expense1);
-                
-                db.collection("expenses").add(expense2)
-                    .addOnSuccessListener(doc2 -> {
-                        expense2.setId(doc2.getId());
-                        expenses.add(expense2);
-                        
-                        // Sort expenses by date (newest first)
-                        Collections.sort(expenses, new Comparator<Expense>() {
-                            @Override
-                            public int compare(Expense e1, Expense e2) {
-                                return e2.getDate().compareTo(e1.getDate());
-                            }
-                        });
-                        
-                        expenseAdapter.updateExpenses(expenses);
-                        updateUI();
-                        Toast.makeText(getContext(),
-                                "Welcome! Sample expenses loaded.",
-                                Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("ExpenseLog", "Error creating seed expense 2", e);
-                    });
-            })
-            .addOnFailureListener(e -> {
-                Log.e("ExpenseLog", "Error creating seed expense 1", e);
-            });
+            }
+        });
     }
     
     private void updateUI() {

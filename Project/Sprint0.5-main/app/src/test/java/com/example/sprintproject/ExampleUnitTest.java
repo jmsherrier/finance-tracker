@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-
 import java.lang.reflect.Field;
 
 /**
@@ -18,8 +17,6 @@ public class ExampleUnitTest {
     public void additionIsCorrect() {
         assertEquals(4, 2 + 2);
     }
-
-
 
     private DashboardFragment dashboard;
 
@@ -51,7 +48,7 @@ public class ExampleUnitTest {
         double expectedRemaining = totalBudget - totalSpent;
         double actualRemaining = totalBudget - totalSpent;
 
-        assertEquals(expectedRemaining ,actualRemaining, 0.001);
+        // fixed spacing around comma
+        assertEquals(expectedRemaining, actualRemaining, 0.001);
     }
-
 }

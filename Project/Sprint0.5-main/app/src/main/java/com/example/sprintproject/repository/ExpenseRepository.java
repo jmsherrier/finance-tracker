@@ -10,9 +10,6 @@ import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 public final class ExpenseRepository {
@@ -104,8 +101,6 @@ public final class ExpenseRepository {
                         expense2.setId(ref2.getId());
                         seedExpenses.add(expense2);
                         
-                        Collections.sort(seedExpenses, (e1, e2) ->
-                            e2.getDate().compareTo(e1.getDate()));
                         liveData.setValue(seedExpenses);
                     });
             });

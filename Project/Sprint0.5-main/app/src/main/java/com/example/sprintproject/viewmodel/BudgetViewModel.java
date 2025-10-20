@@ -37,6 +37,7 @@ public class BudgetViewModel extends ViewModel {
     public void updateBudget(String userId, String budgetId,
                             double totalAmount, double spentAmount,
                             BudgetRepository.OnCompleteListener listener) {
-        repository.updateBudget(userId, budgetId, totalAmount, spentAmount, listener);
+        repository.updateBudget(userId, budgetId, totalAmount,
+                               spentAmount, listener);
     }
 }

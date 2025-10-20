@@ -18,14 +18,11 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 import com.example.sprintproject.repository.BudgetRepository;
-import com.example.sprintproject.repository.ExpenseRepository;
 import com.example.sprintproject.viewmodel.BudgetViewModel;
 import com.example.sprintproject.viewmodel.ExpenseViewModel;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -47,7 +44,6 @@ public class BudgetDetailFragment extends Fragment {
 
     private TextInputEditText calcTotal, calcSpent, calcRemaining;
     private Button btnCalculate;
-    private FirebaseFirestore db;
 
     private TextView textTitle;
     private TextView textCategoryFreq;

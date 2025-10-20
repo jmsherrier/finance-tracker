@@ -30,6 +30,13 @@ loop [while adding expense details]
     deactivate System
 end
 
+opt [user wants to cancel]
+    User -> System: cancelExpense()
+    activate System
+    System --> User: return to expense list
+    deactivate System
+end
+
 User -> System: submitExpense(amount, category, description, date)
 activate System
 

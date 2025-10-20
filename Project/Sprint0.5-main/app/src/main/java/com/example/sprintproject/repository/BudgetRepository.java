@@ -71,7 +71,8 @@ public final class BudgetRepository {
         return budgetLiveData;
     }
     
-    public void saveBudget(Budget budget, String userId, OnCompleteListener listener) {
+    public void saveBudget(Budget budget, String userId,
+                          OnCompleteListener listener) {
         db.collection("users").document(userId).collection("budgets")
             .add(budget)
             .addOnSuccessListener(ref -> {

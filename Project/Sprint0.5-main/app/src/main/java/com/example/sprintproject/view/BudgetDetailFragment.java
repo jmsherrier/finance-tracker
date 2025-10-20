@@ -161,9 +161,15 @@ public class BudgetDetailFragment extends Fragment {
 
         // Count how many are filled
         int filled = 0;
-        if (!totalStr.isEmpty()) filled++;
-        if (!spentStr.isEmpty()) filled++;
-        if (!remainStr.isEmpty()) filled++;
+        if (!totalStr.isEmpty()) {
+            filled++;
+        }
+        if (!spentStr.isEmpty()) {
+            filled++;
+        }
+        if (!remainStr.isEmpty()) {
+            filled++;
+        }
 
         // Need exactly 2
         if (filled != 2) {

@@ -7,7 +7,11 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,10 +24,16 @@ import com.example.sprintproject.viewmodel.DashboardViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
 
 public class DashboardFragment extends Fragment {
-    private TextView totalSpentText, totalRemainingText, timeDisplay, selectedDateDisplay;
+    private TextView totalSpentText;
+    private TextView totalRemainingText;
+    private TextView timeDisplay;
+    private TextView selectedDateDisplay;
     private LinearLayout categoriesContainer;
     private final Handler handler = new Handler();
     private Runnable updateTimeRunnable;
@@ -43,9 +53,11 @@ public class DashboardFragment extends Fragment {
         ImageView calendarIcon = view.findViewById(R.id.calendar_icon);
         Button logoutButton = view.findViewById(R.id.logout_button);
         selectedDateDisplay = new TextView(getContext());
-        ((LinearLayout) view.findViewById(R.id.top_bar)).addView(selectedDateDisplay, 0);
+        LinearLayout topBar = view.findViewById(R.id.top_bar);
+        topBar.addView(selectedDateDisplay, 0);
 
-        dashboardViewModel = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
+        dashboardViewModel =
+                new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
         // Observe date changes
         dashboardViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
@@ -55,7 +67,9 @@ public class DashboardFragment extends Fragment {
 
         // Observe data changes
         dashboardViewModel.getDashboardData().observe(getViewLifecycleOwner(), data -> {
-            if (data == null) return;
+            if (data == null) {
+                return;
+            }
             double totalSpent = (double) data.get("totalSpent");
             double totalBudget = (double) data.get("totalBudget");
             double remaining = totalBudget - totalSpent;
@@ -84,7 +98,9 @@ public class DashboardFragment extends Fragment {
                         c.set(y, m, d);
                         dashboardViewModel.setCurrentDate(c.getTime());
                     },
-                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH),
+                    cal.get(Calendar.DAY_OF_MONTH)
             );
             dialog.show();
         });
@@ -106,7 +122,9 @@ public class DashboardFragment extends Fragment {
             Utils.clearCache(requireContext());
             requireActivity().getViewModelStore().clear();
             Intent intent = new Intent(requireContext(), LoginActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    | Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             requireActivity().finish();
             Toast.makeText(getContext(), "Logged out successfully!", Toast.LENGTH_SHORT).show();
@@ -115,4 +133,3 @@ public class DashboardFragment extends Fragment {
         return view;
     }
 }
-

@@ -66,12 +66,10 @@ public class DashboardModel {
                                     if (amt != null) totalBudget += amt;
                                 }
 
-                                // ✅ totalSpentRef.get() now works fine
                                 Map<String, Object> data = new HashMap<>();
                                 data.put("totalSpent", totalSpentRef.get());
                                 data.put("totalBudget", totalBudget);
                                 data.put("categories", categoryTotals);
-
                                 liveData.setValue(data);
                             });
                 });

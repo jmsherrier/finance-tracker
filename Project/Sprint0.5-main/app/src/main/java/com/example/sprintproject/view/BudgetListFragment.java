@@ -151,12 +151,9 @@ public class BudgetListFragment extends Fragment {
                 });
     }
 
-    private boolean validateForm(TextInputEditText editTitle,
-                                TextInputEditText editAmount,
-                                AutoCompleteTextView dropdownCategory,
-                                AutoCompleteTextView dropdownFrequency) {
-        boolean valid = true;
-                .setText(budgets.size() + " budgets");
+    private void updateUI() {
+        adapter.notifyDataSetChanged();
+        ((android.widget.TextView) textCount).setText(budgets.size() + "budgets");
 
         if (budgets.isEmpty()) {
             textEmpty.setVisibility(View.VISIBLE);

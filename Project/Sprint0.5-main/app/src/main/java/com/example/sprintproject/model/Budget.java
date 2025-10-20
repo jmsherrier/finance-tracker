@@ -6,6 +6,7 @@ import java.util.Date;
  * Represents a user budget entry stored in Firestore under users/{uid}/budgets/{id}.
  */
 public class Budget {
+
     private String id;
     private String title;
     private double totalAmount;
@@ -16,10 +17,20 @@ public class Budget {
     private String userId;
     private double spentAmount;
 
-    // Required empty constructor for Firestore
-    public Budget() { }
+    /** Required empty constructor for Firestore. */
+    public Budget() {
+    }
 
-    // Constructor used when creating a new budget
+    /**
+     * Constructor used when creating a new budget.
+     *
+     * @param title the budget title
+     * @param totalAmount the total allocated amount
+     * @param category the category of spending
+     * @param frequency "weekly" or "monthly"
+     * @param startDate the start date
+     * @param userId the user ID
+     */
     public Budget(String title, double totalAmount, String category,
                   String frequency, Date startDate, String userId) {
         this.title = title;
@@ -36,6 +47,7 @@ public class Budget {
     public String getId() {
         return id;
     }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -43,6 +55,7 @@ public class Budget {
     public String getTitle() {
         return title;
     }
+
     public void setTitle(String title) {
         this.title = title;
     }
@@ -50,6 +63,7 @@ public class Budget {
     public double getTotalAmount() {
         return totalAmount;
     }
+
     public void setTotalAmount(double totalAmount) {
         this.totalAmount = totalAmount;
     }
@@ -57,6 +71,7 @@ public class Budget {
     public String getCategory() {
         return category;
     }
+
     public void setCategory(String category) {
         this.category = category;
     }
@@ -64,6 +79,7 @@ public class Budget {
     public String getFrequency() {
         return frequency;
     }
+
     public void setFrequency(String frequency) {
         this.frequency = frequency;
     }
@@ -71,16 +87,23 @@ public class Budget {
     public Date getStartDate() {
         return startDate;
     }
+
     public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
 
-    public Date getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
     public String getUserId() {
         return userId;
     }
+
     public void setUserId(String userId) {
         this.userId = userId;
     }
@@ -88,6 +111,7 @@ public class Budget {
     public double getSpentAmount() {
         return spentAmount;
     }
+
     public void setSpentAmount(double spentAmount) {
         this.spentAmount = spentAmount;
     }
@@ -107,25 +131,25 @@ public class Budget {
         double percentage = getUtilizationPercentage();
         if (percentage >= 90) {
             return "red";
-        }
-        if (percentage >= 70) {
+        } else if (percentage >= 70) {
             return "yellow";
+        } else {
+            return "green";
         }
-        return "green";
     }
 
     @Override
     public String toString() {
-        return "Budget{" +
-                "id='" + id + '\'' +
-                ", title='" + title + '\'' +
-                ", totalAmount=" + totalAmount +
-                ", category='" + category + '\'' +
-                ", frequency='" + frequency + '\'' +
-                ", startDate=" + startDate +
-                ", userId='" + userId + '\'' +
-                ", createdAt=" + createdAt +
-                ", spentAmount=" + spentAmount +
-                '}';
+        return "Budget{"
+                + "id='" + id + '\''
+                + ", title='" + title + '\''
+                + ", totalAmount=" + totalAmount
+                + ", category='" + category + '\''
+                + ", frequency='" + frequency + '\''
+                + ", startDate=" + startDate
+                + ", userId='" + userId + '\''
+                + ", createdAt=" + createdAt
+                + ", spentAmount=" + spentAmount
+                + '}';
     }
 }

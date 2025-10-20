@@ -179,7 +179,8 @@ public class BudgetListFragment extends Fragment {
     }
 
     private boolean validateForm(TextInputEditText editTitle, TextInputEditText
-                                editAmount, AutoCompleteTextView dropdownCategory, AutoCompleteTextView dropdownFrequency) {
+                                editAmount, AutoCompleteTextView dropdownCategory,
+                                AutoCompleteTextView dropdownFrequency) {
         boolean valid = true;
 
         if (editTitle.getText() == null || editTitle.getText().toString().trim().isEmpty()) {
@@ -224,22 +225,19 @@ public class BudgetListFragment extends Fragment {
         String frequencyVal = frequency.getText().toString().trim();
         Date startDate = normalizeStart(calendar.getTime(), frequencyVal);
 
-        Budget budget = new Budget(titleVal, amountVal, categoryVal,
-                frequencyVal, startDate, userId);
+        Budget budget = new Budget(titleVal, amountVal,
+                categoryVal, frequencyVal, startDate, userId);
 
-        budgetViewModel.saveBudget(budget, userId, new BudgetRepository.OnCompleteListener() {
-            @Override
-            public void onSuccess() {
-                Toast.makeText(getContext(), "Budget saved",
-                        Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailure(String error) {
-                Toast.makeText(getContext(), "Error: " + error,
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
+        db.collection("users").document(userId).collection("budgets")
+                .add(budget)
+                .addOnSuccessListener(ref ->
+                        Toast.makeText(getContext(),
+                                "Budget saved",
+                                Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(),
+                                "Error: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show());
     }
 
     private Date normalizeStart(Date picked, String frequency) {

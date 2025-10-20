@@ -1,140 +1,45 @@
 @startuml
-title Sequence Diagram: Log Expense (MVVM Architecture)
+title System Sequence Diagram: Log Expense
 autonumber
 
 note top
-    Joseph — Sprint 2
-    Tracking how a lunch expense gets logged in the system
+    System Sequence Diagram for Expense Tracking App
+    Shows user interaction with system as a black box
 end note
 
-' MVVM Lifelines with actual project classes
-actor User
-participant ExpenseLog as "ExpenseLogFragment\n(View/Fragment)"
-participant ExpenseVM as "ExpenseViewModel\n(ViewModel)"
-participant BudgetVM as "BudgetViewModel\n(ViewModel)"
-participant ExpenseRepo as "ExpenseRepository\n(Repository)"
-participant Firestore as "FirestoreManager\n(Data Layer)"
-participant ExpenseModel as "Expense\n(Model)"
+actor "User" as User
+participant ":System" as System
 
-' === Initial Setup ===
-User -> ExpenseLog: taps "Add Expense" button
-activate ExpenseLog
-ExpenseLog -> ExpenseLog: showExpenseDialog()
-note right: A fresh dialog pops up,\nready for input
+User -> System: openAddExpense()
+activate System
+System --> User: expense form
+deactivate System
 
-' Observe current date from ViewModel
-ExpenseLog -> ExpenseVM: observeCurrentDate()
-activate ExpenseVM
-ExpenseVM -> ExpenseVM: _currentDate.value
-ExpenseVM --> ExpenseLog: LiveData<LocalDate>
-deactivate ExpenseVM
-ExpenseLog -> ExpenseLog: updateDatePicker(date)
-
-' === User Input Phase ===
-User -> ExpenseLog: fills in amount, category,\ndescription, date
-note left
-    Sarah types in her lunch details:
+note right of User
+    User fills in:
     • Amount: $45.50
     • Category: "Food"
-    • Description: "Lunch with the team"
+    • Description: "Lunch with team"
     • Date: today's date
 end note
 
-' === Validation & Save ===
-User -> ExpenseLog: presses "Save"
-activate ExpenseLog
-
-loop for each input field
-    ExpenseLog -> ExpenseLog: validateInput(field)
+loop [while adding expense details]
+    User -> System: enterExpenseDetail(field, value)
+    activate System
+    System --> User: field updated
+    deactivate System
 end
 
-alt validation fails
-    ExpenseLog -> ExpenseLog: showError("Please fill all required fields")
-    ExpenseLog --> User: displays error message
-    note right: Oops! Missing fields get\nhighlighted in red
-else validation succeeds
-    
-    ' Create expense model
-    ExpenseLog -> ExpenseModel: new Expense(amount, category,\ndescription, date, userId)
-    activate ExpenseModel
-    ExpenseModel --> ExpenseLog: expense object
-    deactivate ExpenseModel
-    
-    ' Pass to ViewModel
-    ExpenseLog -> ExpenseVM: addExpense(expense)
-    activate ExpenseVM
-    
-    ExpenseVM -> ExpenseRepo: saveExpense(expense)
-    activate ExpenseRepo
-    
-    ' Repository interacts with Firestore
-    ExpenseRepo -> Firestore: getInstance()
-    activate Firestore
-    Firestore --> ExpenseRepo: firestoreManager
-    
-    ExpenseRepo -> Firestore: addExpense(expense)
-    Firestore -> Firestore: getDb().collection("expenses").add(expenseMap)
-    
-    alt Firestore success
-        Firestore --> ExpenseRepo: Task<DocumentReference>
-        ExpenseRepo -> ExpenseRepo: updateExpenseId(documentId)
-        ExpenseRepo --> ExpenseVM: Result.Success(expense)
-        deactivate Firestore
-        deactivate ExpenseRepo
-        
-        ' Update LiveData
-        ExpenseVM -> ExpenseVM: _expenses.postValue(updatedList)
-        ExpenseVM -> ExpenseVM: _addExpenseResult.postValue(Success)
-        ExpenseVM --> ExpenseLog: LiveData<Result>
-        deactivate ExpenseVM
-        
-        ' Update UI
-        ExpenseLog -> ExpenseLog: observeAddResult()
-        ExpenseLog -> ExpenseLog: dismissDialog()
-        ExpenseLog -> ExpenseLog: showSuccess("Expense saved!")
-        ExpenseLog -> ExpenseLog: refreshExpenseList()
-        
-        ' Notify other ViewModels
-        opt update budget totals
-            ExpenseLog -> BudgetVM: notifyExpenseChanged()
-            activate BudgetVM
-            BudgetVM -> BudgetVM: recalculateTotals()
-            BudgetVM -> BudgetVM: _totalSpent.postValue(newTotal)
-            BudgetVM --> ExpenseLog: updates observers
-            deactivate BudgetVM
-            note right: Budget automatically updates\nto reflect new spending
-        end
-        
-    else Firestore failure
-        Firestore --> ExpenseRepo: Task<Exception>
-        activate Firestore
-        activate ExpenseRepo
-        ExpenseRepo --> ExpenseVM: Result.Error(exception)
-        deactivate Firestore
-        deactivate ExpenseRepo
-        activate ExpenseVM
-        ExpenseVM -> ExpenseVM: _addExpenseResult.postValue(Error)
-        ExpenseVM --> ExpenseLog: LiveData<Result.Error>
-        deactivate ExpenseVM
-        
-        ExpenseLog -> ExpenseLog: showError("Failed to save.\nPlease try again.")
-        note right: Something went wrong with\nthe network — user can retry
-    end
-    
+User -> System: submitExpense(amount, category, description, date)
+activate System
+
+alt [all fields valid]
+    System --> User: expense saved confirmation
+    System --> User: updated expense list
+else [validation fails]
+    System --> User: error message("Please fill all required fields")
 end
 
-deactivate ExpenseLog
-
-' === Final State ===
-ExpenseLog --> User: returns to expense list\nwith new expense visible
-
-note bottom
-    Architecture Overview:
-    • Fragment handles UI and user interactions
-    • ViewModel manages business logic and data state
-    • Repository coordinates data operations
-    • Firestore provides cloud persistence
-    • Model represents expense data structure
-end note
+deactivate System
 
 @enduml

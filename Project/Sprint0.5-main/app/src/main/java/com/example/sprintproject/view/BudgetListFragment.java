@@ -214,7 +214,8 @@ public class BudgetListFragment extends Fragment {
     }
 
     private boolean validateForm(TextInputEditText editTitle, TextInputEditText
-                                editAmount, AutoCompleteTextView dropdownCategory, AutoCompleteTextView dropdownFrequency) {
+                                editAmount, AutoCompleteTextView dropdownCategory,
+                                AutoCompleteTextView dropdownFrequency) {
         boolean valid = true;
 
         if (editTitle.getText() == null || editTitle.getText().toString().trim().isEmpty()) {
@@ -259,7 +260,8 @@ public class BudgetListFragment extends Fragment {
         String frequencyVal = frequency.getText().toString().trim();
         Date startDate = normalizeStart(calendar.getTime(), frequencyVal);
 
-        Budget budget = new Budget(titleVal, amountVal, categoryVal, frequencyVal, startDate, userId);
+        Budget budget = new Budget(titleVal, amountVal,
+                categoryVal, frequencyVal, startDate, userId);
 
         db.collection("users").document(userId).collection("budgets")
                 .add(budget)

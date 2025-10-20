@@ -21,6 +21,9 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.TimeViewModel;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.Timestamp;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -123,8 +126,27 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadDashboardData() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String userId = user.getUid();
         totalSpent = 0.0;
-        db.collection("expenses").get().addOnSuccessListener(querySnapshot -> {
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        Date startDate = calendar.getTime();
+
+        calendar.add(Calendar.MONTH, 1);
+        Date endDate = calendar.getTime();
+
+        db.collection("expenses").whereEqualTo("userId", userId)
+                .whereGreaterThanOrEqualTo("timestamp", new Timestamp(startDate)).whereLessThan("timestamp", new Timestamp(endDate))
+                .get().addOnSuccessListener(querySnapshot -> {
             Map<String, Double> categoryTotals = new HashMap<>();
             for (QueryDocumentSnapshot doc : querySnapshot) {
                 Double amount = doc.getDouble("amount");
@@ -140,7 +162,9 @@ public class DashboardFragment extends Fragment {
                         categoryTotals.getOrDefault(category, 0.0) + amount);
             }
             totalSpentText.setText("Total Spent This Period: $" + totalSpent);
-            db.collection("budgets").get().addOnSuccessListener(budgetSnapshot -> {
+            db.collection("budgets").whereEqualTo("userId", userId)
+                    .whereGreaterThanOrEqualTo("timestamp", new Timestamp(startDate)).whereLessThan("timestamp", new Timestamp(endDate))
+                    .get().addOnSuccessListener(budgetSnapshot -> {
                 double totalBudgetLocal = 0.0;
                 for (QueryDocumentSnapshot budgetDoc : budgetSnapshot) {
                     Double amt = budgetDoc.getDouble("amount");
@@ -161,5 +185,9 @@ public class DashboardFragment extends Fragment {
                 }
             });
         });
+    }
+    public void resetDashboardData() {
+        totalSpent = 0.0;
+        totalBudget = 0.0;
     }
 }

@@ -14,7 +14,6 @@ public class DashboardViewModel extends ViewModel {
     private final DashboardModel repository = new DashboardModel();
     private final MutableLiveData<Date> currentDate = new MutableLiveData<>(new Date());
 
-    // Expose dashboard data as LiveData that updates when date changes
     private final LiveData<Map<String, Object>> dashboardData =
             Transformations.switchMap(currentDate, repository::getDashboardData);
 
@@ -30,4 +29,3 @@ public class DashboardViewModel extends ViewModel {
         return currentDate;
     }
 }
-

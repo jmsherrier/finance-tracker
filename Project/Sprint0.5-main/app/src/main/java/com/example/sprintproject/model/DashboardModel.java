@@ -1,9 +1,10 @@
 package com.example.sprintproject.model;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -27,7 +28,6 @@ public class DashboardModel {
 
         String userId = user.getUid();
 
-        // Define month range
         Calendar cal = Calendar.getInstance();
         cal.setTime(selectedDate);
         cal.set(Calendar.DAY_OF_MONTH, 1);
@@ -35,29 +35,30 @@ public class DashboardModel {
         cal.add(Calendar.MONTH, 1);
         Date endDate = cal.getTime();
 
-        // Use AtomicReference for mutability inside lambdas
         AtomicReference<Double> totalSpentRef = new AtomicReference<>(0.0);
         Map<String, Double> categoryTotals = new HashMap<>();
 
-        db.collection("expenses").whereEqualTo("userId", userId)
-                .whereGreaterThanOrEqualTo("timestamp", new Timestamp(startDate))
-                .whereLessThan("timestamp", new Timestamp(endDate))
+        db.collection("expenses")
+                .whereEqualTo("userId", userId)
+                .whereGreaterThanOrEqualTo("timestamp", startDate)
+                .whereLessThan("timestamp", endDate)
                 .get()
                 .addOnSuccessListener(expenseSnapshot -> {
                     for (QueryDocumentSnapshot doc : expenseSnapshot) {
                         double amount = doc.getDouble("amount") != null ? doc.getDouble("amount") : 0.0;
                         String category = doc.getString("category") != null ? doc.getString("category") : "Uncategorized";
-
-                        // accumulate totals
                         totalSpentRef.set(totalSpentRef.get() + amount);
                         categoryTotals.put(category,
                                 categoryTotals.getOrDefault(category, 0.0) + amount);
                     }
 
-                    // Now fetch budget data
-                    db.collection("budgets").whereEqualTo("userId", userId)
-                            .whereGreaterThanOrEqualTo("timestamp", new Timestamp(startDate))
-                            .whereLessThan("timestamp", new Timestamp(endDate))
+                    Log.d("DashboardModel", "Fetched categories: " + categoryTotals);
+
+                    // Fetch budget data
+                    db.collection("budgets")
+                            .whereEqualTo("userId", userId)
+                            .whereGreaterThanOrEqualTo("timestamp", startDate)
+                            .whereLessThan("timestamp", endDate)
                             .get()
                             .addOnSuccessListener(budgetSnapshot -> {
                                 double totalBudget = 0.0;
@@ -69,10 +70,13 @@ public class DashboardModel {
                                 Map<String, Object> data = new HashMap<>();
                                 data.put("totalSpent", totalSpentRef.get());
                                 data.put("totalBudget", totalBudget);
-                                data.put("categories", categoryTotals);
-                                liveData.setValue(data);
-                            });
-                });
+                                data.put("categories", new HashMap<>(categoryTotals));
+
+                                liveData.postValue(data);
+                            })
+                            .addOnFailureListener(e -> Log.e("DashboardModel", "Failed to fetch budgets", e));
+                })
+                .addOnFailureListener(e -> Log.e("DashboardModel", "Failed to fetch expenses", e));
 
         return liveData;
     }

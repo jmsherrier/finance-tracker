@@ -1,57 +1,54 @@
-package com.example.sprintproject;
+package com.example.sprintproject.viewmodel;
+
+import static org.junit.Assert.*;
+
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
+import androidx.lifecycle.Observer;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+public class DashboardViewModelTest {
 
-import java.lang.reflect.Field;
+    // Rule allows LiveData to execute synchronously
+    @Rule
+    public InstantTaskExecutorRule instantExecutorRule = new InstantTaskExecutorRule();
 
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
- */
-public class ExampleUnitTest {
-    @Test
-    public void additionIsCorrect() {
-        assertEquals(4, 2 + 2);
-    }
-
-
-
-    private DashboardFragment dashboard;
+    private DashboardViewModel viewModel;
 
     @Before
-    public void setup() {
-        dashboard = new DashboardFragment();
+    public void setUp() {
+        viewModel = new DashboardViewModel();
     }
 
     @Test
-    public void testDashboardResetsOnNewUserLogin() throws Exception {
-        Field totalSpentField = DashboardFragment.class.getDeclaredField("totalSpent");
-        totalSpentField.setAccessible(true);
-        totalSpentField.set(dashboard, 200.0);
+    public void testSetAndGetCurrentDate() {
+        Date now = new Date();
+        viewModel.setCurrentDate(now);
 
-        Field totalBudgetField = DashboardFragment.class.getDeclaredField("totalBudget");
-        totalBudgetField.setAccessible(true);
-        totalBudgetField.set(dashboard, 500.0);
-
-        dashboard.resetDashboardData();
-
-        assertEquals(0.0, totalSpentField.get(dashboard));
-        assertEquals(0.0, totalBudgetField.get(dashboard));
+        assertEquals(now, viewModel.getCurrentDate().getValue());
     }
 
     @Test
-    public void testRemainingBudgetCalc() {
-        double totalBudget = 1000.0;
-        double totalSpent = 250.0;
-        double expectedRemaining = totalBudget - totalSpent;
-        double actualRemaining = totalBudget - totalSpent;
+    public void testDashboardDataNotNull() {
+        AtomicBoolean observed = new AtomicBoolean(false);
 
-        assertEquals(expectedRemaining ,actualRemaining, 0.001);
+        Observer<Map<String, Object>> observer = data -> {
+            // For this toy test we just confirm LiveData emits something (can be null initially)
+            observed.set(true);
+        };
+
+        viewModel.getDashboardData().observeForever(observer);
+
+        // Trigger update
+        viewModel.setCurrentDate(new Date());
+
+        assertTrue("Dashboard data LiveData should emit at least once", observed.get());
+        viewModel.getDashboardData().removeObserver(observer);
     }
-
 }

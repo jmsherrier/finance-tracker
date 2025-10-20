@@ -7,7 +7,11 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,8 +23,12 @@ import com.example.sprintproject.utils.Utils;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
 
 public class DashboardFragment extends Fragment {
     private TextView totalSpentText, totalRemainingText, timeDisplay, selectedDateDisplay;
@@ -42,36 +50,58 @@ public class DashboardFragment extends Fragment {
         timeDisplay = view.findViewById(R.id.time_display);
         ImageView calendarIcon = view.findViewById(R.id.calendar_icon);
         Button logoutButton = view.findViewById(R.id.logout_button);
+
         selectedDateDisplay = new TextView(getContext());
         ((LinearLayout) view.findViewById(R.id.top_bar)).addView(selectedDateDisplay, 0);
 
         dashboardViewModel = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
-        // Observe date changes
+        if (dashboardViewModel.getCurrentDate().getValue() == null) {
+            dashboardViewModel.setCurrentDate(new Date());
+        }
+
+
         dashboardViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
             SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
             selectedDateDisplay.setText("Date: " + fmt.format(date));
         });
 
-        // Observe data changes
         dashboardViewModel.getDashboardData().observe(getViewLifecycleOwner(), data -> {
             if (data == null) return;
-            double totalSpent = (double) data.get("totalSpent");
-            double totalBudget = (double) data.get("totalBudget");
+
+            NumberFormat currency = NumberFormat.getCurrencyInstance(Locale.getDefault());
+
+            Object spentObj = data.get("totalSpent");
+            Object budgetObj = data.get("totalBudget");
+            double totalSpent = spentObj instanceof Number ? ((Number) spentObj).doubleValue() : 0.0;
+            double totalBudget = budgetObj instanceof Number ? ((Number) budgetObj).doubleValue() : 0.0;
             double remaining = totalBudget - totalSpent;
 
-            totalSpentText.setText("Total Spent This Period: $" + totalSpent);
-            totalRemainingText.setText("Remaining Budget: $" + remaining);
+            totalSpentText.setText("Total Spent This Period: " + currency.format(totalSpent));
+            totalRemainingText.setText("Remaining Budget: " + currency.format(remaining));
 
             categoriesContainer.removeAllViews();
+
+            @SuppressWarnings("unchecked")
             Map<String, Double> categoryTotals = (Map<String, Double>) data.get("categories");
-            for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
-                TextView tv = new TextView(getContext());
-                tv.setText(entry.getKey() + ": $" + entry.getValue());
-                tv.setTextSize(16);
-                tv.setPadding(0, 4, 0, 4);
-                categoriesContainer.addView(tv);
+
+            if (categoryTotals == null || categoryTotals.isEmpty()) {
+                TextView empty = new TextView(getContext());
+                empty.setText("No categories found for this period.");
+                empty.setTextSize(16);
+                categoriesContainer.addView(empty);
+                return;
             }
+
+            categoryTotals.entrySet().stream()
+                    .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
+                    .forEach(entry -> {
+                        TextView tv = new TextView(getContext());
+                        tv.setText(entry.getKey() + ": " + currency.format(entry.getValue()));
+                        tv.setTextSize(16);
+                        tv.setPadding(0, 4, 0, 4);
+                        categoriesContainer.addView(tv);
+                    });
         });
 
         // Calendar Picker
@@ -81,10 +111,13 @@ public class DashboardFragment extends Fragment {
                     getContext(),
                     (view1, y, m, d) -> {
                         Calendar c = Calendar.getInstance();
-                        c.set(y, m, d);
+                        c.set(y, m, d, 0, 0, 0);
+                        c.set(Calendar.MILLISECOND, 0);
                         dashboardViewModel.setCurrentDate(c.getTime());
                     },
-                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH),
+                    cal.get(Calendar.DAY_OF_MONTH)
             );
             dialog.show();
         });
@@ -115,4 +148,3 @@ public class DashboardFragment extends Fragment {
         return view;
     }
 }
-

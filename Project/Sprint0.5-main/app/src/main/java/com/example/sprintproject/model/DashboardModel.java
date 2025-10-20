@@ -39,23 +39,29 @@ public class DashboardModel {
         AtomicReference<Double> totalSpentRef = new AtomicReference<>(0.0);
         Map<String, Double> categoryTotals = new HashMap<>();
 
-        db.collection("expenses").whereEqualTo("userId", userId)
+        db.collection("expenses")
+                .whereEqualTo("userId", userId)
                 .whereGreaterThanOrEqualTo("timestamp", new Timestamp(startDate))
                 .whereLessThan("timestamp", new Timestamp(endDate))
                 .get()
                 .addOnSuccessListener(expenseSnapshot -> {
                     for (QueryDocumentSnapshot doc : expenseSnapshot) {
-                        double amount = doc.getDouble("amount") != null ? doc.getDouble("amount") : 0.0;
-                        String category = doc.getString("category") != null ? doc.getString("category") : "Uncategorized";
+                        Double amtField = doc.getDouble("amount");
+                        double amount = (amtField != null) ? amtField : 0.0;
+                        String category = doc.getString("category") != null
+                                ? doc.getString("category")
+                                : "Uncategorized";
 
-                        // accumulate totals
                         totalSpentRef.set(totalSpentRef.get() + amount);
-                        categoryTotals.put(category,
-                                categoryTotals.getOrDefault(category, 0.0) + amount);
+                        categoryTotals.put(
+                                category,
+                                categoryTotals.getOrDefault(category, 0.0) + amount
+                        );
                     }
 
                     // Now fetch budget data
-                    db.collection("budgets").whereEqualTo("userId", userId)
+                    db.collection("budgets")
+                            .whereEqualTo("userId", userId)
                             .whereGreaterThanOrEqualTo("timestamp", new Timestamp(startDate))
                             .whereLessThan("timestamp", new Timestamp(endDate))
                             .get()
@@ -63,7 +69,9 @@ public class DashboardModel {
                                 double totalBudget = 0.0;
                                 for (QueryDocumentSnapshot budgetDoc : budgetSnapshot) {
                                     Double amt = budgetDoc.getDouble("amount");
-                                    if (amt != null) totalBudget += amt;
+                                    if (amt != null) {
+                                        totalBudget += amt;
+                                    }
                                 }
 
                                 Map<String, Object> data = new HashMap<>();

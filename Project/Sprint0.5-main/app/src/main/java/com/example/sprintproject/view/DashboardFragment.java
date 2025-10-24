@@ -36,6 +36,7 @@ public class DashboardFragment extends Fragment {
     private final Handler handler = new Handler();
     private Runnable updateTimeRunnable;
     private DashboardViewModel dashboardViewModel;
+    private Date selectedDate = new Date();  // keep track of the user-chosen date
 
     @Nullable
     @Override
@@ -44,6 +45,7 @@ public class DashboardFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
 
+        // Initialize views
         totalSpentText = view.findViewById(R.id.text_total_spent);
         totalRemainingText = view.findViewById(R.id.text_total_remaining);
         categoriesContainer = view.findViewById(R.id.categories_container);
@@ -51,33 +53,28 @@ public class DashboardFragment extends Fragment {
         ImageView calendarIcon = view.findViewById(R.id.calendar_icon);
         Button logoutButton = view.findViewById(R.id.logout_button);
 
+        // Add selected date display to the top bar
         selectedDateDisplay = new TextView(getContext());
         ((LinearLayout) view.findViewById(R.id.top_bar)).addView(selectedDateDisplay, 0);
+        updateSelectedDateText(); // show current date at start
 
         dashboardViewModel = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
-        if (dashboardViewModel.getCurrentDate().getValue() == null) {
-            dashboardViewModel.setCurrentDate(new Date());
-        }
-
-
-        dashboardViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
-            SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
-            selectedDateDisplay.setText("Date: " + fmt.format(date));
-        });
-
+        // Observe dashboard data (no date filter)
         dashboardViewModel.getDashboardData().observe(getViewLifecycleOwner(), data -> {
             if (data == null) return;
 
             NumberFormat currency = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
-            Object spentObj = data.get("totalSpent");
-            Object budgetObj = data.get("totalBudget");
-            double totalSpent = spentObj instanceof Number ? ((Number) spentObj).doubleValue() : 0.0;
-            double totalBudget = budgetObj instanceof Number ? ((Number) budgetObj).doubleValue() : 0.0;
+            double totalSpent = data.get("totalSpent") instanceof Number
+                    ? ((Number) data.get("totalSpent")).doubleValue() : 0.0;
+
+            double totalBudget = data.get("totalBudget") instanceof Number
+                    ? ((Number) data.get("totalBudget")).doubleValue() : 0.0;
+
             double remaining = totalBudget - totalSpent;
 
-            totalSpentText.setText("Total Spent This Period: " + currency.format(totalSpent));
+            totalSpentText.setText("Total Spent: " + currency.format(totalSpent));
             totalRemainingText.setText("Remaining Budget: " + currency.format(remaining));
 
             categoriesContainer.removeAllViews();
@@ -87,7 +84,7 @@ public class DashboardFragment extends Fragment {
 
             if (categoryTotals == null || categoryTotals.isEmpty()) {
                 TextView empty = new TextView(getContext());
-                empty.setText("No categories found for this period.");
+                empty.setText("No categories found.");
                 empty.setTextSize(16);
                 categoriesContainer.addView(empty);
                 return;
@@ -104,16 +101,21 @@ public class DashboardFragment extends Fragment {
                     });
         });
 
-        // Calendar Picker
+        // Calendar
         calendarIcon.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();
+            cal.setTime(selectedDate);
             DatePickerDialog dialog = new DatePickerDialog(
                     getContext(),
                     (view1, y, m, d) -> {
                         Calendar c = Calendar.getInstance();
                         c.set(y, m, d, 0, 0, 0);
                         c.set(Calendar.MILLISECOND, 0);
-                        dashboardViewModel.setCurrentDate(c.getTime());
+                        selectedDate = c.getTime();
+                        updateSelectedDateText();
+                        Toast.makeText(getContext(), "Date selected: " +
+                                new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+                                        .format(selectedDate), Toast.LENGTH_SHORT).show();
                     },
                     cal.get(Calendar.YEAR),
                     cal.get(Calendar.MONTH),
@@ -122,7 +124,7 @@ public class DashboardFragment extends Fragment {
             dialog.show();
         });
 
-        // Timer
+        // Clock timer
         updateTimeRunnable = new Runnable() {
             @Override
             public void run() {
@@ -133,7 +135,7 @@ public class DashboardFragment extends Fragment {
         };
         handler.post(updateTimeRunnable);
 
-        // Logout
+        // Logout logic
         logoutButton.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
             Utils.clearCache(requireContext());
@@ -146,5 +148,16 @@ public class DashboardFragment extends Fragment {
         });
 
         return view;
+    }
+
+    private void updateSelectedDateText() {
+        SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+        selectedDateDisplay.setText("Date: " + fmt.format(selectedDate));
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        handler.removeCallbacks(updateTimeRunnable);
     }
 }

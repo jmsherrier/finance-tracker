@@ -22,6 +22,10 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.utils.Utils;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
 import com.google.firebase.auth.FirebaseAuth;
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.PieData;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -39,6 +43,9 @@ public class DashboardFragment extends Fragment {
     private Runnable updateTimeRunnable;
     private DashboardViewModel dashboardViewModel;
 
+    private PieChart pieChart;
+    private BarChart barChart;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -55,6 +62,14 @@ public class DashboardFragment extends Fragment {
         selectedDateDisplay = new TextView(getContext());
         LinearLayout topBar = view.findViewById(R.id.top_bar);
         topBar.addView(selectedDateDisplay, 0);
+
+        pieChart = view.findViewById(R.id.pieChart);
+        barChart = view.findViewById(R.id.barChart);
+        pieChart.getDescription().setEnabled(false);
+        pieChart.setUsePercentValues(false);
+        pieChart.setCenterText("Spending Breakdown");
+        barChart.getDescription().setEnabled(false);
+        barChart.setFitBars(true);
 
         dashboardViewModel =
                 new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
@@ -131,5 +146,21 @@ public class DashboardFragment extends Fragment {
         });
 
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        dashboardViewModel.getDashboardData().observe(getViewLifecycleOwner(), data -> {
+            dashboardViewModel.updateCharts(data);
+        });
+        dashboardViewModel.getBarData().observe(getViewLifecycleOwner(), barData -> {
+            barChart.setData(barData);
+            barChart.invalidate();
+        });
+        dashboardViewModel.getPieData().observe(getViewLifecycleOwner(), pieData -> {
+            pieChart.setData(pieData);
+            pieChart.invalidate();
+        });
     }
 }

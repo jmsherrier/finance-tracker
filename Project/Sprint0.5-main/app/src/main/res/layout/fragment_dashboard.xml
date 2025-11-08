@@ -13,19 +13,21 @@
         android:layout_height="wrap_content">
 
         <!-- Dashboard Title -->
+
+        <!-- Top Bar: calendar, clock, and logout -->
+
         <TextView
             android:id="@+id/dashboard_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Dashboard"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
             android:gravity="center"
+            android:paddingTop="8dp"
             android:paddingBottom="8dp"
-            android:paddingTop="8dp"/>
+            android:text="Dashboard"
+            android:textColor="@color/black"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
-        <!-- Top Bar: calendar, clock, and logout -->
         <LinearLayout
             android:id="@+id/top_bar"
             android:orientation="horizontal"
@@ -99,6 +101,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChart"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="16dp" />
+
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/barChart"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="16dp" />
 
     </LinearLayout>
 </ScrollView>

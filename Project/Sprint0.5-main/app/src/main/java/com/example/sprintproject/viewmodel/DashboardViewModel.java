@@ -109,6 +109,10 @@ public class DashboardViewModel extends ViewModel {
         this.latestBarLabels = budgetLabels;
     }
 
-}
+    //included this method so you can call resetDashboardData() in DashboardFragment.java so that our unit test can run
+    public void clearData() {
+        barDataLive.setValue(null);
+        pieDataLive.setValue(null);
+    }
 
 }

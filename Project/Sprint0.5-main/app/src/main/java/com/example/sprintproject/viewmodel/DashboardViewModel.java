@@ -30,4 +30,3 @@ public class DashboardViewModel extends ViewModel {
         return currentDate;
     }
 }
-

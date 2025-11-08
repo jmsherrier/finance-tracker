@@ -163,4 +163,23 @@ public class DashboardFragment extends Fragment {
             pieChart.invalidate();
         });
     }
+
+    /*
+    Included
+    this
+    method
+    so
+    that
+    our
+    unit
+    test
+    can
+    run.
+     */
+    public void resetDashboardData() {
+        // Example: clear or reset the data in the ViewModel
+        if (dashboardViewModel != null) {
+            dashboardViewModel.clearData();
+        }
+    }
 }

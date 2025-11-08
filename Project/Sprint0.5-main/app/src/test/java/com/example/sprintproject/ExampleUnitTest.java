@@ -7,6 +7,11 @@ import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Field;
 
+//this import wasn't added for some reason
+//adding this import allows us to run the application without any errors
+import com.example.sprintproject.view.DashboardFragment;
+
+
 /**
  * Example local unit test, which will execute on the development machine (host).
  *

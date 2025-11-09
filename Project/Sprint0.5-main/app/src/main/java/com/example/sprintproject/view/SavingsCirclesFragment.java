@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.adapter.CircleAdapter;
+import com.example.sprintproject.adapter.InvitationAdapter;
+import com.example.sprintproject.model.CircleInvitation;
 import com.example.sprintproject.model.SavingsCircle;
 import com.example.sprintproject.viewmodel.SavingsCircleViewModel;
 import com.example.sprintproject.viewmodel.TimeViewModel;
@@ -30,9 +32,15 @@ public class SavingsCirclesFragment extends Fragment {
     private TimeViewModel timeViewModel;
     
     private RecyclerView recyclerViewCircles;
+    private RecyclerView recyclerViewInvitations;
+    private View emptyCard;
+    private View invitationsSection;
     private TextView textEmpty;
+    private TextView circleCount;
+    private TextView textCirclesSectionTitle;
     private FloatingActionButton fabCreateCircle;
     private CircleAdapter circleAdapter;
+    private InvitationAdapter invitationAdapter;
 
     public SavingsCirclesFragment() {
         // Required empty public constructor
@@ -51,13 +59,34 @@ public class SavingsCirclesFragment extends Fragment {
 
         // Initialize UI components
         recyclerViewCircles = view.findViewById(R.id.recycler_circles);
+        recyclerViewInvitations = view.findViewById(R.id.recycler_invitations);
+        emptyCard = view.findViewById(R.id.empty_card);
+        invitationsSection = view.findViewById(R.id.invitations_section);
         textEmpty = view.findViewById(R.id.text_empty_circles);
+        circleCount = view.findViewById(R.id.circle_count);
+        textCirclesSectionTitle = view.findViewById(R.id.text_circles_section_title);
         fabCreateCircle = view.findViewById(R.id.fab_create_circle);
 
-        // Setup RecyclerView
+        // Setup Circles RecyclerView
         recyclerViewCircles.setLayoutManager(new LinearLayoutManager(getContext()));
         circleAdapter = new CircleAdapter(new ArrayList<>(), this::onCircleClick);
         recyclerViewCircles.setAdapter(circleAdapter);
+
+        // Setup Invitations RecyclerView
+        recyclerViewInvitations.setLayoutManager(new LinearLayoutManager(getContext()));
+        invitationAdapter = new InvitationAdapter(new ArrayList<>(), 
+            new InvitationAdapter.OnInvitationActionListener() {
+                @Override
+                public void onAccept(String invitationId) {
+                    viewModel.acceptInvitation(invitationId);
+                }
+
+                @Override
+                public void onDecline(String invitationId) {
+                    viewModel.declineInvitation(invitationId);
+                }
+            });
+        recyclerViewInvitations.setAdapter(invitationAdapter);
 
         // Setup FAB
         fabCreateCircle.setOnClickListener(v -> showCreateCircleDialog());
@@ -101,21 +130,30 @@ public class SavingsCirclesFragment extends Fragment {
 
         // Observe pending invitations
         viewModel.getPendingInvitations().observe(getViewLifecycleOwner(), invitations -> {
-            if (invitations != null && !invitations.isEmpty()) {
-                // Show invitation notification or handle invitations
-                // For now, just reload circles
-                viewModel.loadUserCircles();
-            }
+            updateInvitationsList(invitations);
         });
+    }
+
+    private void updateInvitationsList(List<CircleInvitation> invitations) {
+        if (invitations != null && !invitations.isEmpty()) {
+            invitationsSection.setVisibility(View.VISIBLE);
+            invitationAdapter.updateInvitations(invitations);
+        } else {
+            invitationsSection.setVisibility(View.GONE);
+        }
     }
 
     private void updateCirclesList(List<SavingsCircle> circles) {
         if (circles == null || circles.isEmpty()) {
             recyclerViewCircles.setVisibility(View.GONE);
-            textEmpty.setVisibility(View.VISIBLE);
+            textCirclesSectionTitle.setVisibility(View.GONE);
+            emptyCard.setVisibility(View.VISIBLE);
+            circleCount.setText("0 circles");
         } else {
             recyclerViewCircles.setVisibility(View.VISIBLE);
-            textEmpty.setVisibility(View.GONE);
+            textCirclesSectionTitle.setVisibility(View.VISIBLE);
+            emptyCard.setVisibility(View.GONE);
+            circleCount.setText(circles.size() + " circle" + (circles.size() == 1 ? "" : "s"));
             circleAdapter.updateCircles(circles);
             
             // Load progress for each circle
@@ -126,8 +164,21 @@ public class SavingsCirclesFragment extends Fragment {
     }
 
     private void loadCircleProgress(String circleId) {
-        // This will be handled by the detail view, but we can preload here
-        // For now, just update the adapter when progress changes
+        // Load progress for this circle through ViewModel
+        viewModel.calculateCircleProgress(circleId, 
+            new com.example.sprintproject.repository.SavingsCircleRepository.RepositoryCallback<Double>() {
+                @Override
+                public void onSuccess(Double result) {
+                    // Update adapter with progress
+                    circleAdapter.updateProgress(circleId, result);
+                }
+
+                @Override
+                public void onError(String error) {
+                    // If error, just show 0 progress
+                    circleAdapter.updateProgress(circleId, 0.0);
+                }
+            });
     }
 
     private void onCircleClick(SavingsCircle circle) {

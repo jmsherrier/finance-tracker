@@ -284,6 +284,7 @@ public class SavingsCircleTest {
         // Over 100% progress
         member.setTotalContribution(1500.0);
         assertEquals(150.0, member.getContributionPercentage(1000.0), 0.01);
+    }
 
     /**
      * Test 11: SavingsCircle isComplete method.
@@ -328,9 +329,27 @@ public class SavingsCircleTest {
 
     /**
      * Test 13: CircleMember isActive method.
+     * This method is different
+     * from the other testCircleMEmberIsActive
+     * because it tests to see if the user is
+     * within a
+     * set amount range
+     * of dates
+     * that are valid
+     * to be tested
+     * by the app
+     * and this unit
+     * test.
+     * It creates a new circle member
+     * with specific rules
+     * and asserts that
+     * they are within
+     * the active date range.
+     * Creates also an inactive one that should
+     * be considered non active.
      */
     @Test
-    public void testCircleMemberIsActive() {
+    public void testCircleMemberIsActiveRange() {
         CircleMember activeMember = new CircleMember(
             "user123", "member@test.com", "circle123",
             "member", today, nextWeek

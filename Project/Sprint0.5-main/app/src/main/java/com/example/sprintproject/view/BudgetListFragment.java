@@ -21,9 +21,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.R;
-import com.example.sprintproject.adapter.BudgetAdapter;
+import com.example.sprintproject.adapter.UnifiedBudgetAdapter;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
+import com.example.sprintproject.model.SavingsCircle;
+import com.example.sprintproject.viewmodel.SavingsCircleViewModel;
 import com.example.sprintproject.viewmodel.TimeViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -44,6 +46,7 @@ import java.util.Locale;
  */
 public class BudgetListFragment extends Fragment {
     private TimeViewModel timeViewModel;
+    private SavingsCircleViewModel savingsCircleViewModel;
 
     private RecyclerView recyclerBudgets;
     private FloatingActionButton fabAddBudget;
@@ -53,8 +56,9 @@ public class BudgetListFragment extends Fragment {
     private FirebaseAuth auth;
 
     private List<Budget> budgets = new ArrayList<>();
+    private List<SavingsCircle> circles = new ArrayList<>();
     private List<Expense> expenses = new ArrayList<>();
-    private BudgetAdapter adapter;
+    private UnifiedBudgetAdapter adapter;
 
     private final String[] categories = {
         "Food & Dining", "Transportation", "Shopping", "Entertainment",
@@ -73,6 +77,7 @@ public class BudgetListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_budget_list, container, false);
 
         timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
+        savingsCircleViewModel = new ViewModelProvider(requireActivity()).get(SavingsCircleViewModel.class);
 
         timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
             SimpleDateFormat fmt =
@@ -91,13 +96,28 @@ public class BudgetListFragment extends Fragment {
         textCount = view.findViewById(R.id.budget_count);
 
         recyclerBudgets.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new BudgetAdapter(budgets, expenses, this::openBudgetDetails);
+        adapter = new UnifiedBudgetAdapter(budgets, circles, expenses, 
+            new UnifiedBudgetAdapter.OnItemClickListener() {
+                @Override
+                public void onBudgetClick(Budget budget) {
+                    openBudgetDetails(budget);
+                }
+
+                @Override
+                public void onCircleClick(SavingsCircle circle) {
+                    openCircleDetails(circle);
+                }
+            });
         recyclerBudgets.setAdapter(adapter);
 
         fabAddBudget.setOnClickListener(v -> showAddBudgetDialog());
 
+        // Observe savings circles
+        observeSavingsCircles();
+
         loadBudgets();
         loadExpenses();
+        loadSavingsCircles();
 
         return view;
     }
@@ -146,16 +166,32 @@ public class BudgetListFragment extends Fragment {
                         }
                         ex.setId(doc.getId());
                         expenses.add(ex);
-                    }
-                    adapter.notifyDataSetChanged();
-                });
+                }
+                adapter.updateExpenses(expenses);
+            });
+    }
+
+    private void observeSavingsCircles() {
+        savingsCircleViewModel.getCircles().observe(getViewLifecycleOwner(), circlesList -> {
+            if (circlesList != null) {
+                circles = circlesList;
+                adapter.updateCircles(circles);
+                updateUI();
+            }
+        });
+    }
+
+    private void loadSavingsCircles() {
+        savingsCircleViewModel.loadUserCircles();
     }
 
     private void updateUI() {
-        adapter.notifyDataSetChanged();
-        ((android.widget.TextView) textCount).setText(budgets.size() + "budgets");
+        adapter.updateBudgets(budgets);
+        int totalItems = budgets.size() + circles.size();
+        ((android.widget.TextView) textCount).setText(totalItems + " " + 
+            (totalItems == 1 ? "goal" : "goals"));
 
-        if (budgets.isEmpty()) {
+        if (budgets.isEmpty() && circles.isEmpty()) {
             textEmpty.setVisibility(View.VISIBLE);
             recyclerBudgets.setVisibility(View.GONE);
         } else {
@@ -291,11 +327,22 @@ public class BudgetListFragment extends Fragment {
     }
 
     private void openBudgetDetails(Budget budget) {
-        // Navigate to detail fragment
+        // Navigate to budget detail fragment
         BudgetDetailFragment fragment = new BudgetDetailFragment();
         Bundle args = new Bundle();
         args.putString("budgetId", budget.getId());
         fragment.setArguments(args);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void openCircleDetails(SavingsCircle circle) {
+        // Navigate to circle detail fragment
+        CircleDetailFragment fragment = CircleDetailFragment.newInstance(circle.getId());
 
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()

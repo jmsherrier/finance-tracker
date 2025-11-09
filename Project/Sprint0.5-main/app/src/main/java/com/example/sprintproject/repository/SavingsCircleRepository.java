@@ -12,7 +12,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
+
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -23,13 +23,15 @@ import java.util.List;
  * Singleton repository for managing Savings Circle data in Firestore.
  * All Firestore operations are mediated through this repository.
  */
-public class SavingsCircleRepository {
+public final class SavingsCircleRepository {
     private static SavingsCircleRepository instance;
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
 
     /**
      * Callback interface for repository operations.
+     *
+     * @param <T> the type of result expected when the operation succeeds
      */
     public interface RepositoryCallback<T> {
         void onSuccess(T result);
@@ -44,6 +46,8 @@ public class SavingsCircleRepository {
 
     /**
      * Get singleton instance.
+     *
+     * @return the class instance.
      */
     public static synchronized SavingsCircleRepository getInstance() {
         if (instance == null) {
@@ -74,9 +78,7 @@ public class SavingsCircleRepository {
 
     // ==================== Circle CRUD Operations ====================
 
-    /**
-     * Create a new savings circle.
-     */
+    // Create a new savings circle.
     public void createCircle(SavingsCircle circle, RepositoryCallback<SavingsCircle> callback) {
         db.collection("savingsCircles")
             .add(circle)
@@ -110,12 +112,18 @@ public class SavingsCircleRepository {
                     }
                 });
             })
-            .addOnFailureListener(e -> callback.onError("Error creating circle: " + e.getMessage()));
+            .addOnFailureListener(
+                    e -> callback.onError("Error creating circle: " + e.getMessage())
+            );
     }
 
     /**
      * Load all circles where the current user is a member.
-     * Alternative approach: Query all circles and check membership (avoids collectionGroup index requirement).
+     * Alternative approach: Query all circles and check membership
+     * (avoids collectionGroup index requirement).
+     *
+     * @param userId   the ID of the current user whose circles to load
+     * @param callback the callback to handle success or error results
      */
     public void loadUserCircles(String userId, RepositoryCallback<List<SavingsCircle>> callback) {
         // Query all savings circles
@@ -183,11 +191,16 @@ public class SavingsCircleRepository {
                         });
                 }
             })
-            .addOnFailureListener(e -> callback.onError("Error loading circles: " + e.getMessage()));
+            .addOnFailureListener(
+                    e -> callback.onError("Error loading circles: " + e.getMessage())
+            );
     }
 
     /**
      * Load a specific circle by ID.
+     *
+     * @param circleId   the ID of the current circles to load
+     * @param callback the callback to handle success or error results
      */
     public void loadCircle(String circleId, RepositoryCallback<SavingsCircle> callback) {
         db.collection("savingsCircles")
@@ -206,25 +219,25 @@ public class SavingsCircleRepository {
                     callback.onError("Circle not found");
                 }
             })
-            .addOnFailureListener(e -> callback.onError("Error loading circle: " + e.getMessage()));
+            .addOnFailureListener(
+                    e -> callback.onError("Error loading circle: " + e.getMessage())
+            );
     }
 
-    /**
-     * Update a circle.
-     */
+    // Update a circle.
     public void updateCircle(SavingsCircle circle, RepositoryCallback<Void> callback) {
         db.collection("savingsCircles")
             .document(circle.getId())
             .set(circle)
             .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-            .addOnFailureListener(e -> callback.onError("Error updating circle: " + e.getMessage()));
+            .addOnFailureListener(
+                    e -> callback.onError("Error updating circle: " + e.getMessage())
+            );
     }
 
     // ==================== Member Management ====================
 
-    /**
-     * Add a member to a circle.
-     */
+    // Add a member to a circle.
     public void addMember(String circleId, CircleMember member, RepositoryCallback<Void> callback) {
         db.collection("savingsCircles")
             .document(circleId)
@@ -232,7 +245,9 @@ public class SavingsCircleRepository {
             .document(member.getUserId())
             .set(member)
             .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-            .addOnFailureListener(e -> callback.onError("Error adding member: " + e.getMessage()));
+            .addOnFailureListener(
+                    e -> callback.onError("Error adding member: " + e.getMessage())
+            );
     }
 
     /**
@@ -253,7 +268,9 @@ public class SavingsCircleRepository {
                 }
                 callback.onSuccess(members);
             })
-            .addOnFailureListener(e -> callback.onError("Error loading members: " + e.getMessage()));
+            .addOnFailureListener(
+                    e -> callback.onError("Error loading members: " + e.getMessage())
+            );
     }
 
     /**

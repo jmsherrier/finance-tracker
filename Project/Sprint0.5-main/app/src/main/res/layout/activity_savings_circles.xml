@@ -10,7 +10,7 @@
 
     <!-- Header Bar -->
     <LinearLayout
-        android:id="@+id/chatbot_header"
+        android:id="@+id/header"
         android:layout_width="0dp"
         android:layout_height="70dp"
         android:background="#112244"
@@ -27,107 +27,48 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Savings Circle"
+            android:text="Savings Circles"
             android:textColor="@android:color/white"
             android:textSize="26sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Scrollable Content -->
-    <ScrollView
-        android:id="@+id/scrollView"
+    <!-- RecyclerView for Circles -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_circles"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/chatbot_header"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/header"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:padding="16dp">
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="8dp">
+    <!-- Empty State -->
+    <TextView
+        android:id="@+id/text_empty_circles"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="No savings circles yet.\nTap + to create one!"
+        android:textColor="#999999"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-            <!-- Group Creation Fields -->
-            <EditText
-                android:id="@+id/etGroupName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Group Name"
-                android:inputType="text"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/etCreatorEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Creator Email"
-                android:inputType="textEmailAddress"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/etChallengeTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Challenge Title"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/etGoalAmount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Goal Amount"
-                android:inputType="numberDecimal"
-                android:layout_marginBottom="8dp" />
-
-            <Spinner
-                android:id="@+id/spFrequency"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/etNotes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Notes (optional)"
-                android:layout_marginBottom="12dp" />
-
-            <Button
-                android:id="@+id/btnCreateGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Create Group"
-                android:backgroundTint="#112244"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="16dp" />
-
-            <!-- Invitations -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#cccccc"
-                android:layout_marginBottom="16dp" />
-
-            <EditText
-                android:id="@+id/etInviteEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Invite Member Email"
-                android:inputType="textEmailAddress"
-                android:layout_marginBottom="8dp" />
-
-            <Button
-                android:id="@+id/btnSendInvite"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Send Invite"
-                android:backgroundTint="#112244"
-                android:textColor="@android:color/white" />
-
-        </LinearLayout>
-    </ScrollView>
+    <!-- FAB for Creating Circle -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_create_circle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_input_add"
+        app:tint="@android:color/white"
+        app:backgroundTint="#112244"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

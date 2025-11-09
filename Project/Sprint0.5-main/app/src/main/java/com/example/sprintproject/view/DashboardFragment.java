@@ -69,6 +69,8 @@ public class DashboardFragment extends Fragment {
         pieChart.setUsePercentValues(false);
         pieChart.setCenterText("Spending Breakdown");
         barChart.getDescription().setEnabled(false);
+        pieChart.setHoleRadius(40f);
+        pieChart.setTransparentCircleRadius(45f);
         barChart.setFitBars(true);
 
         dashboardViewModel =

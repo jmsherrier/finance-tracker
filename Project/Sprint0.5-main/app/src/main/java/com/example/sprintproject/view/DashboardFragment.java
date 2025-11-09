@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,11 +22,10 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.sprintproject.R;
 import com.example.sprintproject.utils.Utils;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
-import com.google.firebase.auth.FirebaseAuth;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.data.BarData;
-import com.github.mikephil.charting.data.PieData;
+
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -34,82 +34,77 @@ import java.util.Locale;
 import java.util.Map;
 
 public class DashboardFragment extends Fragment {
+
     private TextView totalSpentText;
     private TextView totalRemainingText;
     private TextView timeDisplay;
     private TextView selectedDateDisplay;
     private LinearLayout categoriesContainer;
-    private final Handler handler = new Handler();
-    private Runnable updateTimeRunnable;
-    private DashboardViewModel dashboardViewModel;
-
     private PieChart pieChart;
     private BarChart barChart;
+
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable updateTimeRunnable;
+
+    private DashboardViewModel dashboardViewModel;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
 
+        // Views
         totalSpentText = view.findViewById(R.id.text_total_spent);
         totalRemainingText = view.findViewById(R.id.text_total_remaining);
         categoriesContainer = view.findViewById(R.id.categories_container);
         timeDisplay = view.findViewById(R.id.time_display);
         ImageView calendarIcon = view.findViewById(R.id.calendar_icon);
         Button logoutButton = view.findViewById(R.id.logout_button);
-        selectedDateDisplay = new TextView(getContext());
+
+        // Add "Date: ..." TextView into top bar (index 0 so it shows on the left)
         LinearLayout topBar = view.findViewById(R.id.top_bar);
+        selectedDateDisplay = new TextView(requireContext());
         topBar.addView(selectedDateDisplay, 0);
 
+        // Charts
         pieChart = view.findViewById(R.id.pieChart);
         barChart = view.findViewById(R.id.barChart);
+
         pieChart.getDescription().setEnabled(false);
         pieChart.setUsePercentValues(false);
         pieChart.setCenterText("Spending Breakdown");
-        barChart.getDescription().setEnabled(false);
         pieChart.setHoleRadius(40f);
         pieChart.setTransparentCircleRadius(45f);
+
+        barChart.getDescription().setEnabled(false);
         barChart.setFitBars(true);
 
+        // ViewModel
         dashboardViewModel =
                 new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
-        // Observe date changes
-        dashboardViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
-            SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
-            selectedDateDisplay.setText("Date: " + fmt.format(date));
-        });
+        // Observe date label
+        dashboardViewModel.getCurrentDate().observe(
+                getViewLifecycleOwner(),
+                date -> {
+                    if (date == null) date = new Date();
+                    SimpleDateFormat fmt =
+                            new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                    selectedDateDisplay.setText("Date: " + fmt.format(date));
+                });
 
-        // Observe data changes
-        dashboardViewModel.getDashboardData().observe(getViewLifecycleOwner(), data -> {
-            if (data == null) {
-                return;
-            }
-            double totalSpent = (double) data.get("totalSpent");
-            double totalBudget = (double) data.get("totalBudget");
-            double remaining = totalBudget - totalSpent;
-
-            totalSpentText.setText("Total Spent This Period: $" + totalSpent);
-            totalRemainingText.setText("Remaining Budget: $" + remaining);
-
-            categoriesContainer.removeAllViews();
-            Map<String, Double> categoryTotals = (Map<String, Double>) data.get("categories");
-            for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
-                TextView tv = new TextView(getContext());
-                tv.setText(entry.getKey() + ": $" + entry.getValue());
-                tv.setTextSize(16);
-                tv.setPadding(0, 4, 0, 4);
-                categoriesContainer.addView(tv);
-            }
-        });
-
-        // Calendar Picker
+        // Calendar picker
         calendarIcon.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();
+            Date current = dashboardViewModel.getCurrentDate().getValue();
+            if (current != null) {
+                cal.setTime(current);
+            }
             DatePickerDialog dialog = new DatePickerDialog(
-                    getContext(),
+                    requireContext(),
                     (view1, y, m, d) -> {
                         Calendar c = Calendar.getInstance();
                         c.set(y, m, d);
@@ -122,11 +117,12 @@ public class DashboardFragment extends Fragment {
             dialog.show();
         });
 
-        // Timer
+        // Live clock
         updateTimeRunnable = new Runnable() {
             @Override
             public void run() {
-                SimpleDateFormat fmt = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+                SimpleDateFormat fmt =
+                        new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
                 timeDisplay.setText(fmt.format(new Date()));
                 handler.postDelayed(this, 1000);
             }
@@ -138,48 +134,112 @@ public class DashboardFragment extends Fragment {
             FirebaseAuth.getInstance().signOut();
             Utils.clearCache(requireContext());
             requireActivity().getViewModelStore().clear();
+
             Intent intent = new Intent(requireContext(), LoginActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
                     | Intent.FLAG_ACTIVITY_NEW_TASK
                     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             requireActivity().finish();
-            Toast.makeText(getContext(), "Logged out successfully!", Toast.LENGTH_SHORT).show();
+
+            Toast.makeText(getContext(),
+                    "Logged out successfully!", Toast.LENGTH_SHORT).show();
         });
 
         return view;
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view,
+                              @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        dashboardViewModel.getDashboardData().observe(getViewLifecycleOwner(), data -> {
-            dashboardViewModel.updateCharts(data);
-        });
-        dashboardViewModel.getBarData().observe(getViewLifecycleOwner(), barData -> {
-            barChart.setData(barData);
-            barChart.invalidate();
-        });
-        dashboardViewModel.getPieData().observe(getViewLifecycleOwner(), pieData -> {
-            pieChart.setData(pieData);
-            pieChart.invalidate();
-        });
+
+        // Observe combined dashboard data once
+        dashboardViewModel.getDashboardData().observe(
+                getViewLifecycleOwner(),
+                data -> {
+                    if (data == null) return;
+
+                    // Numbers
+                    Double totalSpentObj = (Double) data.get("totalSpent");
+                    Double totalBudgetObj = (Double) data.get("totalBudget");
+                    double totalSpent = totalSpentObj != null ? totalSpentObj : 0.0;
+                    double totalBudget = totalBudgetObj != null ? totalBudgetObj : 0.0;
+                    double remaining = Math.max(0.0, totalBudget - totalSpent);
+
+                    totalSpentText.setText(String.format(
+                            Locale.getDefault(),
+                            "Total Spent This Period: $%.2f",
+                            totalSpent
+                    ));
+                    totalRemainingText.setText(String.format(
+                            Locale.getDefault(),
+                            "Remaining Budget: $%.2f",
+                            remaining
+                    ));
+
+                    // Category list
+                    categoriesContainer.removeAllViews();
+                    Map<String, Double> categories =
+                            (Map<String, Double>) data.get("categories");
+
+                    if (categories != null && !categories.isEmpty()) {
+                        for (Map.Entry<String, Double> entry : categories.entrySet()) {
+                            TextView tv = new TextView(requireContext());
+                            tv.setText(String.format(
+                                    Locale.getDefault(),
+                                    "%s: $%.2f",
+                                    entry.getKey(),
+                                    entry.getValue()
+                            ));
+                            tv.setTextSize(16);
+                            tv.setPadding(0, 4, 0, 4);
+                            categoriesContainer.addView(tv);
+                        }
+                    } else {
+                        TextView tv = new TextView(requireContext());
+                        tv.setText("No expenses for this period.");
+                        tv.setTextSize(16);
+                        tv.setPadding(0, 4, 0, 4);
+                        categoriesContainer.addView(tv);
+                    }
+
+                    // Update chart data in ViewModel
+                    dashboardViewModel.updateCharts(data);
+                }
+        );
+
+        // Observe Pie chart data
+        dashboardViewModel.getPieData().observe(
+                getViewLifecycleOwner(),
+                pieData -> {
+                    if (pieData == null) return;
+                    pieChart.setData(pieData);
+                    pieChart.invalidate();
+                }
+        );
+
+        // Observe Bar chart data
+        dashboardViewModel.getBarData().observe(
+                getViewLifecycleOwner(),
+                barData -> {
+                    if (barData == null) return;
+                    barChart.setData(barData);
+                    barChart.invalidate();
+                }
+        );
     }
 
-    /*
-    Included
-    this
-    method
-    so
-    that
-    our
-    unit
-    test
-    can
-    run.
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        handler.removeCallbacks(updateTimeRunnable);
+    }
+
+    /**
+     * For unit tests.
      */
     public void resetDashboardData() {
-        // Example: clear or reset the data in the ViewModel
         if (dashboardViewModel != null) {
             dashboardViewModel.clearData();
         }

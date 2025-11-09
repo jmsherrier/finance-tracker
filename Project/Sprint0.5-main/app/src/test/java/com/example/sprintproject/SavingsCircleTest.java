@@ -1,16 +1,21 @@
 package com.example.sprintproject;
 
 import com.example.sprintproject.factory.CircleFactory;
+import com.example.sprintproject.model.CircleContribution;
 import com.example.sprintproject.model.CircleInvitation;
 import com.example.sprintproject.model.CircleMember;
 import com.example.sprintproject.model.SavingsCircle;
+import com.example.sprintproject.strategy.ProgressCalculationContext;
+import com.example.sprintproject.strategy.SumContributionStrategy;
 
 import org.junit.Test;
 import org.junit.Before;
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Unit tests for Savings Circle functionality.
@@ -145,5 +150,110 @@ public class SavingsCircleTest {
         assertEquals("monthly", monthlyCircle.getFrequency());
         assertEquals("Monthly Group", monthlyCircle.getGroupName());
         assertEquals("active", monthlyCircle.getStatus());
+    }
+
+    /**
+     * Test 6: SavingsCircle isComplete method.
+     */
+    @Test
+    public void testSavingsCircleIsComplete() {
+        SavingsCircle circle = new SavingsCircle(
+            "Test Group", "creator@test.com", "creator123",
+            "Save $1000", 1000.0, "weekly", today, "Notes"
+        );
+        
+        assertFalse("Circle should not be complete with 500/1000", 
+            circle.isComplete(500.0));
+        assertTrue("Circle should be complete with 1000/1000", 
+            circle.isComplete(1000.0));
+        assertTrue("Circle should be complete with 1500/1000", 
+            circle.isComplete(1500.0));
+        
+        circle.setStatus("completed");
+        assertTrue("Circle with completed status should be complete", 
+            circle.isComplete(0.0));
+    }
+
+    /**
+     * Test 7: SavingsCircle getDaysRemaining calculation.
+     */
+    @Test
+    public void testSavingsCircleDaysRemaining() {
+        SavingsCircle circle = new SavingsCircle(
+            "Test Group", "creator@test.com", "creator123",
+            "Weekly Challenge", 500.0, "weekly", today, "Notes"
+        );
+        
+        long daysRemaining = circle.getDaysRemaining();
+        assertTrue("Days remaining should be approximately 7", 
+            daysRemaining >= 6 && daysRemaining <= 8);
+        
+        circle.setEndDate(null);
+        assertEquals("Days remaining should be 0 with null end date", 
+            0, circle.getDaysRemaining());
+    }
+
+    /**
+     * Test 8: CircleMember isActive method.
+     */
+    @Test
+    public void testCircleMemberIsActive() {
+        CircleMember activeMember = new CircleMember(
+            "user123", "member@test.com", "circle123",
+            "member", today, nextWeek
+        );
+        assertTrue("Member should be active within date range", activeMember.isActive());
+        
+        CircleMember nullDateMember = new CircleMember(
+            "user456", "member2@test.com", "circle123",
+            "member", null, null
+        );
+        assertFalse("Member with null dates should not be active", nullDateMember.isActive());
+    }
+
+    /**
+     * Test 9: CircleInvitation isExpired method.
+     */
+    @Test
+    public void testCircleInvitationIsExpired() {
+        CircleInvitation validInvitation = new CircleInvitation(
+            "circle123", "inviter@test.com", "inviter123", "invitee@test.com"
+        );
+        assertFalse("Invitation should not be expired", validInvitation.isExpired());
+        
+        CircleInvitation expiredInvitation = new CircleInvitation(
+            "circle123", "inviter@test.com", "inviter123", "invitee@test.com"
+        );
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, -8);
+        expiredInvitation.setExpiresAt(cal.getTime());
+        assertTrue("Invitation should be expired", expiredInvitation.isExpired());
+    }
+
+    /**
+     * Test 10: Strategy pattern - SumContributionStrategy.
+     */
+    @Test
+    public void testSumContributionStrategy() {
+        List<CircleContribution> contributions = new ArrayList<>();
+        
+        CircleContribution c1 = new CircleContribution();
+        c1.setAmount(100.0);
+        contributions.add(c1);
+        
+        CircleContribution c2 = new CircleContribution();
+        c2.setAmount(200.0);
+        contributions.add(c2);
+        
+        ProgressCalculationContext context = new ProgressCalculationContext(
+            new SumContributionStrategy()
+        );
+        
+        double total = context.calculateProgress(contributions);
+        assertEquals(300.0, total, 0.01);
+        
+        // Test with empty list
+        double empty = context.calculateProgress(new ArrayList<>());
+        assertEquals(0.0, empty, 0.01);
     }
 }

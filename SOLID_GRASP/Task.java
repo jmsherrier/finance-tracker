@@ -45,6 +45,11 @@ public abstract class Task implements Main_Task {
         return false;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(taskTitle, taskDescription, taskDeadLine, taskStatus, priority);
+    }
+
     public String getTaskTitle() {
         return this.taskTitle;
     }

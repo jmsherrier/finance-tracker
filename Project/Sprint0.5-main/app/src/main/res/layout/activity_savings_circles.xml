@@ -3,131 +3,185 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
     tools:context=".view.SavingsCirclesFragment">
 
-    <!-- Header Bar -->
-    <LinearLayout
-        android:id="@+id/chatbot_header"
-        android:layout_width="0dp"
-        android:layout_height="70dp"
-        android:background="#112244"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
+    <!-- Header Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/header_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="8dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/white"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/savings_circles"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Savings Circle"
-            android:textColor="@android:color/white"
-            android:textSize="26sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal"
+            android:padding="20dp"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Savings Circles"
+                    android:textColor="@color/black"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:id="@+id/circle_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="0 circles"
+                    android:textColor="#666666"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif" />
+            </LinearLayout>
+
+            <!-- Modern Add Button -->
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_create_circle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="Create savings circle"
+                app:srcCompat="@android:drawable/ic_input_add"
+                app:backgroundTint="#6366F1"
+                app:tint="@color/white"
+                app:fabSize="mini" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Invitations Section -->
+    <LinearLayout
+        android:id="@+id/invitations_section"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/header_card"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pending Invitations"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="sans-serif-medium" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_invitations"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
     </LinearLayout>
 
-    <!-- Scrollable Content -->
-    <ScrollView
-        android:id="@+id/scrollView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/chatbot_header"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <!-- Circles Section Title (shown when there are circles) -->
+    <TextView
+        android:id="@+id/text_circles_section_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="My Savings Circles"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        android:fontFamily="sans-serif-medium"
+        app:layout_constraintTop_toBottomOf="@id/invitations_section"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Empty State Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/empty_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="#F8FAFC"
+        app:layout_constraintTop_toBottomOf="@id/text_circles_section_title"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:padding="16dp">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp">
+            android:gravity="center"
+            android:padding="40dp">
 
-            <!-- Group Creation Fields -->
-            <EditText
-                android:id="@+id/etGroupName"
-                android:layout_width="match_parent"
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@android:drawable/ic_menu_report_image"
+                android:alpha="0.3"
+                android:tint="#6366F1" />
+
+            <TextView
+                android:id="@+id/text_empty_circles"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="Group Name"
-                android:inputType="text"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginTop="16dp"
+                android:text="No savings circles yet"
+                android:textColor="#64748B"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-medium" />
 
-            <EditText
-                android:id="@+id/etCreatorEmail"
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="Creator Email"
-                android:inputType="textEmailAddress"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/etChallengeTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Challenge Title"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/etGoalAmount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Goal Amount"
-                android:inputType="numberDecimal"
-                android:layout_marginBottom="8dp" />
-
-            <Spinner
-                android:id="@+id/spFrequency"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/etNotes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Notes (optional)"
-                android:layout_marginBottom="12dp" />
-
-            <Button
-                android:id="@+id/btnCreateGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Create Group"
-                android:backgroundTint="#112244"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="16dp" />
-
-            <!-- Invitations -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#cccccc"
-                android:layout_marginBottom="16dp" />
-
-            <EditText
-                android:id="@+id/etInviteEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Invite Member Email"
-                android:inputType="textEmailAddress"
-                android:layout_marginBottom="8dp" />
-
-            <Button
-                android:id="@+id/btnSendInvite"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Send Invite"
-                android:backgroundTint="#112244"
-                android:textColor="@android:color/white" />
-
+                android:layout_marginTop="8dp"
+                android:text="Tap the + button to create your first circle"
+                android:textColor="#94A3B8"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:fontFamily="sans-serif" />
         </LinearLayout>
-    </ScrollView>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Scrollable list of circles -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_circles"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="80dp"
+        android:padding="8dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical"
+        app:layout_constraintTop_toBottomOf="@id/text_circles_section_title"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

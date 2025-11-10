@@ -214,7 +214,8 @@ public final class SavingsCircleRepository {
                         callback.onError("Circle not found");
                     }
                 })
-                .addOnFailureListener(e -> callback.onError("Error loading circle: " + e.getMessage()));
+                .addOnFailureListener(
+                        e -> callback.onError("Error loading circle: " + e.getMessage()));
     }
 
     /**

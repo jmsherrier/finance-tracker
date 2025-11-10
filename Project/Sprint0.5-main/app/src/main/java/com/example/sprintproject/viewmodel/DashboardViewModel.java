@@ -73,7 +73,9 @@ public class DashboardViewModel extends ViewModel {
             if (categories != null && !categories.isEmpty()) {
                 for (Map.Entry<String, Double> e : categories.entrySet()) {
                     double v = e.getValue() == null ? 0.0 : e.getValue();
-                    if (v < 0) v = 0.0;
+                    if (v < 0) {
+                        v = 0.0;
+                    }
                     pieEntries.add(new PieEntry((float) v, e.getKey()));
                 }
             }
@@ -99,7 +101,9 @@ public class DashboardViewModel extends ViewModel {
             if (budgets != null && !budgets.isEmpty()) {
                 for (int i = 0; i < budgets.size(); i++) {
                     Budget b = budgets.get(i);
-                    if (b == null) continue;
+                    if (b == null) {
+                        continue;
+                    }
                     float spent = (float) b.getSpentAmount();
                     float remaining =
                             (float) Math.max(0.0,

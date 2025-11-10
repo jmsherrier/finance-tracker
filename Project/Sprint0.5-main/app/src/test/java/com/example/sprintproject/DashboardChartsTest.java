@@ -64,6 +64,42 @@ public class DashboardChartsTest {
         BarDataSet barSet = (BarDataSet) barData.getDataSetByIndex(0);
         assertEquals("Should have 2 bar entries", 2, barSet.getEntryCount());
     }
+
+    @Test
+    public void testChartsUpdateWithValidDataAgain() {
+        Map<String, Double> categories = new HashMap<>();
+        categories.put("Travel", 40.0);
+        categories.put("Food", 30.0);
+        categories.put("Movies", 30.0);
+
+        List<Budget> budgets = new ArrayList<>();
+        Budget b1 = new Budget();
+        b1.setTitle("Necessities");
+        b1.setTotalAmount(500.0);
+        b1.setSpentAmount(200.0);
+        budgets.add(b1);
+
+        Budget b2 = new Budget();
+        b2.setTitle("Fun");
+        b2.setTotalAmount(300.0);
+        b2.setSpentAmount(150.0);
+        budgets.add(b2);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("categories", categories);
+        data.put("budgets", budgets);
+        viewModel.updateCharts(data);
+
+        PieData pieData = viewModel.getPieData().getValue();
+        assertNotNull("PieData should not be null", pieData);
+        PieDataSet pieSet = (PieDataSet) pieData.getDataSetByIndex(0);
+        assertEquals("Should have 3 pie slices", 3, pieSet.getEntryCount());
+
+        BarData barData = viewModel.getBarData().getValue();
+        assertNotNull("BarData should not be null", barData);
+        BarDataSet barSet = (BarDataSet) barData.getDataSetByIndex(0);
+        assertEquals("Should have 2 bar entries", 2, barSet.getEntryCount());
+    }
     @Test
     public void testChartsUpdateWithNullData() {
         viewModel.updateCharts(null);

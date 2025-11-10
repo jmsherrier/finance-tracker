@@ -1,30 +1,68 @@
 package com.example.sprintproject;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+import org.robolectric.Shadows;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.BarDataSet;
-import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = {33}, manifest = Config.NONE)
 public class DashboardChartsTest {
+
     private DashboardViewModel viewModel;
+    private MockedStatic<FirebaseApp> firebaseAppMock;
+    private MockedStatic<FirebaseFirestore> firestoreMock;
 
     @Before
     public void setup() {
+        // Mock Firebase so no real Android/Firebase init occurs
+        firebaseAppMock = Mockito.mockStatic(FirebaseApp.class);
+        firestoreMock = Mockito.mockStatic(FirebaseFirestore.class);
+
+        FirebaseApp fakeApp = Mockito.mock(FirebaseApp.class);
+        FirebaseFirestore fakeFirestore = Mockito.mock(FirebaseFirestore.class);
+
+        firebaseAppMock.when(FirebaseApp::getInstance).thenReturn(fakeApp);
+        firestoreMock.when(FirebaseFirestore::getInstance).thenReturn(fakeFirestore);
+
         viewModel = new DashboardViewModel();
     }
+
+    @After
+    public void tearDown() {
+        // Close static mocks so they don’t leak between tests
+        if (firebaseAppMock != null) {
+            firebaseAppMock.close();
+        }
+        if (firestoreMock != null) {
+            firestoreMock.close();
+        }
+    }
+
     @Test
     public void testChartsUpdateWithValidData() {
         Map<String, Double> categories = new HashMap<>();
@@ -48,30 +86,35 @@ public class DashboardChartsTest {
         Map<String, Object> data = new HashMap<>();
         data.put("categories", categories);
         data.put("budgets", budgets);
+
         viewModel.updateCharts(data);
 
+        // Ensure LiveData posts are executed
+        Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
         PieData pieData = viewModel.getPieData().getValue();
-        assertNotNull("PieData should not be null", pieData);
-        PieDataSet pieSet = (PieDataSet) pieData.getDataSetByIndex(0);
-        assertEquals("Should have 3 pie slices", 3, pieSet.getEntryCount());
+        assertNotNull(pieData);
+        assertEquals(3, ((PieDataSet) pieData.getDataSetByIndex(0)).getEntryCount());
 
         BarData barData = viewModel.getBarData().getValue();
-        assertNotNull("BarData should not be null", barData);
-        BarDataSet barSet = (BarDataSet) barData.getDataSetByIndex(0);
-        assertEquals("Should have 2 bar entries", 2, barSet.getEntryCount());
+        assertNotNull(barData);
+        assertEquals(2, ((BarDataSet) barData.getDataSetByIndex(0)).getEntryCount());
     }
+
     @Test
     public void testChartsUpdateWithNullData() {
         viewModel.updateCharts(null);
+
+        // Wait for LiveData updates to propagate
+        Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
         PieData pieData = viewModel.getPieData().getValue();
-        assertNotNull("Placeholder PieData should not be null", pieData);
-        PieDataSet pieSet = (PieDataSet) pieData.getDataSetByIndex(0);
-        assertEquals("Should have 1 pie slice", 1, pieSet.getEntryCount());
+        assertNotNull(pieData);
+        assertEquals(1, ((PieDataSet) pieData.getDataSetByIndex(0)).getEntryCount());
 
         BarData barData = viewModel.getBarData().getValue();
-        assertNotNull("Placeholder BarData should not be null", barData);
-        BarDataSet barSet = (BarDataSet) barData.getDataSetByIndex(0);
-        assertEquals("Should have 1 bar entry", 1, barSet.getEntryCount());
-
+        assertNotNull(barData);
+        assertEquals(1, ((BarDataSet) barData.getDataSetByIndex(0)).getEntryCount());
     }
 }
+

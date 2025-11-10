@@ -56,6 +56,9 @@ public class SavingsCirclesFragment extends Fragment {
         // Initialize ViewModels
         viewModel = new ViewModelProvider(requireActivity()).get(SavingsCircleViewModel.class);
         timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
+        
+        // Connect TimeViewModel to SavingsCircleViewModel for dashboard date selector
+        viewModel.setTimeViewModel(timeViewModel);
 
         // Initialize UI components
         recyclerViewCircles = view.findViewById(R.id.recycler_circles);
@@ -165,8 +168,9 @@ public class SavingsCirclesFragment extends Fragment {
 
     private void loadCircleProgress(String circleId) {
         // Load progress for this circle through ViewModel
-        viewModel.calculateCircleProgress(circleId, 
-            new com.example.sprintproject.repository.SavingsCircleRepository.RepositoryCallback<Double>() {
+        viewModel.calculateCircleProgress(circleId,
+            new com.example.sprintproject.repository
+                .SavingsCircleRepository.RepositoryCallback<Double>() {
                 @Override
                 public void onSuccess(Double result) {
                     // Update adapter with progress

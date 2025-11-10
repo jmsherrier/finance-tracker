@@ -20,6 +20,11 @@ public class CircleContribution {
 
     /**
      * Constructor for creating a new contribution.
+     * @param circleId The ID of the savings circle
+     * @param userId The ID of the user making the contribution
+     * @param amount The contribution amount
+     * @param date The date of the contribution
+     * @param notes Additional notes for the contribution
      */
     public CircleContribution(String circleId, String userId, double amount,
                              Date date, String notes) {

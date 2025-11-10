@@ -61,13 +61,9 @@ public class DashboardFragment extends Fragment {
         totalRemainingText = view.findViewById(R.id.text_total_remaining);
         categoriesContainer = view.findViewById(R.id.categories_container);
         timeDisplay = view.findViewById(R.id.time_display);
+        selectedDateDisplay = view.findViewById(R.id.selected_date_display);
         ImageView calendarIcon = view.findViewById(R.id.calendar_icon);
         Button logoutButton = view.findViewById(R.id.logout_button);
-
-        // Add "Date: ..." TextView into top bar (index 0 so it shows on the left)
-        LinearLayout topBar = view.findViewById(R.id.top_bar);
-        selectedDateDisplay = new TextView(requireContext());
-        topBar.addView(selectedDateDisplay, 0);
 
         // Charts
         pieChart = view.findViewById(R.id.pieChart);
@@ -90,7 +86,9 @@ public class DashboardFragment extends Fragment {
         dashboardViewModel.getCurrentDate().observe(
                 getViewLifecycleOwner(),
                 date -> {
-                    if (date == null) date = new Date();
+                    if (date == null) {
+                        date = new Date();
+                    }
                     SimpleDateFormat fmt =
                             new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
                     selectedDateDisplay.setText("Date: " + fmt.format(date));
@@ -158,7 +156,9 @@ public class DashboardFragment extends Fragment {
         dashboardViewModel.getDashboardData().observe(
                 getViewLifecycleOwner(),
                 data -> {
-                    if (data == null) return;
+                    if (data == null) {
+                        return;
+                    }
 
                     // Numbers
                     Double totalSpentObj = (Double) data.get("totalSpent");
@@ -213,7 +213,9 @@ public class DashboardFragment extends Fragment {
         dashboardViewModel.getPieData().observe(
                 getViewLifecycleOwner(),
                 pieData -> {
-                    if (pieData == null) return;
+                    if (pieData == null) {
+                        return;
+                    }
                     pieChart.setData(pieData);
                     pieChart.invalidate();
                 }
@@ -223,7 +225,9 @@ public class DashboardFragment extends Fragment {
         dashboardViewModel.getBarData().observe(
                 getViewLifecycleOwner(),
                 barData -> {
-                    if (barData == null) return;
+                    if (barData == null) {
+                        return;
+                    }
                     barChart.setData(barData);
                     barChart.invalidate();
                 }

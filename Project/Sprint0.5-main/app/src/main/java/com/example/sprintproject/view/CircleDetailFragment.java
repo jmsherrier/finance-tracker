@@ -22,9 +22,7 @@ import com.example.sprintproject.model.SavingsCircle;
 import com.example.sprintproject.viewmodel.SavingsCircleViewModel;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Fragment for displaying detailed view of a savings circle.

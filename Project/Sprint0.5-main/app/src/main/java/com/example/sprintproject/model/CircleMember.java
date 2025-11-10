@@ -21,8 +21,14 @@ public class CircleMember {
 
     /**
      * Constructor for creating a new circle member.
+     * @param userId The user ID
+     * @param email The user's email
+     * @param circleId The circle ID
+     * @param role The member's role
+     * @param startDate The start date
+     * @param endDate The end date
      */
-    public CircleMember(String userId, String email, String circleId, 
+    public CircleMember(String userId, String email, String circleId,
                        String role, Date startDate, Date endDate) {
         this.userId = userId;
         this.email = email;
@@ -101,6 +107,8 @@ public class CircleMember {
 
     /**
      * Calculate contribution percentage relative to goal.
+     * @param goalAmount The goal amount
+     * @return The contribution percentage (0-100)
      */
     public double getContributionPercentage(double goalAmount) {
         if (goalAmount == 0) {
@@ -111,6 +119,7 @@ public class CircleMember {
 
     /**
      * Check if member is currently active in their challenge period.
+     * @return true if the member is active, false otherwise
      */
     public boolean isActive() {
         if (startDate == null || endDate == null) {
@@ -122,6 +131,7 @@ public class CircleMember {
 
     /**
      * Check if member is the leader.
+     * @return true if the member is a leader, false otherwise
      */
     public boolean isLeader() {
         return "leader".equals(role);

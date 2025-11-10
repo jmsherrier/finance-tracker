@@ -31,7 +31,8 @@ import java.util.Map;
  * Unified adapter that displays both personal budgets and group-linked savings circles.
  * Group goals have a distinct visual indicator.
  */
-public class UnifiedBudgetAdapter extends RecyclerView.Adapter<UnifiedBudgetAdapter.BudgetViewHolder> {
+public class UnifiedBudgetAdapter
+        extends RecyclerView.Adapter<UnifiedBudgetAdapter.BudgetViewHolder> {
 
     public interface OnItemClickListener {
         void onBudgetClick(Budget budget);
@@ -106,6 +107,8 @@ public class UnifiedBudgetAdapter extends RecyclerView.Adapter<UnifiedBudgetAdap
 
     /**
      * Update progress for a specific circle.
+     * @param circleId The circle ID to update
+     * @param progress The new progress value
      */
     public void updateCircleProgress(String circleId, double progress) {
         circleProgressMap.put(circleId, progress);

@@ -2,7 +2,6 @@ package com.example.sprintproject.strategy;
 
 import com.example.sprintproject.model.CircleContribution;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 

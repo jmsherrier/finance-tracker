@@ -9,7 +9,6 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.SavingsCircleViewModel;

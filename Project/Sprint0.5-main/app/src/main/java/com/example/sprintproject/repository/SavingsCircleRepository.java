@@ -342,7 +342,7 @@ public final class SavingsCircleRepository {
                 .add(invitation)
                 .addOnSuccessListener(documentReference -> {
                     invitation.setId(documentReference.getId());
-                    callback.onSuccess(invitation);
+                    callback.onSuccess(null);
                 })
                 .addOnFailureListener(e ->
                     callback.onError("Error sending invitation: " + e.getMessage()));

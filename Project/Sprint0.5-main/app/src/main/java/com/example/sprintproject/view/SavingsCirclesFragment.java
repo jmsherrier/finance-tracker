@@ -165,8 +165,9 @@ public class SavingsCirclesFragment extends Fragment {
 
     private void loadCircleProgress(String circleId) {
         // Load progress for this circle through ViewModel
-        viewModel.calculateCircleProgress(circleId, 
-            new com.example.sprintproject.repository.SavingsCircleRepository.RepositoryCallback<Double>() {
+        viewModel.calculateCircleProgress(circleId,
+            new com.example.sprintproject.repository
+                .SavingsCircleRepository.RepositoryCallback<Double>() {
                 @Override
                 public void onSuccess(Double result) {
                     // Update adapter with progress

@@ -22,6 +22,10 @@ public class CircleInvitation {
 
     /**
      * Constructor for creating a new invitation.
+     * @param circleId The circle ID
+     * @param inviterEmail The inviter's email
+     * @param inviterId The inviter's ID
+     * @param inviteeEmail The invitee's email
      */
     public CircleInvitation(String circleId, String inviterEmail, String inviterId,
                            String inviteeEmail) {
@@ -105,6 +109,7 @@ public class CircleInvitation {
 
     /**
      * Check if invitation has expired.
+     * @return true if the invitation has expired, false otherwise
      */
     public boolean isExpired() {
         if (expiresAt == null) {
@@ -129,6 +134,7 @@ public class CircleInvitation {
 
     /**
      * Check if invitation is pending.
+     * @return true if the invitation is pending, false otherwise
      */
     public boolean isPending() {
         return "pending".equals(status) && !isExpired();

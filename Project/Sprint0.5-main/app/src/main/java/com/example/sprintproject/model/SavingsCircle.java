@@ -25,6 +25,14 @@ public class SavingsCircle {
 
     /**
      * Constructor for creating a new savings circle.
+     * @param groupName The name of the group
+     * @param creatorEmail The email of the circle creator
+     * @param creatorId The ID of the circle creator
+     * @param challengeTitle The title of the savings challenge
+     * @param goalAmount The savings goal amount
+     * @param frequency The frequency ("weekly" or "monthly")
+     * @param startDate The start date of the circle
+     * @param notes Additional notes for the circle
      */
     public SavingsCircle(String groupName, String creatorEmail, String creatorId,
                         String challengeTitle, double goalAmount, String frequency,
@@ -163,6 +171,8 @@ public class SavingsCircle {
 
     /**
      * Calculate progress percentage based on current progress.
+     * @param currentProgress The current progress amount
+     * @return The progress percentage (0-100)
      */
     public double calculateProgressPercentage(double currentProgress) {
         if (goalAmount == 0) {
@@ -173,6 +183,7 @@ public class SavingsCircle {
 
     /**
      * Get days remaining until end date.
+     * @return Number of days remaining
      */
     public long getDaysRemaining() {
         if (endDate == null) {
@@ -185,6 +196,7 @@ public class SavingsCircle {
 
     /**
      * Check if circle is currently active.
+     * @return true if the circle is active, false otherwise
      */
     public boolean isActive() {
         Date now = new Date();
@@ -197,6 +209,8 @@ public class SavingsCircle {
 
     /**
      * Check if circle goal is complete.
+     * @param currentProgress The current progress amount
+     * @return true if the circle is complete, false otherwise
      */
     public boolean isComplete(double currentProgress) {
         return currentProgress >= goalAmount || "completed".equals(status);

@@ -6,18 +6,14 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.lang.reflect.Field;
-
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.BarData;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

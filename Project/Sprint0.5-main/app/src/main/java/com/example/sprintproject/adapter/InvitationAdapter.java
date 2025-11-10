@@ -16,9 +16,13 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
+<<<<<<< HEAD
 /**
  * Adapter for displaying circle invitations in a RecyclerView.
  */
+=======
+// Adapter for displaying circle invitations in a RecyclerView.
+>>>>>>> f820f1a (temp)
 public class InvitationAdapter
         extends RecyclerView.Adapter<InvitationAdapter.InvitationViewHolder> {
 
@@ -31,8 +35,14 @@ public class InvitationAdapter
     private OnInvitationActionListener listener;
     private SimpleDateFormat dateFormat;
 
+<<<<<<< HEAD
     public InvitationAdapter(List<CircleInvitation> invitations,
                              OnInvitationActionListener listener) {
+=======
+    public InvitationAdapter(
+            List<CircleInvitation> invitations,
+            OnInvitationActionListener listener) {
+>>>>>>> f820f1a (temp)
         this.invitations = invitations;
         this.listener = listener;
         this.dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
@@ -81,8 +91,13 @@ public class InvitationAdapter
                     + " invited you");
             
             if (invitation.getCreatedAt() != null) {
+<<<<<<< HEAD
                 textInviteDate.setText("Invited on "
                     + dateFormat.format(invitation.getCreatedAt()));
+=======
+                textInviteDate.setText(
+                        "Invited on " + dateFormat.format(invitation.getCreatedAt()));
+>>>>>>> f820f1a (temp)
             } else {
                 textInviteDate.setText("");
             }

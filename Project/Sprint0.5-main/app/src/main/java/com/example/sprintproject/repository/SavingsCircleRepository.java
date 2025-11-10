@@ -23,7 +23,7 @@ import java.util.List;
  * Singleton repository for managing Savings Circle data in Firestore.
  * All Firestore operations are mediated through this repository.
  */
-public final class SavingsCircleRepository {
+public class SavingsCircleRepository {
     private static SavingsCircleRepository instance;
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
@@ -531,8 +531,7 @@ public final class SavingsCircleRepository {
                     callback.onSuccess(total);
                 }
             });
-    }            .addOnFailureListener(
-            e -> callback.onError("Error loading members: " + e.getMessage())
+    }            .addOnFailureListener(e -> callback.onError("Error loading members: " + e.getMessage())
             );
 }
 

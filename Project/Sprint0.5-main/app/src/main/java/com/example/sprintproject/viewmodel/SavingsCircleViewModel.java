@@ -313,18 +313,17 @@ public class SavingsCircleViewModel extends ViewModel {
 
     // Decline an invitation.
     public void declineInvitation(String invitationId) {
-        repository.declineInvitation(invitationId, 
-            new SavingsCircleRepository.RepositoryCallback<Void>() {
-                @Override
-                public void onSuccess(Void result) {
-                    loadPendingInvitations(); // Refresh invitations
-                }
+        repository.declineInvitation(invitationId, new SavingsCircleRepository.RepositoryCallback<Void>() {
+        @Override
+        public void onSuccess(Void result) {
+            loadPendingInvitations(); // Refresh invitations
+        }
 
-                @Override
-                public void onError(String error) {
-                    errorLiveData.setValue(error);
-                }
-            });
+        @Override
+        public void onError(String error) {
+            errorLiveData.setValue(error);
+        }
+    });
     }
 
     // ==================== Contribution Operations ====================
@@ -349,8 +348,7 @@ public class SavingsCircleViewModel extends ViewModel {
             circleId, userId, amount, date, notes
         );
 
-        repository.addContribution(contribution, 
-            new SavingsCircleRepository.RepositoryCallback<CircleContribution>() {
+        repository.addContribution(contribution, new SavingsCircleRepository.RepositoryCallback<CircleContribution>() {
                 @Override
                 public void onSuccess(CircleContribution result) {
                     successMessageLiveData.setValue("Contribution added successfully!");
@@ -368,8 +366,7 @@ public class SavingsCircleViewModel extends ViewModel {
 
     // Load contributions for a circle.
     private void loadCircleContributions(String circleId) {
-        repository.loadCircleContributions(circleId,
-            new SavingsCircleRepository.RepositoryCallback<List<CircleContribution>>() {
+        repository.loadCircleContributions(circleId, new SavingsCircleRepository.RepositoryCallback<List<CircleContribution>>() {
                 @Override
                 public void onSuccess(List<CircleContribution> result) {
                     contributionsLiveData.setValue(result);
@@ -389,8 +386,7 @@ public class SavingsCircleViewModel extends ViewModel {
         // Stop existing listener if any
         stopObservingProgress();
 
-        progressListener = repository.observeCircleProgress(circleId,
-            new SavingsCircleRepository.RepositoryCallback<Double>() {
+        progressListener = repository.observeCircleProgress(circleId, new SavingsCircleRepository.RepositoryCallback<Double>() {
                 @Override
                 public void onSuccess(Double result) {
                     circleProgressLiveData.setValue(result);

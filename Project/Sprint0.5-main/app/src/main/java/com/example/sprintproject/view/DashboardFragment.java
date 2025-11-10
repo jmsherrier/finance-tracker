@@ -61,13 +61,9 @@ public class DashboardFragment extends Fragment {
         totalRemainingText = view.findViewById(R.id.text_total_remaining);
         categoriesContainer = view.findViewById(R.id.categories_container);
         timeDisplay = view.findViewById(R.id.time_display);
+        selectedDateDisplay = view.findViewById(R.id.selected_date_display);
         ImageView calendarIcon = view.findViewById(R.id.calendar_icon);
         Button logoutButton = view.findViewById(R.id.logout_button);
-
-        // Add "Date: ..." TextView into top bar (index 0 so it shows on the left)
-        LinearLayout topBar = view.findViewById(R.id.top_bar);
-        selectedDateDisplay = new TextView(requireContext());
-        topBar.addView(selectedDateDisplay, 0);
 
         // Charts
         pieChart = view.findViewById(R.id.pieChart);

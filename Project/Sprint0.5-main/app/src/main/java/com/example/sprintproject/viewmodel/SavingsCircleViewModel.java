@@ -25,6 +25,7 @@ import java.util.List;
 public class SavingsCircleViewModel extends ViewModel {
     private final SavingsCircleRepository repository;
     private final FirebaseAuth auth;
+    private TimeViewModel timeViewModel;
 
     // LiveData for UI observation
     private final MutableLiveData<List<SavingsCircle>> circlesLiveData = new MutableLiveData<>();
@@ -46,6 +47,13 @@ public class SavingsCircleViewModel extends ViewModel {
     public SavingsCircleViewModel() {
         this.repository = SavingsCircleRepository.getInstance();
         this.auth = FirestoreManager.getInstance().getAuth();
+    }
+
+    /**
+     * Set the TimeViewModel to access dashboard date selector.
+     */
+    public void setTimeViewModel(TimeViewModel timeViewModel) {
+        this.timeViewModel = timeViewModel;
     }
 
     // ==================== LiveData Getters ====================
@@ -233,7 +241,13 @@ public class SavingsCircleViewModel extends ViewModel {
             return;
         }
 
-        repository.acceptInvitation(invitationId, userId, userEmail,
+        // Use dashboard date selector (TimeViewModel) if available, otherwise use current date
+        Date acceptanceDate = new Date();
+        if (timeViewModel != null && timeViewModel.getCurrentDate().getValue() != null) {
+            acceptanceDate = timeViewModel.getCurrentDate().getValue();
+        }
+
+        repository.acceptInvitation(invitationId, userId, userEmail, acceptanceDate,
                 new SavingsCircleRepository.RepositoryCallback<Void>() {
                     @Override
                     public void onSuccess(Void result) {

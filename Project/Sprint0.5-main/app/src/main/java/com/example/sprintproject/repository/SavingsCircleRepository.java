@@ -379,10 +379,11 @@ public final class SavingsCircleRepository {
      * @param invitationId The invitation ID
      * @param userId The user ID
      * @param userEmail The user's email
+     * @param acceptanceDate The date to use for acceptance (from dashboard date selector)
      * @param callback The callback to handle the result
      */
     public void acceptInvitation(String invitationId, String userId,
-                                 String userEmail,
+                                 String userEmail, Date acceptanceDate,
                                  RepositoryCallback<Void> callback) {
         db.collection("circleInvitations")
                 .document(invitationId)
@@ -404,8 +405,7 @@ public final class SavingsCircleRepository {
                                                 @Override
                                                 public void onSuccess(
                                                         SavingsCircle circle) {
-                                                    // Calculate member dates
-                                                    Date acceptanceDate = new Date();
+                                                    // Calculate member dates using dashboard date selector
                                                     Date memberStartDate = calculateMemberStartDate(
                                                             circle.getFrequency(), acceptanceDate);
                                                     Date memberEndDate = calculateMemberEndDate(

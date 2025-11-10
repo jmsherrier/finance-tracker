@@ -49,30 +49,48 @@ public class SavingsCircleViewModel extends ViewModel {
         this.auth = FirestoreManager.getInstance().getAuth();
     }
 
-    /**
-     * Set the TimeViewModel to access dashboard date selector.
-     */
+    // Set the TimeViewModel to access dashboard date selector.
     public void setTimeViewModel(TimeViewModel timeViewModel) {
         this.timeViewModel = timeViewModel;
     }
 
     // ==================== LiveData Getters ====================
 
-    public LiveData<List<SavingsCircle>> getCircles() { return circlesLiveData; }
-    public LiveData<SavingsCircle> getCurrentCircle() { return currentCircleLiveData; }
-    public LiveData<List<CircleMember>> getMembers() { return membersLiveData; }
-    public LiveData<List<CircleInvitation>> getPendingInvitations() { return pendingInvitationsLiveData; }
-    public LiveData<List<CircleContribution>> getContributions() { return contributionsLiveData; }
-    public LiveData<Double> getCircleProgress() { return circleProgressLiveData; }
-    public LiveData<String> getError() { return errorLiveData; }
-    public LiveData<Boolean> getLoading() { return loadingLiveData; }
-    public LiveData<String> getSuccessMessage() { return successMessageLiveData; }
+    public LiveData<List<SavingsCircle>> getCircles() {
+        return circlesLiveData;
+    }
+    public LiveData<SavingsCircle> getCurrentCircle() {
+        return currentCircleLiveData;
+    }
+    public LiveData<List<CircleMember>> getMembers() {
+        return membersLiveData;
+    }
+    public LiveData<List<CircleInvitation>> getPendingInvitations() {
+        return pendingInvitationsLiveData;
+    }
+    public LiveData<List<CircleContribution>> getContributions() {
+        return contributionsLiveData;
+    }
+    public LiveData<Double> getCircleProgress() {
+        return circleProgressLiveData;
+    }
+    public LiveData<String> getError() {
+        return errorLiveData;
+    }
+    public LiveData<Boolean> getLoading() {
+        return loadingLiveData;
+    }
+    public LiveData<String> getSuccessMessage() {
+        return successMessageLiveData;
+    }
 
     // ==================== Circle Operations ====================
 
     public void createCircle(String groupName, String challengeTitle, double goalAmount,
                              String frequency, Date startDate, String notes) {
-        if (!validateCircleCreation(groupName, challengeTitle, goalAmount, frequency)) return;
+        if (!validateCircleCreation(groupName, challengeTitle, goalAmount, frequency)) {
+            return;
+        }
 
         loadingLiveData.setValue(true);
         String userId = getCurrentUserId();
@@ -85,23 +103,25 @@ public class SavingsCircleViewModel extends ViewModel {
         }
 
         SavingsCircle circle = CircleFactory.createCircle(
-                frequency, groupName, userEmail, userId, challengeTitle, goalAmount, startDate, notes
+                frequency, groupName, userEmail, userId,
+                challengeTitle, goalAmount, startDate, notes
         );
 
-        repository.createCircle(circle, new SavingsCircleRepository.RepositoryCallback<SavingsCircle>() {
-            @Override
-            public void onSuccess(SavingsCircle result) {
-                successMessageLiveData.setValue("Circle created successfully!");
-                loadUserCircles();
-                loadingLiveData.setValue(false);
-            }
+        repository.createCircle(circle,
+                new SavingsCircleRepository.RepositoryCallback<SavingsCircle>() {
+                    @Override
+                    public void onSuccess(SavingsCircle result) {
+                        successMessageLiveData.setValue("Circle created successfully!");
+                        loadUserCircles();
+                        loadingLiveData.setValue(false);
+                    }
 
-            @Override
-            public void onError(String error) {
-                errorLiveData.setValue(error);
-                loadingLiveData.setValue(false);
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        errorLiveData.setValue(error);
+                        loadingLiveData.setValue(false);
+                    }
+                });
     }
 
     public void loadUserCircles() {
@@ -114,61 +134,66 @@ public class SavingsCircleViewModel extends ViewModel {
             return;
         }
 
-        repository.loadUserCircles(userId, new SavingsCircleRepository.RepositoryCallback<List<SavingsCircle>>() {
-            @Override
-            public void onSuccess(List<SavingsCircle> result) {
-                circlesLiveData.setValue(result);
-                loadingLiveData.setValue(false);
-            }
+        repository.loadUserCircles(userId,
+                new SavingsCircleRepository.RepositoryCallback<List<SavingsCircle>>() {
+                    @Override
+                    public void onSuccess(List<SavingsCircle> result) {
+                        circlesLiveData.setValue(result);
+                        loadingLiveData.setValue(false);
+                    }
 
-            @Override
-            public void onError(String error) {
-                errorLiveData.setValue(error);
-                circlesLiveData.setValue(new ArrayList<>());
-                loadingLiveData.setValue(false);
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        errorLiveData.setValue(error);
+                        circlesLiveData.setValue(new ArrayList<>());
+                        loadingLiveData.setValue(false);
+                    }
+                });
     }
 
     public void loadCircleDetails(String circleId) {
         loadingLiveData.setValue(true);
-        repository.loadCircle(circleId, new SavingsCircleRepository.RepositoryCallback<SavingsCircle>() {
-            @Override
-            public void onSuccess(SavingsCircle circle) {
-                currentCircleLiveData.setValue(circle);
-                loadCircleMembers(circleId);
-                loadCircleContributions(circleId);
-                startObservingProgress(circleId);
-                loadingLiveData.setValue(false);
-            }
+        repository.loadCircle(circleId,
+                new SavingsCircleRepository.RepositoryCallback<SavingsCircle>() {
+                    @Override
+                    public void onSuccess(SavingsCircle circle) {
+                        currentCircleLiveData.setValue(circle);
+                        loadCircleMembers(circleId);
+                        loadCircleContributions(circleId);
+                        startObservingProgress(circleId);
+                        loadingLiveData.setValue(false);
+                    }
 
-            @Override
-            public void onError(String error) {
-                errorLiveData.setValue(error);
-                loadingLiveData.setValue(false);
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        errorLiveData.setValue(error);
+                        loadingLiveData.setValue(false);
+                    }
+                });
     }
 
     // ==================== Member Operations ====================
 
     private void loadCircleMembers(String circleId) {
-        repository.loadCircleMembers(circleId, new SavingsCircleRepository.RepositoryCallback<List<CircleMember>>() {
-            @Override
-            public void onSuccess(List<CircleMember> result) {
-                membersLiveData.setValue(result);
-            }
+        repository.loadCircleMembers(circleId,
+                new SavingsCircleRepository.RepositoryCallback<List<CircleMember>>() {
+                    @Override
+                    public void onSuccess(List<CircleMember> result) {
+                        membersLiveData.setValue(result);
+                    }
 
-            @Override
-            public void onError(String error) {
-                errorLiveData.setValue("Error loading members: " + error);
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        errorLiveData.setValue("Error loading members: " + error);
+                    }
+                });
     }
 
     public boolean isUserLeader(String circleId) {
         SavingsCircle circle = currentCircleLiveData.getValue();
-        if (circle == null || !circle.getId().equals(circleId)) return false;
+        if (circle == null || !circle.getId().equals(circleId)) {
+            return false;
+        }
         String userId = getCurrentUserId();
         return userId != null && userId.equals(circle.getCreatorId());
     }
@@ -196,38 +221,43 @@ public class SavingsCircleViewModel extends ViewModel {
             return;
         }
 
-        CircleInvitation invitation = new CircleInvitation(circleId, inviterEmail, inviterId, inviteeEmail.trim());
+        CircleInvitation invitation =
+                new CircleInvitation(circleId, inviterEmail, inviterId, inviteeEmail.trim());
 
-        repository.sendInvitation(invitation, new SavingsCircleRepository.RepositoryCallback<Void>() {
-            @Override
-            public void onSuccess(Void result) {
-                successMessageLiveData.setValue("Invitation sent successfully!");
-                loadingLiveData.setValue(false);
-            }
+        repository.sendInvitation(invitation,
+                new SavingsCircleRepository.RepositoryCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        successMessageLiveData.setValue("Invitation sent successfully!");
+                        loadingLiveData.setValue(false);
+                    }
 
-            @Override
-            public void onError(String error) {
-                errorLiveData.setValue(error);
-                loadingLiveData.setValue(false);
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        errorLiveData.setValue(error);
+                        loadingLiveData.setValue(false);
+                    }
+                });
     }
 
     public void loadPendingInvitations() {
         String userEmail = getCurrentUserEmail();
-        if (userEmail == null) return;
+        if (userEmail == null) {
+            return;
+        }
 
-        repository.loadPendingInvitations(userEmail, new SavingsCircleRepository.RepositoryCallback<List<CircleInvitation>>() {
-            @Override
-            public void onSuccess(List<CircleInvitation> result) {
-                pendingInvitationsLiveData.setValue(result);
-            }
+        repository.loadPendingInvitations(userEmail,
+                new SavingsCircleRepository.RepositoryCallback<List<CircleInvitation>>() {
+                    @Override
+                    public void onSuccess(List<CircleInvitation> result) {
+                        pendingInvitationsLiveData.setValue(result);
+                    }
 
-            @Override
-            public void onError(String error) {
-                errorLiveData.setValue("Error loading invitations: " + error);
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        errorLiveData.setValue("Error loading invitations: " + error);
+                    }
+                });
     }
 
     public void acceptInvitation(String invitationId) {
@@ -251,7 +281,8 @@ public class SavingsCircleViewModel extends ViewModel {
                 new SavingsCircleRepository.RepositoryCallback<Void>() {
                     @Override
                     public void onSuccess(Void result) {
-                        successMessageLiveData.setValue("Invitation accepted! You've joined the circle.");
+                        successMessageLiveData.setValue(
+                                "Invitation accepted! You've joined the circle.");
                         loadPendingInvitations();
                         loadUserCircles();
                         loadingLiveData.setValue(false);
@@ -266,17 +297,18 @@ public class SavingsCircleViewModel extends ViewModel {
     }
 
     public void declineInvitation(String invitationId) {
-        repository.declineInvitation(invitationId, new SavingsCircleRepository.RepositoryCallback<Void>() {
-            @Override
-            public void onSuccess(Void result) {
-                loadPendingInvitations();
-            }
+        repository.declineInvitation(invitationId,
+                new SavingsCircleRepository.RepositoryCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        loadPendingInvitations();
+                    }
 
-            @Override
-            public void onError(String error) {
-                errorLiveData.setValue(error);
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        errorLiveData.setValue(error);
+                    }
+                });
     }
 
     // ==================== Contribution Operations ====================
@@ -296,36 +328,39 @@ public class SavingsCircleViewModel extends ViewModel {
             return;
         }
 
-        CircleContribution contribution = new CircleContribution(circleId, userId, amount, date, notes);
+        CircleContribution contribution =
+                new CircleContribution(circleId, userId, amount, date, notes);
 
-        repository.addContribution(contribution, new SavingsCircleRepository.RepositoryCallback<CircleContribution>() {
-            @Override
-            public void onSuccess(CircleContribution result) {
-                successMessageLiveData.setValue("Contribution added successfully!");
-                loadCircleContributions(circleId);
-                loadingLiveData.setValue(false);
-            }
+        repository.addContribution(contribution,
+                new SavingsCircleRepository.RepositoryCallback<CircleContribution>() {
+                    @Override
+                    public void onSuccess(CircleContribution result) {
+                        successMessageLiveData.setValue("Contribution added successfully!");
+                        loadCircleContributions(circleId);
+                        loadingLiveData.setValue(false);
+                    }
 
-            @Override
-            public void onError(String error) {
-                errorLiveData.setValue(error);
-                loadingLiveData.setValue(false);
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        errorLiveData.setValue(error);
+                        loadingLiveData.setValue(false);
+                    }
+                });
     }
 
     private void loadCircleContributions(String circleId) {
-        repository.loadCircleContributions(circleId, new SavingsCircleRepository.RepositoryCallback<List<CircleContribution>>() {
-            @Override
-            public void onSuccess(List<CircleContribution> result) {
-                contributionsLiveData.setValue(result);
-            }
+        repository.loadCircleContributions(circleId,
+                new SavingsCircleRepository.RepositoryCallback<List<CircleContribution>>() {
+                    @Override
+                    public void onSuccess(List<CircleContribution> result) {
+                        contributionsLiveData.setValue(result);
+                    }
 
-            @Override
-            public void onError(String error) {
-                errorLiveData.setValue("Error loading contributions: " + error);
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        errorLiveData.setValue("Error loading contributions: " + error);
+                    }
+                });
     }
 
     // ==================== Real-time Observers ====================
@@ -333,23 +368,24 @@ public class SavingsCircleViewModel extends ViewModel {
     private void startObservingProgress(String circleId) {
         stopObservingProgress();
 
-        progressListener = repository.observeCircleProgress(circleId, new SavingsCircleRepository.RepositoryCallback<Double>() {
-            @Override
-            public void onSuccess(Double result) {
-                circleProgressLiveData.setValue(result);
+        progressListener = repository.observeCircleProgress(circleId,
+                new SavingsCircleRepository.RepositoryCallback<Double>() {
+                    @Override
+                    public void onSuccess(Double result) {
+                        circleProgressLiveData.setValue(result);
 
-                SavingsCircle circle = currentCircleLiveData.getValue();
-                if (circle != null && circle.isComplete(result)) {
-                    circle.setStatus("completed");
-                    currentCircleLiveData.setValue(circle);
-                }
-            }
+                        SavingsCircle circle = currentCircleLiveData.getValue();
+                        if (circle != null && circle.isComplete(result)) {
+                            circle.setStatus("completed");
+                            currentCircleLiveData.setValue(circle);
+                        }
+                    }
 
-            @Override
-            public void onError(String error) {
-                errorLiveData.setValue("Error observing progress: " + error);
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        errorLiveData.setValue("Error observing progress: " + error);
+                    }
+                });
 
         membersListener = repository.observeCircleMembers(circleId,
                 new SavingsCircleRepository.RepositoryCallback<List<CircleMember>>() {
@@ -400,7 +436,8 @@ public class SavingsCircleViewModel extends ViewModel {
     }
 
     public void calculateCircleProgress(String circleId,
-                                        SavingsCircleRepository.RepositoryCallback<Double> callback) {
+                                        SavingsCircleRepository.RepositoryCallback<Double>
+                                                callback) {
         repository.calculateTotalProgress(circleId, callback);
     }
 

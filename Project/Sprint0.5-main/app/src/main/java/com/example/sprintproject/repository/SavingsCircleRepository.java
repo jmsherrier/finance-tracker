@@ -405,7 +405,8 @@ public final class SavingsCircleRepository {
                                                 @Override
                                                 public void onSuccess(
                                                         SavingsCircle circle) {
-                                                    // Calculate member dates using dashboard date selector
+                                                    // Calculate member dates
+                                                    // using dashboard date selector
                                                     Date memberStartDate = calculateMemberStartDate(
                                                             circle.getFrequency(), acceptanceDate);
                                                     Date memberEndDate = calculateMemberEndDate(

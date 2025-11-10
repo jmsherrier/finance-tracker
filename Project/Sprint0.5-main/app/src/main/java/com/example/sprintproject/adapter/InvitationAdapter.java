@@ -19,7 +19,8 @@ import java.util.Locale;
 /**
  * Adapter for displaying circle invitations in a RecyclerView.
  */
-public class InvitationAdapter extends RecyclerView.Adapter<InvitationAdapter.InvitationViewHolder> {
+public class InvitationAdapter
+        extends RecyclerView.Adapter<InvitationAdapter.InvitationViewHolder> {
 
     public interface OnInvitationActionListener {
         void onAccept(String invitationId);
@@ -30,7 +31,8 @@ public class InvitationAdapter extends RecyclerView.Adapter<InvitationAdapter.In
     private OnInvitationActionListener listener;
     private SimpleDateFormat dateFormat;
 
-    public InvitationAdapter(List<CircleInvitation> invitations, OnInvitationActionListener listener) {
+    public InvitationAdapter(List<CircleInvitation> invitations,
+                             OnInvitationActionListener listener) {
         this.invitations = invitations;
         this.listener = listener;
         this.dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
@@ -75,10 +77,12 @@ public class InvitationAdapter extends RecyclerView.Adapter<InvitationAdapter.In
         }
 
         void bind(CircleInvitation invitation) {
-            textInviterEmail.setText(invitation.getInviterEmail() + " invited you");
+            textInviterEmail.setText(invitation.getInviterEmail()
+                    + " invited you");
             
             if (invitation.getCreatedAt() != null) {
-                textInviteDate.setText("Invited on " + dateFormat.format(invitation.getCreatedAt()));
+                textInviteDate.setText("Invited on "
+                    + dateFormat.format(invitation.getCreatedAt()));
             } else {
                 textInviteDate.setText("");
             }

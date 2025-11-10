@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -157,9 +156,13 @@ public class DashboardModel {
         // Filter expenses within this month
         if (latestExpenses != null) {
             for (Expense e : latestExpenses) {
-                if (e == null) continue;
+                if (e == null) {
+                    continue;
+                }
                 Date expenseDate = e.getDate();
-                if (expenseDate == null) continue;
+                if (expenseDate == null) {
+                    continue;
+                }
 
                 if (!expenseDate.before(start) && expenseDate.before(end)) {
                     double amt = e.getAmount();
@@ -177,13 +180,15 @@ public class DashboardModel {
         double totalBudget = 0.0;
         if (latestBudgets != null) {
             for (Budget b : latestBudgets) {
-                if (b == null) continue;
+                if (b == null) {
+                    continue;
+                }
                 Date bStart = b.getStartDate();
 
                 // Count budgets that either have no startDate
                 // or start within this month
-                if (bStart == null ||
-                        (!bStart.before(start) && bStart.before(end))) {
+                if (bStart == null
+                        || (!bStart.before(start) && bStart.before(end))) {
                     totalBudget += b.getTotalAmount();
                 }
             }

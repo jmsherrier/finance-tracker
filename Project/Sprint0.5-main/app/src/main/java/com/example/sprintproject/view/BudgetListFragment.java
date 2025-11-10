@@ -76,8 +76,10 @@ public class BudgetListFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_budget_list, container, false);
 
-        timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
-        savingsCircleViewModel = new ViewModelProvider(requireActivity()).get(SavingsCircleViewModel.class);
+        timeViewModel = new ViewModelProvider(requireActivity()).get(
+            TimeViewModel.class);
+        savingsCircleViewModel = new ViewModelProvider(requireActivity()).get(
+            SavingsCircleViewModel.class);
 
         timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
             SimpleDateFormat fmt =
@@ -166,9 +168,9 @@ public class BudgetListFragment extends Fragment {
                         }
                         ex.setId(doc.getId());
                         expenses.add(ex);
-                }
-                adapter.updateExpenses(expenses);
-            });
+                    }
+                    adapter.updateExpenses(expenses);
+                });
     }
 
     private void observeSavingsCircles() {
@@ -188,8 +190,8 @@ public class BudgetListFragment extends Fragment {
     private void updateUI() {
         adapter.updateBudgets(budgets);
         int totalItems = budgets.size() + circles.size();
-        ((android.widget.TextView) textCount).setText(totalItems + " " + 
-            (totalItems == 1 ? "goal" : "goals"));
+        ((android.widget.TextView) textCount).setText(totalItems + " "
+            + (totalItems == 1 ? "goal" : "goals"));
 
         if (budgets.isEmpty() && circles.isEmpty()) {
             textEmpty.setVisibility(View.VISIBLE);

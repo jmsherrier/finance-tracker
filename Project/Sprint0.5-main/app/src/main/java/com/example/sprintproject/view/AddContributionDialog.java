@@ -26,7 +26,14 @@ public class AddContributionDialog {
     private final SavingsCircleViewModel viewModel;
     private final String circleId;
 
-    public AddContributionDialog(Context context, SavingsCircleViewModel viewModel, String circleId) {
+    /**
+     * Constructor.
+     * @param context The context
+     * @param viewModel The view model
+     * @param circleId The circle ID
+     */
+    public AddContributionDialog(Context context,
+            SavingsCircleViewModel viewModel, String circleId) {
         this.context = context;
         this.viewModel = viewModel;
         this.circleId = circleId;

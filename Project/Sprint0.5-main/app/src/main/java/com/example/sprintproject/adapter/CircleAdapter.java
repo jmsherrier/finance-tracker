@@ -67,6 +67,8 @@ public class CircleAdapter extends RecyclerView.Adapter<CircleAdapter.CircleView
 
     /**
      * Update progress for a specific circle.
+     * @param circleId The circle ID to update
+     * @param progress The new progress value
      */
     public void updateProgress(String circleId, double progress) {
         circleProgressMap.put(circleId, progress);

@@ -90,7 +90,9 @@ public class DashboardFragment extends Fragment {
         dashboardViewModel.getCurrentDate().observe(
                 getViewLifecycleOwner(),
                 date -> {
-                    if (date == null) date = new Date();
+                    if (date == null) {
+                        date = new Date();
+                    }
                     SimpleDateFormat fmt =
                             new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
                     selectedDateDisplay.setText("Date: " + fmt.format(date));
@@ -158,7 +160,9 @@ public class DashboardFragment extends Fragment {
         dashboardViewModel.getDashboardData().observe(
                 getViewLifecycleOwner(),
                 data -> {
-                    if (data == null) return;
+                    if (data == null) {
+                        return;
+                    }
 
                     // Numbers
                     Double totalSpentObj = (Double) data.get("totalSpent");
@@ -213,7 +217,9 @@ public class DashboardFragment extends Fragment {
         dashboardViewModel.getPieData().observe(
                 getViewLifecycleOwner(),
                 pieData -> {
-                    if (pieData == null) return;
+                    if (pieData == null) {
+                        return;
+                    }
                     pieChart.setData(pieData);
                     pieChart.invalidate();
                 }
@@ -223,7 +229,9 @@ public class DashboardFragment extends Fragment {
         dashboardViewModel.getBarData().observe(
                 getViewLifecycleOwner(),
                 barData -> {
-                    if (barData == null) return;
+                    if (barData == null) {
+                        return;
+                    }
                     barChart.setData(barData);
                     barChart.invalidate();
                 }

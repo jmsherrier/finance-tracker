@@ -81,7 +81,8 @@ public class InvitationAdapter
                     + " invited you");
             
             if (invitation.getCreatedAt() != null) {
-                textInviteDate.setText("Invited on " + dateFormat.format(invitation.getCreatedAt()));
+                textInviteDate.setText("Invited on "
+                    + dateFormat.format(invitation.getCreatedAt()));
             } else {
                 textInviteDate.setText("");
             }

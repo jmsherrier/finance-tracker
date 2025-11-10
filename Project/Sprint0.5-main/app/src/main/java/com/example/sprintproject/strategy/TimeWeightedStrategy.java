@@ -40,8 +40,10 @@ public class TimeWeightedStrategy implements ProgressCalculationStrategy {
                 Date contribDate = contribution.getDate();
                 if (contribDate != null && !contribDate.after(now)) {
                     // Weight: more recent = higher weight
-                    long timeSinceContrib = now.getTime() - contribDate.getTime();
-                    double weight = 1.0 + (timeSinceContrib / (double) totalTime) * 0.5; // 1.0 to 1.5
+                    long timeSinceContrib =
+                        now.getTime() - contribDate.getTime();
+                    double weight = 1.0
+                        + (timeSinceContrib / (double) totalTime) * 0.5;
                     weightedTotal += contribution.getAmount() * weight;
                 }
             }

@@ -108,7 +108,8 @@ public class CreateCircleDialog {
                 String notes = editNotes.getText().toString().trim();
                 Date startDate = calendar.getTime();
 
-                viewModel.createCircle(groupName, challengeTitle, goalAmount, frequency, startDate, notes);
+                viewModel.createCircle(groupName, challengeTitle,
+                    goalAmount, frequency, startDate, notes);
                 dialog.dismiss();
                 
                 if (listener != null) {
@@ -170,8 +171,10 @@ public class CreateCircleDialog {
         if (frequency.isEmpty()) {
             dropdownFrequency.setError("Frequency is required");
             isValid = false;
-        } else if (!"weekly".equalsIgnoreCase(frequency) && !"monthly".equalsIgnoreCase(frequency)) {
-            dropdownFrequency.setError("Frequency must be 'Weekly' or 'Monthly'");
+        } else if (!"weekly".equalsIgnoreCase(frequency)
+            && !"monthly".equalsIgnoreCase(frequency)) {
+            dropdownFrequency.setError(
+                "Frequency must be 'Weekly' or 'Monthly'");
             isValid = false;
         } else {
             dropdownFrequency.setError(null);

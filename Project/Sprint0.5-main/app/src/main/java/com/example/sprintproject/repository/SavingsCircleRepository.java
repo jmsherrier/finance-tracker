@@ -58,6 +58,7 @@ public final class SavingsCircleRepository {
 
     /**
      * Get current user ID.
+     * @return The current user ID or null if not logged in
      */
     private String getCurrentUserId() {
         if (auth.getCurrentUser() != null) {
@@ -68,6 +69,7 @@ public final class SavingsCircleRepository {
 
     /**
      * Get current user email.
+     * @return The current user email or null if not logged in
      */
     private String getCurrentUserEmail() {
         if (auth.getCurrentUser() != null) {
@@ -78,8 +80,13 @@ public final class SavingsCircleRepository {
 
     // ==================== Circle CRUD Operations ====================
 
-    // Create a new savings circle.
-    public void createCircle(SavingsCircle circle, RepositoryCallback<SavingsCircle> callback) {
+    /**
+     * Create a new savings circle.
+     * @param circle The circle to create
+     * @param callback Callback for the operation result
+     */
+    public void createCircle(SavingsCircle circle,
+                             RepositoryCallback<SavingsCircle> callback) {
         db.collection("savingsCircles")
                 .add(circle)
                 .addOnSuccessListener(documentReference -> {
@@ -108,7 +115,9 @@ public final class SavingsCircleRepository {
 
                         @Override
                         public void onError(String error) {
-                            callback.onError("Circle created but failed to add creator: " + error);
+                            callback.onError(
+                                "Circle created but failed to add creator: "
+                                + error);
                         }
                     });
                 })
@@ -156,9 +165,8 @@ public final class SavingsCircleRepository {
                                 .addOnSuccessListener(memberDoc -> {
                                     if (memberDoc.exists()) {
                                         // User is a member, load the circle
-                                        loadCircle(
-                                                circleId,
-                                                new RepositoryCallback<SavingsCircle>() {
+                                        loadCircle(circleId,
+                                            new RepositoryCallback<SavingsCircle>() {
                                                     @Override
                                                     public void onSuccess(SavingsCircle circle) {
                                                         userCircles.add(circle);
@@ -196,8 +204,13 @@ public final class SavingsCircleRepository {
                         e -> callback.onError("Error loading circles: " + e.getMessage()));
     }
 
-    // Load a specific circle by ID.
-    public void loadCircle(String circleId, RepositoryCallback<SavingsCircle> callback) {
+    /**
+     * Load a specific circle by ID.
+     * @param circleId The circle ID
+     * @param callback Callback for the operation result
+     */
+    public void loadCircle(String circleId,
+                           RepositoryCallback<SavingsCircle> callback) {
         db.collection("savingsCircles")
                 .document(circleId)
                 .get()
@@ -214,39 +227,52 @@ public final class SavingsCircleRepository {
                         callback.onError("Circle not found");
                     }
                 })
-                .addOnFailureListener(e -> callback.onError("Error loading circle: " + e.getMessage()));
+                .addOnFailureListener(e ->
+                    callback.onError("Error loading circle: " + e.getMessage()));
     }
 
     /**
      * Update a circle.
+     * @param circle The circle to update
+     * @param callback The callback to handle the result
      */
-    public void updateCircle(SavingsCircle circle, RepositoryCallback<Void> callback) {
+    public void updateCircle(SavingsCircle circle,
+                             RepositoryCallback<Void> callback) {
         db.collection("savingsCircles")
                 .document(circle.getId())
                 .set(circle)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(e -> callback.onError("Error updating circle: " + e.getMessage()));
+                .addOnFailureListener(e ->
+                    callback.onError("Error updating circle: " + e.getMessage()));
     }
 
     // ==================== Member Management ====================
 
     /**
      * Add a member to a circle.
+     * @param circleId The circle ID
+     * @param member The member to add
+     * @param callback The callback to handle the result
      */
-    public void addMember(String circleId, CircleMember member, RepositoryCallback<Void> callback) {
+    public void addMember(String circleId, CircleMember member,
+                          RepositoryCallback<Void> callback) {
         db.collection("savingsCircles")
                 .document(circleId)
                 .collection("members")
                 .document(member.getUserId())
                 .set(member)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(e -> callback.onError("Error adding member: " + e.getMessage()));
+                .addOnFailureListener(e ->
+                    callback.onError("Error adding member: " + e.getMessage()));
     }
 
     /**
      * Load all members of a circle.
+     * @param circleId The circle ID
+     * @param callback The callback to handle the result
      */
-    public void loadCircleMembers(String circleId, RepositoryCallback<List<CircleMember>> callback) {
+    public void loadCircleMembers(String circleId,
+                                  RepositoryCallback<List<CircleMember>> callback) {
         db.collection("savingsCircles")
                 .document(circleId)
                 .collection("members")
@@ -261,14 +287,20 @@ public final class SavingsCircleRepository {
                     }
                     callback.onSuccess(members);
                 })
-                .addOnFailureListener(e -> callback.onError("Error loading members: " + e.getMessage()));
+                .addOnFailureListener(e ->
+                    callback.onError("Error loading members: " + e.getMessage()));
     }
 
     /**
      * Update member's total contribution.
+     * @param circleId The circle ID
+     * @param userId The user ID
+     * @param amount The new contribution amount
+     * @param callback The callback to handle the result
      */
     public void updateMemberContribution(String circleId, String userId,
-                                         double amount, RepositoryCallback<Void> callback) {
+                                         double amount,
+                                         RepositoryCallback<Void> callback) {
         DocumentReference memberRef = db.collection("savingsCircles")
                 .document(circleId)
                 .collection("members")
@@ -281,9 +313,11 @@ public final class SavingsCircleRepository {
                         if (member != null) {
                             member.setTotalContribution(member.getTotalContribution() + amount);
                             memberRef.set(member)
-                                    .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                                    .addOnFailureListener(e ->
-                                            callback.onError("Error updating contribution: " + e.getMessage()));
+                                    .addOnSuccessListener(
+                                        aVoid -> callback.onSuccess(null))
+                                    .addOnFailureListener(e -> callback.onError(
+                                        "Error updating contribution: "
+                                        + e.getMessage()));
                         } else {
                             callback.onError("Member data not found");
                         }
@@ -291,28 +325,36 @@ public final class SavingsCircleRepository {
                         callback.onError("Member not found");
                     }
                 })
-                .addOnFailureListener(e -> callback.onError("Error loading member: " + e.getMessage()));
+                .addOnFailureListener(e ->
+                    callback.onError("Error loading member: " + e.getMessage()));
     }
 
     // ==================== Invitation Management ====================
 
     /**
      * Send an invitation to join a circle.
+     * @param invitation The invitation to send
+     * @param callback The callback to handle the result
      */
-    public void sendInvitation(CircleInvitation invitation, RepositoryCallback<CircleInvitation> callback) {
+    public void sendInvitation(CircleInvitation invitation,
+                               RepositoryCallback<Void> callback) {
         db.collection("circleInvitations")
                 .add(invitation)
                 .addOnSuccessListener(documentReference -> {
                     invitation.setId(documentReference.getId());
                     callback.onSuccess(invitation);
                 })
-                .addOnFailureListener(e -> callback.onError("Error sending invitation: " + e.getMessage()));
+                .addOnFailureListener(e ->
+                    callback.onError("Error sending invitation: " + e.getMessage()));
     }
 
     /**
      * Load pending invitations for the current user.
+     * @param userEmail The user's email
+     * @param callback The callback to handle the result
      */
-    public void loadPendingInvitations(String userEmail, RepositoryCallback<List<CircleInvitation>> callback) {
+    public void loadPendingInvitations(String userEmail,
+                                       RepositoryCallback<List<CircleInvitation>> callback) {
         db.collection("circleInvitations")
                 .whereEqualTo("inviteeEmail", userEmail)
                 .whereEqualTo("status", "pending")
@@ -328,20 +370,27 @@ public final class SavingsCircleRepository {
                     }
                     callback.onSuccess(invitations);
                 })
-                .addOnFailureListener(e -> callback.onError("Error loading invitations: " + e.getMessage()));
+                .addOnFailureListener(e ->
+                    callback.onError("Error loading invitations: " + e.getMessage()));
     }
 
     /**
      * Accept an invitation.
+     * @param invitationId The invitation ID
+     * @param userId The user ID
+     * @param userEmail The user's email
+     * @param callback The callback to handle the result
      */
-    public void acceptInvitation(String invitationId, String userId, String userEmail,
+    public void acceptInvitation(String invitationId, String userId,
+                                 String userEmail,
                                  RepositoryCallback<Void> callback) {
         db.collection("circleInvitations")
                 .document(invitationId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        CircleInvitation invitation = documentSnapshot.toObject(CircleInvitation.class);
+                        CircleInvitation invitation =
+                            documentSnapshot.toObject(CircleInvitation.class);
                         if (invitation != null && invitation.isPending()) {
                             // Update invitation status
                             invitation.accept();
@@ -350,37 +399,42 @@ public final class SavingsCircleRepository {
                                     .set(invitation)
                                     .addOnSuccessListener(aVoid -> {
                                         // Load circle to get frequency and dates
-                                        loadCircle(invitation.getCircleId(), new RepositoryCallback<SavingsCircle>() {
-                                            @Override
-                                            public void onSuccess(SavingsCircle circle) {
-                                                // Calculate member dates based on acceptance date
-                                                Date acceptanceDate = new Date();
-                                                Date memberStartDate = calculateMemberStartDate(
-                                                        circle.getFrequency(), acceptanceDate);
-                                                Date memberEndDate = calculateMemberEndDate(
-                                                        circle.getFrequency(), memberStartDate);
+                                        loadCircle(invitation.getCircleId(),
+                                                new RepositoryCallback<SavingsCircle>() {
+                                                @Override
+                                                public void onSuccess(
+                                                        SavingsCircle circle) {
+                                                    // Calculate member dates
+                                                    Date acceptanceDate = new Date();
+                                                    Date memberStartDate = calculateMemberStartDate(
+                                                            circle.getFrequency(), acceptanceDate);
+                                                    Date memberEndDate = calculateMemberEndDate(
+                                                            circle.getFrequency(), memberStartDate);
 
-                                                // Add user as member
-                                                CircleMember member = new CircleMember(
-                                                        userId,
-                                                        userEmail,
-                                                        circle.getId(),
-                                                        "member",
-                                                        memberStartDate,
-                                                        memberEndDate
-                                                );
+                                                    // Add user as member
+                                                    CircleMember member = new CircleMember(
+                                                            userId,
+                                                            userEmail,
+                                                            circle.getId(),
+                                                            "member",
+                                                            memberStartDate,
+                                                            memberEndDate
+                                                    );
 
-                                                addMember(circle.getId(), member, callback);
-                                            }
+                                                    addMember(circle.getId(), member, callback);
+                                                }
 
-                                            @Override
-                                            public void onError(String error) {
-                                                callback.onError("Error loading circle: " + error);
-                                            }
-                                        });
+                                                @Override
+                                                public void onError(String error) {
+                                                    callback.onError(
+                                                        "Error loading circle: "
+                                                        + error);
+                                                }
+                                            });
                                     })
-                                    .addOnFailureListener(e ->
-                                            callback.onError("Error updating invitation: " + e.getMessage()));
+                                    .addOnFailureListener(e -> callback.onError(
+                                        "Error updating invitation: "
+                                        + e.getMessage()));
                         } else {
                             callback.onError("Invitation is no longer valid");
                         }
@@ -388,27 +442,34 @@ public final class SavingsCircleRepository {
                         callback.onError("Invitation not found");
                     }
                 })
-                .addOnFailureListener(e -> callback.onError("Error loading invitation: " + e.getMessage()));
+                .addOnFailureListener(e ->
+                    callback.onError("Error loading invitation: " + e.getMessage()));
     }
 
     /**
      * Decline an invitation.
+     * @param invitationId The invitation ID
+     * @param callback The callback to handle the result
      */
-    public void declineInvitation(String invitationId, RepositoryCallback<Void> callback) {
+    public void declineInvitation(String invitationId,
+                                  RepositoryCallback<Void> callback) {
         db.collection("circleInvitations")
                 .document(invitationId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        CircleInvitation invitation = documentSnapshot.toObject(CircleInvitation.class);
+                        CircleInvitation invitation =
+                            documentSnapshot.toObject(CircleInvitation.class);
                         if (invitation != null) {
                             invitation.decline();
                             db.collection("circleInvitations")
                                     .document(invitationId)
                                     .set(invitation)
-                                    .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                                    .addOnFailureListener(e ->
-                                            callback.onError("Error declining invitation: " + e.getMessage()));
+                                    .addOnSuccessListener(
+                                        aVoid -> callback.onSuccess(null))
+                                    .addOnFailureListener(e -> callback.onError(
+                                        "Error declining invitation: "
+                                        + e.getMessage()));
                         } else {
                             callback.onError("Invalid invitation data");
                         }
@@ -416,15 +477,19 @@ public final class SavingsCircleRepository {
                         callback.onError("Invitation not found");
                     }
                 })
-                .addOnFailureListener(e -> callback.onError("Error loading invitation: " + e.getMessage()));
+                .addOnFailureListener(e -> callback.onError(
+                    "Error loading invitation: " + e.getMessage()));
     }
 
     // ==================== Contribution Management ====================
 
     /**
      * Add a contribution to a circle.
+     * @param contribution The contribution to add
+     * @param callback Callback for the operation result
      */
-    public void addContribution(CircleContribution contribution, RepositoryCallback<CircleContribution> callback) {
+    public void addContribution(CircleContribution contribution,
+                                RepositoryCallback<CircleContribution> callback) {
         db.collection("savingsCircles")
                 .document(contribution.getCircleId())
                 .collection("contributions")
@@ -433,8 +498,9 @@ public final class SavingsCircleRepository {
                     contribution.setId(documentReference.getId());
 
                     // Update member's total contribution
-                    updateMemberContribution(contribution.getCircleId(), contribution.getUserId(),
-                            contribution.getAmount(), new RepositoryCallback<Void>() {
+                    updateMemberContribution(contribution.getCircleId(),
+                            contribution.getUserId(), contribution.getAmount(),
+                            new RepositoryCallback<Void>() {
                                 @Override
                                 public void onSuccess(Void result) {
                                     // Check if goal is reached
@@ -444,17 +510,23 @@ public final class SavingsCircleRepository {
 
                                 @Override
                                 public void onError(String error) {
-                                    callback.onError("Contribution added but failed to update member: " + error);
+                                    callback.onError(
+                                        "Contribution added but failed to update member: "
+                                        + error);
                                 }
                             });
                 })
-                .addOnFailureListener(e -> callback.onError("Error adding contribution: " + e.getMessage()));
+                .addOnFailureListener(e -> callback.onError(
+                    "Error adding contribution: " + e.getMessage()));
     }
 
     /**
      * Load all contributions for a circle.
+     * @param circleId The ID of the circle
+     * @param callback Callback for the operation result
      */
-    public void loadCircleContributions(String circleId, RepositoryCallback<List<CircleContribution>> callback) {
+    public void loadCircleContributions(String circleId,
+            RepositoryCallback<List<CircleContribution>> callback) {
         db.collection("savingsCircles")
                 .document(circleId)
                 .collection("contributions")
@@ -471,13 +543,17 @@ public final class SavingsCircleRepository {
                     }
                     callback.onSuccess(contributions);
                 })
-                .addOnFailureListener(e -> callback.onError("Error loading contributions: " + e.getMessage()));
+                .addOnFailureListener(e -> callback.onError(
+                    "Error loading contributions: " + e.getMessage()));
     }
 
     /**
      * Calculate total progress for a circle.
+     * @param circleId The ID of the circle
+     * @param callback Callback for the operation result
      */
-    public void calculateTotalProgress(String circleId, RepositoryCallback<Double> callback) {
+    public void calculateTotalProgress(String circleId,
+                                       RepositoryCallback<Double> callback) {
         db.collection("savingsCircles")
                 .document(circleId)
                 .collection("contributions")
@@ -492,16 +568,20 @@ public final class SavingsCircleRepository {
                     }
                     callback.onSuccess(total);
                 })
-                .addOnFailureListener(e -> callback.onError("Error calculating progress: " + e.getMessage()));
+                .addOnFailureListener(e -> callback.onError(
+                    "Error calculating progress: " + e.getMessage()));
     }
 
     // ==================== Real-time Listeners ====================
 
     /**
      * Observe circle progress in real-time.
+     * @param circleId The ID of the circle
+     * @param callback Callback for the operation result
+     * @return ListenerRegistration to manage the listener
      */
     public ListenerRegistration observeCircleProgress(String circleId,
-                                                      RepositoryCallback<Double> callback) {
+            RepositoryCallback<Double> callback) {
         return db.collection("savingsCircles")
                 .document(circleId)
                 .collection("contributions")
@@ -514,7 +594,8 @@ public final class SavingsCircleRepository {
                     if (snapshot != null) {
                         double total = 0.0;
                         for (DocumentSnapshot doc : snapshot.getDocuments()) {
-                            CircleContribution contribution = doc.toObject(CircleContribution.class);
+                            CircleContribution contribution =
+                                doc.toObject(CircleContribution.class);
                             if (contribution != null) {
                                 total += contribution.getAmount();
                             }
@@ -526,9 +607,12 @@ public final class SavingsCircleRepository {
 
     /**
      * Observe circle members in real-time.
+     * @param circleId The ID of the circle
+     * @param callback Callback for the operation result
+     * @return ListenerRegistration to manage the listener
      */
     public ListenerRegistration observeCircleMembers(String circleId,
-                                                     RepositoryCallback<List<CircleMember>> callback) {
+            RepositoryCallback<List<CircleMember>> callback) {
         return db.collection("savingsCircles")
                 .document(circleId)
                 .collection("members")
@@ -557,8 +641,12 @@ public final class SavingsCircleRepository {
      * Calculate member start date based on frequency and acceptance date.
      * Weekly: starts from acceptance date (Day 1 of 7)
      * Monthly: starts from Day 1 of current month
+     * @param frequency The frequency of the circle
+     * @param acceptanceDate The date the member accepted
+     * @return The calculated start date
      */
-    private Date calculateMemberStartDate(String frequency, Date acceptanceDate) {
+    private Date calculateMemberStartDate(String frequency,
+                                          Date acceptanceDate) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(acceptanceDate);
 
@@ -576,8 +664,12 @@ public final class SavingsCircleRepository {
 
     /**
      * Calculate member end date based on frequency and start date.
+     * @param frequency The frequency of the circle
+     * @param startDate The start date
+     * @return The calculated end date
      */
-    private Date calculateMemberEndDate(String frequency, Date startDate) {
+    private Date calculateMemberEndDate(String frequency,
+                                        Date startDate) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(startDate);
 
@@ -598,30 +690,32 @@ public final class SavingsCircleRepository {
         loadCircle(circleId, new RepositoryCallback<SavingsCircle>() {
             @Override
             public void onSuccess(SavingsCircle circle) {
-                calculateTotalProgress(circleId, new RepositoryCallback<Double>() {
-                    @Override
-                    public void onSuccess(Double totalProgress) {
-                        if (totalProgress >= circle.getGoalAmount() && "active".equals(circle.getStatus())) {
-                            circle.setStatus("completed");
-                            updateCircle(circle, new RepositoryCallback<Void>() {
-                                @Override
-                                public void onSuccess(Void result) {
-                                    // Goal completed
-                                }
+                calculateTotalProgress(circleId,
+                        new RepositoryCallback<Double>() {
+                        @Override
+                        public void onSuccess(Double totalProgress) {
+                            if (totalProgress >= circle.getGoalAmount()
+                                && "active".equals(circle.getStatus())) {
+                                circle.setStatus("completed");
+                                updateCircle(circle, new RepositoryCallback<Void>() {
+                                    @Override
+                                    public void onSuccess(Void result) {
+                                        // Goal completed
+                                    }
 
-                                @Override
-                                public void onError(String error) {
-                                    // Log error but don't fail
-                                }
-                            });
+                                    @Override
+                                    public void onError(String error) {
+                                        // Log error but don't fail
+                                    }
+                                });
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onError(String error) {
-                        // Log error but don't fail
-                    }
-                });
+                        @Override
+                        public void onError(String error) {
+                            // Log error but don't fail
+                        }
+                    });
             }
 
             @Override

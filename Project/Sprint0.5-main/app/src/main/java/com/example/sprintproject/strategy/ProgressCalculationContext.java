@@ -12,12 +12,17 @@ import java.util.List;
 public class ProgressCalculationContext {
     private ProgressCalculationStrategy strategy;
 
+    /**
+     * Constructor.
+     * @param strategy The strategy to use
+     */
     public ProgressCalculationContext(ProgressCalculationStrategy strategy) {
         this.strategy = strategy;
     }
 
     /**
      * Set the strategy to use.
+     * @param strategy The strategy to set
      */
     public void setStrategy(ProgressCalculationStrategy strategy) {
         this.strategy = strategy;
@@ -25,6 +30,8 @@ public class ProgressCalculationContext {
 
     /**
      * Calculate progress using the current strategy.
+     * @param contributions The list of contributions
+     * @return The calculated progress
      */
     public double calculateProgress(List<CircleContribution> contributions) {
         if (strategy == null) {
@@ -35,9 +42,12 @@ public class ProgressCalculationContext {
 
     /**
      * Factory method to create appropriate strategy based on circle type.
+     * @param circle The savings circle
+     * @param contributions The list of contributions
+     * @return The configured context
      */
     public static ProgressCalculationContext createContext(SavingsCircle circle,
-                                                          List<CircleContribution> contributions) {
+            List<CircleContribution> contributions) {
         if (circle == null) {
             return new ProgressCalculationContext(new SumContributionStrategy());
         }

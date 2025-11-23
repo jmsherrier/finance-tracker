@@ -15,7 +15,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -53,9 +52,7 @@ public class SavingsCircleTest {
         nextWeek = cal.getTime();
     }
 
-    /**
-     * Test 1: SavingsCircle progress calculation with valid amounts.
-     */
+    /** Test 1: SavingsCircle progress calculation with valid amounts. */
     @Test
     public void testSavingsCircleProgressCalculation() {
         SavingsCircle circle = new SavingsCircle(
@@ -66,31 +63,25 @@ public class SavingsCircleTest {
         // Test 50% progress
         double progress50 = circle.calculateProgressPercentage(500.0);
         assertEquals(50.0, progress50, 0.01);
-        
-        // Test 100% progress
+
         double progress100 = circle.calculateProgressPercentage(1000.0);
         assertEquals(100.0, progress100, 0.01);
-        
-        // Test zero goal amount
+
         circle.setGoalAmount(0);
         double progressZero = circle.calculateProgressPercentage(100.0);
         assertEquals(0.0, progressZero, 0.01);
     }
 
-    /**
-     * Test 2: SavingsCircle isActive method with different scenarios.
-     */
+    /** Test 2: SavingsCircle isActive method with different scenarios. */
     @Test
     public void testSavingsCircleIsActive() {
-        // Create active circle
         SavingsCircle activeCircle = new SavingsCircle(
             "Active Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
             "Active Challenge", 500.0, FREQUENCY_WEEKLY, today, TEST_NOTES
         );
         activeCircle.setStatus(STATUS_ACTIVE);
         assertTrue("Circle should be active", activeCircle.isActive());
-        
-        // Create completed circle
+
         SavingsCircle completedCircle = new SavingsCircle(
             "Completed Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
             "Completed Challenge", 500.0, FREQUENCY_WEEKLY, today, TEST_NOTES
@@ -99,9 +90,7 @@ public class SavingsCircleTest {
         assertFalse("Completed circle should not be active", completedCircle.isActive());
     }
 
-    /**
-     * Test 3: CircleMember contribution percentage calculation.
-     */
+    /** Test 3: CircleMember contribution percentage calculation. */
     @Test
     public void testCircleMemberContributionPercentage() {
         CircleMember member = new CircleMember(
@@ -113,16 +102,13 @@ public class SavingsCircleTest {
         member.setTotalContribution(250.0);
         double percentage25 = member.getContributionPercentage(1000.0);
         assertEquals(25.0, percentage25, 0.01);
-        
-        // Test 100% contribution
+
         member.setTotalContribution(1000.0);
         double percentage100 = member.getContributionPercentage(1000.0);
         assertEquals(100.0, percentage100, 0.01);
     }
 
-    /**
-     * Test 4: CircleInvitation accept and decline methods.
-     */
+    /** Test 4: CircleInvitation accept and decline methods. */
     @Test
     public void testCircleInvitationAcceptDecline() {
         CircleInvitation invitation = new CircleInvitation(
@@ -131,24 +117,19 @@ public class SavingsCircleTest {
         
         // Test initial status
         assertEquals("pending", invitation.getStatus());
-        assertTrue("Invitation should be pending initially", invitation.isPending());
-        
-        // Test accept
+        assertTrue(invitation.isPending());
+
         invitation.accept();
         assertEquals("accepted", invitation.getStatus());
-        
-        // Reset and test decline
+
         invitation.setStatus("pending");
         invitation.decline();
         assertEquals("declined", invitation.getStatus());
     }
 
-    /**
-     * Test 5: CircleFactory creates weekly and monthly circles correctly.
-     */
+    /** Test 5: CircleFactory creates weekly and monthly circles correctly. */
     @Test
     public void testCircleFactoryCreation() {
-        // Test weekly circle
         SavingsCircle weeklyCircle = CircleFactory.createWeeklyCircle(
             "Weekly Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
             "Weekly Challenge", 500.0, today, "Weekly notes"
@@ -170,9 +151,8 @@ public class SavingsCircleTest {
         assertEquals("Monthly Group", monthlyCircle.getGroupName());
         assertEquals(STATUS_ACTIVE, monthlyCircle.getStatus());
     }
-    /**
-     * Test 6: SavingsCircle completion detection.
-     */
+
+    /** Test 6: SavingsCircle completion detection. */
     @Test
     public void testSavingsCircleCompletion() {
         SavingsCircle circle = new SavingsCircle(
@@ -180,19 +160,12 @@ public class SavingsCircleTest {
                 "Goal Challenge", 1000.0, "monthly", today, TEST_NOTES
         );
 
-        // Not complete at 500.0
         assertFalse(circle.isComplete(500.0));
-
-        // Complete at goal
         assertTrue(circle.isComplete(1000.0));
-
-        // Over-complete
         assertTrue(circle.isComplete(1500.0));
     }
 
-    /**
-     * Test 7: Changing goal amount affects progress calculation.
-     */
+    /** Test 7: Changing goal amount affects progress calculation. */
     @Test
     public void testSavingsCircleGoalChangeAffectsProgress() {
         SavingsCircle circle = new SavingsCircle(
@@ -200,25 +173,20 @@ public class SavingsCircleTest {
                 "Change Goal Challenge", 1000.0, FREQUENCY_WEEKLY, today, TEST_NOTES
         );
 
-        // Initial: 500 / 1000 = 50%
         double progress50 = circle.calculateProgressPercentage(500.0);
         assertEquals(50.0, progress50, 0.01);
 
-        // Change goal to 2000, now 500 / 2000 = 25%
         circle.setGoalAmount(2000.0);
         double progress25 = circle.calculateProgressPercentage(500.0);
         assertEquals(25.0, progress25, 0.01);
     }
 
-    /**
-     * Test 8: CircleMember activity period detection.
-     */
+    /** Test 8: CircleMember activity period detection. */
     @Test
     public void testCircleMemberIsActive() {
         Date now = new Date();
         Calendar cal = Calendar.getInstance();
 
-        // Active: yesterday to tomorrow
         cal.setTime(now);
         cal.add(Calendar.DAY_OF_YEAR, -1);
         Date start = cal.getTime();
@@ -230,7 +198,6 @@ public class SavingsCircleTest {
         );
         assertTrue("Member should be active", activeMember.isActive());
 
-        // Not yet active: starts tomorrow
         cal.setTime(now);
         cal.add(Calendar.DAY_OF_YEAR, 1);
         Date futureStart = cal.getTime();
@@ -242,7 +209,6 @@ public class SavingsCircleTest {
         );
         assertFalse("Member should not yet be active", futureMember.isActive());
 
-        // Challenge ended: ended yesterday
         cal.setTime(now);
         cal.add(Calendar.DAY_OF_YEAR, -5);
         Date pastStart = cal.getTime();
@@ -255,9 +221,7 @@ public class SavingsCircleTest {
         assertFalse("Member's challenge period is over", pastMember.isActive());
     }
 
-    /**
-     * Test 9: CircleMember leader detection, joinedAt, and toString.
-     */
+    /** Test 9: CircleMember leader detection, joinedAt, and toString. */
     @Test
     public void testCircleMemberLeaderAndToString() {
         CircleMember leader = new CircleMember(
@@ -274,40 +238,32 @@ public class SavingsCircleTest {
         // Basic field checks
         assertEquals(ROLE_LEADER, leader.getRole());
         assertEquals("leader@test.com", leader.getEmail());
-        assertNotNull("joinedAt should be initialized", leader.getJoinedAt());
+        assertNotNull(leader.getJoinedAt());
 
-        // toString contains key info
         String s = leader.toString();
         assertTrue(s.contains("lead1"));
         assertTrue(s.contains("leader@test.com"));
         assertTrue(s.contains(ROLE_LEADER));
     }
 
-    /**
-     * Test 10: CircleMember contribution percentage edge cases.
-     */
+    /** Test 10: CircleMember contribution percentage edge cases. */
     @Test
     public void testCircleMemberContributionEdgeCases() {
         CircleMember member = new CircleMember(
                 "u4", "edge@test.com", "c4", ROLE_MEMBER, today, nextWeek
         );
 
-        // Zero contribution, zero goal
         member.setTotalContribution(0.0);
         assertEquals(0.0, member.getContributionPercentage(0.0), 0.01);
 
-        // Partial progress
         member.setTotalContribution(250.0);
         assertEquals(25.0, member.getContributionPercentage(1000.0), 0.01);
 
-        // Over 100% progress
         member.setTotalContribution(1500.0);
         assertEquals(150.0, member.getContributionPercentage(1000.0), 0.01);
     }
 
-    /**
-     * Test 11: SavingsCircle isComplete method.
-     */
+    /** Test 11: SavingsCircle isComplete method. */
     @Test
     public void testSavingsCircleIsComplete() {
         SavingsCircle circle = new SavingsCircle(
@@ -323,13 +279,10 @@ public class SavingsCircleTest {
             circle.isComplete(1500.0));
         
         circle.setStatus("completed");
-        assertTrue("Circle with completed status should be complete", 
-            circle.isComplete(0.0));
+        assertTrue(circle.isComplete(0.0));
     }
 
-    /**
-     * Test 12: SavingsCircle getDaysRemaining calculation.
-     */
+    /** Test 12: SavingsCircle getDaysRemaining calculation. */
     @Test
     public void testSavingsCircleDaysRemaining() {
         SavingsCircle circle = new SavingsCircle(
@@ -338,35 +291,13 @@ public class SavingsCircleTest {
         );
         
         long daysRemaining = circle.getDaysRemaining();
-        assertTrue("Days remaining should be approximately 7", 
-            daysRemaining >= 6 && daysRemaining <= 8);
-        
+        assertTrue(daysRemaining >= 6 && daysRemaining <= 8);
+
         circle.setEndDate(null);
-        assertEquals("Days remaining should be 0 with null end date", 
-            0, circle.getDaysRemaining());
+        assertEquals(0, circle.getDaysRemaining());
     }
 
-    /**
-     * Test 13: CircleMember isActive method.
-     * This method is different
-     * from the other testCircleMEmberIsActive
-     * because it tests to see if the user is
-     * within a
-     * set amount range
-     * of dates
-     * that are valid
-     * to be tested
-     * by the app
-     * and this unit
-     * test.
-     * It creates a new circle member
-     * with specific rules
-     * and asserts that
-     * they are within
-     * the active date range.
-     * Creates also an inactive one that should
-     * be considered non active.
-     */
+    /** Test 13: CircleMember isActive range validation. */
     @Test
     public void testCircleMemberIsActiveRange() {
         CircleMember activeMember = new CircleMember(
@@ -382,9 +313,7 @@ public class SavingsCircleTest {
         assertFalse("Member with null dates should not be active", nullDateMember.isActive());
     }
 
-    /**
-     * Test 14: CircleInvitation isExpired method.
-     */
+    /** Test 14: CircleInvitation isExpired method. */
     @Test
     public void testCircleInvitationIsExpired() {
         CircleInvitation validInvitation = new CircleInvitation(
@@ -398,32 +327,28 @@ public class SavingsCircleTest {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_YEAR, -8);
         expiredInvitation.setExpiresAt(cal.getTime());
-        assertTrue("Invitation should be expired", expiredInvitation.isExpired());
+        assertTrue(expiredInvitation.isExpired());
     }
 
-    /**
-     * Test 15: Strategy pattern - SumContributionStrategy.
-     */
+    /** Test 15: Strategy pattern - SumContributionStrategy. */
     @Test
     public void testSumContributionStrategy() {
         List<CircleContribution> contributions = new ArrayList<>();
-        
+
         CircleContribution c1 = new CircleContribution();
         c1.setAmount(100.0);
         contributions.add(c1);
-        
+
         CircleContribution c2 = new CircleContribution();
         c2.setAmount(200.0);
         contributions.add(c2);
-        
+
         ProgressCalculationContext context = new ProgressCalculationContext(
-            new SumContributionStrategy()
-        );
-        
+                new SumContributionStrategy());
+
         double total = context.calculateProgress(contributions);
         assertEquals(300.0, total, 0.01);
-        
-        // Test with empty list
+
         double empty = context.calculateProgress(new ArrayList<>());
         assertEquals(0.0, empty, 0.01);
     }

@@ -24,7 +24,9 @@ public class SavingsCircle {
     }
 
     /**
-     * Constructor for creating a new savings circle.
+     * Constructor for creating a new savings circle (≤7 parameters).
+     * Optional fields like notes can be set using withNotes().
+     *
      * @param groupName The name of the group
      * @param creatorEmail The email of the circle creator
      * @param creatorId The ID of the circle creator
@@ -32,11 +34,10 @@ public class SavingsCircle {
      * @param goalAmount The savings goal amount
      * @param frequency The frequency ("weekly" or "monthly")
      * @param startDate The start date of the circle
-     * @param notes Additional notes for the circle
      */
     public SavingsCircle(String groupName, String creatorEmail, String creatorId,
-                        String challengeTitle, double goalAmount, String frequency,
-                        Date startDate, String notes) {
+                         String challengeTitle, double goalAmount,
+                         String frequency, Date startDate) {
         this.groupName = groupName;
         this.creatorEmail = creatorEmail;
         this.creatorId = creatorId;
@@ -44,10 +45,21 @@ public class SavingsCircle {
         this.goalAmount = goalAmount;
         this.frequency = frequency;
         this.startDate = startDate;
-        this.notes = notes;
         this.status = "active";
         this.createdAt = new Date();
         this.endDate = calculateEndDate(startDate, frequency);
+    }
+
+    /**
+     * Optional fluent setter for notes.
+     * Enables chaining and keeps constructor under 7 parameters.
+     *
+     * @param notes Additional notes for the circle
+     * @return The updated SavingsCircle instance
+     */
+    public SavingsCircle withNotes(String notes) {
+        this.notes = notes;
+        return this;
     }
 
     /**
@@ -56,13 +68,13 @@ public class SavingsCircle {
     private Date calculateEndDate(Date startDate, String frequency) {
         java.util.Calendar cal = java.util.Calendar.getInstance();
         cal.setTime(startDate);
-        
+
         if ("weekly".equalsIgnoreCase(frequency)) {
             cal.add(java.util.Calendar.DAY_OF_YEAR, 7);
         } else if ("monthly".equalsIgnoreCase(frequency)) {
             cal.add(java.util.Calendar.MONTH, 1);
         }
-        
+
         return cal.getTime();
     }
 
@@ -172,7 +184,7 @@ public class SavingsCircle {
     /**
      * Calculate progress percentage based on current progress.
      * @param currentProgress The current progress amount
-     * @return The progress percentage (0-100)
+     * @return The progress percentage (0–100)
      */
     public double calculateProgressPercentage(double currentProgress) {
         if (goalAmount == 0) {
@@ -200,11 +212,11 @@ public class SavingsCircle {
      */
     public boolean isActive() {
         Date now = new Date();
-        return "active".equals(status) 
-            && startDate != null 
-            && endDate != null
-            && !now.before(startDate) 
-            && !now.after(endDate);
+        return "active".equals(status)
+                && startDate != null
+                && endDate != null
+                && !now.before(startDate)
+                && !now.after(endDate);
     }
 
     /**

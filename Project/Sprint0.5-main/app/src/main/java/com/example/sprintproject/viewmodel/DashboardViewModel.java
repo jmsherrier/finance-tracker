@@ -64,7 +64,12 @@ public class DashboardViewModel extends ViewModel {
 
     @SuppressWarnings("unchecked")
     public void updateCharts(Map<String, Object> data) {
-        // ---------- Pie Chart (categories) ----------
+        updatePieChart(data);
+        updateBarChart(data);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void updatePieChart(Map<String, Object> data) {
         List<PieEntry> pieEntries = new ArrayList<>();
 
         if (data != null && data.get("categories") instanceof Map) {
@@ -91,8 +96,10 @@ public class DashboardViewModel extends ViewModel {
         pieSet.setValueTextSize(12f);
         PieData pieData = new PieData(pieSet);
         pieDataLive.postValue(pieData);
+    }
 
-        // ---------- Bar Chart (budgets spent vs remaining) ----------
+    @SuppressWarnings("unchecked")
+    private void updateBarChart(Map<String, Object> data) {
         List<BarEntry> barEntries = new ArrayList<>();
         List<String> labels = new ArrayList<>();
 

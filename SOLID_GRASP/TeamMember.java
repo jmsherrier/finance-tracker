@@ -1,3 +1,7 @@
+package com.example.sprintproject.solid_grasp;
+
+import java.util.Objects;
+
 public class TeamMember {
     private String name;
     private int age;
@@ -25,13 +29,10 @@ public class TeamMember {
         if (this == obj) return true;
         if (obj == null || this.getClass() != obj.getClass()) return false;
         TeamMember o = (TeamMember) obj;
-        if (this.age == o.age &&
+        return this.age == o.age &&
                this.name.equals(o.name) &&
                this.email.equals(o.email) &&
-               this.gender.equals(o.gender)) {
-                return true;
-               }
-        return false;
+               this.gender.equals(o.gender);
     }
 
     @Override

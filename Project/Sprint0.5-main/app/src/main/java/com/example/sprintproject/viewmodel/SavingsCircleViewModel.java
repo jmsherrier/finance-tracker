@@ -23,6 +23,8 @@ import java.util.List;
  * Mediates between Views and Repository - no direct Firestore access.
  */
 public class SavingsCircleViewModel extends ViewModel {
+    private static final String ERROR_USER_NOT_AUTHENTICATED = "User not authenticated";
+    
     private final SavingsCircleRepository repository;
     private final FirebaseAuth auth;
     private TimeViewModel timeViewModel;
@@ -105,7 +107,7 @@ public class SavingsCircleViewModel extends ViewModel {
         String userEmail = getCurrentUserEmail();
 
         if (userId == null || userEmail == null) {
-            errorLiveData.setValue("User not authenticated");
+            errorLiveData.setValue(ERROR_USER_NOT_AUTHENTICATED);
             loadingLiveData.setValue(false);
             return;
         }
@@ -145,7 +147,7 @@ public class SavingsCircleViewModel extends ViewModel {
         String userId = getCurrentUserId();
 
         if (userId == null) {
-            errorLiveData.setValue("User not authenticated");
+            errorLiveData.setValue(ERROR_USER_NOT_AUTHENTICATED);
             loadingLiveData.setValue(false);
             return;
         }
@@ -232,7 +234,7 @@ public class SavingsCircleViewModel extends ViewModel {
         String inviterEmail = getCurrentUserEmail();
 
         if (inviterId == null || inviterEmail == null) {
-            errorLiveData.setValue("User not authenticated");
+            errorLiveData.setValue(ERROR_USER_NOT_AUTHENTICATED);
             loadingLiveData.setValue(false);
             return;
         }
@@ -282,7 +284,7 @@ public class SavingsCircleViewModel extends ViewModel {
         String userEmail = getCurrentUserEmail();
 
         if (userId == null || userEmail == null) {
-            errorLiveData.setValue("User not authenticated");
+            errorLiveData.setValue(ERROR_USER_NOT_AUTHENTICATED);
             loadingLiveData.setValue(false);
             return;
         }
@@ -338,7 +340,7 @@ public class SavingsCircleViewModel extends ViewModel {
         String userId = getCurrentUserId();
 
         if (userId == null) {
-            errorLiveData.setValue("User not authenticated");
+            errorLiveData.setValue(ERROR_USER_NOT_AUTHENTICATED);
             loadingLiveData.setValue(false);
             return;
         }

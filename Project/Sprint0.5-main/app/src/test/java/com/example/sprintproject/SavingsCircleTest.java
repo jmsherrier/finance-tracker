@@ -34,11 +34,12 @@ public class SavingsCircleTest {
     private static final String TEST_INVITER_EMAIL = "inviter@test.com";
     private static final String TEST_INVITEE_EMAIL = "invitee@test.com";
     private static final String TEST_INVITER_ID = "inviter123";
-    private static final String TEST_CREATOR_EMAIL = TEST_CREATOR_EMAIL;
-    private static final String TEST_CREATOR_ID = TEST_CREATOR_ID;
-    private static final String TEST_GROUP_NAME = TEST_GROUP_NAME;
-    private static final String FREQUENCY_WEEKLY = FREQUENCY_WEEKLY;
-    private static final String TEST_NOTES = TEST_NOTES;
+    private static final String TEST_CREATOR_EMAIL = "creator@test.com";
+    private static final String TEST_CREATOR_ID = "creator123";
+    private static final String TEST_GROUP_NAME = "Test Group";
+    private static final String FREQUENCY_WEEKLY = "weekly";
+    private static final String TEST_NOTES = "Notes";
+    private static final String TEST_LEADER_EMAIL = TEST_LEADER_EMAIL;
 
     private Date today;
     private Date nextWeek;
@@ -225,7 +226,7 @@ public class SavingsCircleTest {
     @Test
     public void testCircleMemberLeaderAndToString() {
         CircleMember leader = new CircleMember(
-                "lead1", "leader@test.com", "circle1", ROLE_LEADER, today, nextWeek
+                "lead1", TEST_LEADER_EMAIL, "circle1", ROLE_LEADER, today, nextWeek
         );
         CircleMember member = new CircleMember(
                 "mem1", TEST_MEMBER_EMAIL, "circle1", ROLE_MEMBER, today, nextWeek
@@ -237,12 +238,12 @@ public class SavingsCircleTest {
 
         // Basic field checks
         assertEquals(ROLE_LEADER, leader.getRole());
-        assertEquals("leader@test.com", leader.getEmail());
+        assertEquals(TEST_LEADER_EMAIL, leader.getEmail());
         assertNotNull(leader.getJoinedAt());
 
         String s = leader.toString();
         assertTrue(s.contains("lead1"));
-        assertTrue(s.contains("leader@test.com"));
+        assertTrue(s.contains(TEST_LEADER_EMAIL));
         assertTrue(s.contains(ROLE_LEADER));
     }
 

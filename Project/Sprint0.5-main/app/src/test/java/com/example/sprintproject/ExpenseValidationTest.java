@@ -19,14 +19,20 @@ import java.util.Date;
  */
 public class ExpenseValidationTest {
 
+    // Constants for test data to avoid string literal duplication
+    private static final String TEST_EXPENSE_NAME = "Test Expense";
+    private static final String CATEGORY_FOOD_DINING = "Food & Dining";
+    private static final String CATEGORY_TRANSPORTATION = "Transportation";
+    private static final String CATEGORY_OTHER = "Other";
+
     private Expense testExpense;
 
     @Before
     public void setUp() {
         testExpense = new Expense(
-                "Test Expense",
+                TEST_EXPENSE_NAME,
                 25.50,
-                "Food & Dining",
+                CATEGORY_FOOD_DINING,
                 new Date(),
                 "Test notes",
                 "test-user-id"
@@ -36,10 +42,10 @@ public class ExpenseValidationTest {
     @Test
     public void testExpenseCreation() {
         assertNotNull("Expense should be created", testExpense);
-        assertEquals("Expense name should match", "Test Expense", testExpense.getName());
+        assertEquals("Expense name should match", TEST_EXPENSE_NAME, testExpense.getName());
         assertEquals("Expense amount should match", 25.50, testExpense.getAmount(), 0.01);
         assertEquals("Expense category should match",
-                "Food & Dining", testExpense.getCategory());
+                CATEGORY_FOOD_DINING, testExpense.getCategory());
         assertEquals("Expense notes should match",
                 "Test notes", testExpense.getNotes());
         assertEquals("Expense user ID should match",
@@ -50,7 +56,7 @@ public class ExpenseValidationTest {
     public void testExpenseSettersAndGetters() {
         testExpense.setName("Updated Expense");
         testExpense.setAmount(100.75);
-        testExpense.setCategory("Transportation");
+        testExpense.setCategory(CATEGORY_TRANSPORTATION);
         testExpense.setNotes("Updated notes");
 
         assertEquals("Name should be updated",
@@ -58,7 +64,7 @@ public class ExpenseValidationTest {
         assertEquals("Amount should be updated",
                 100.75, testExpense.getAmount(), 0.01);
         assertEquals("Category should be updated",
-                "Transportation", testExpense.getCategory());
+                CATEGORY_TRANSPORTATION, testExpense.getCategory());
         assertEquals("Notes should be updated",
                 "Updated notes", testExpense.getNotes());
     }
@@ -73,7 +79,7 @@ public class ExpenseValidationTest {
         assertTrue("Future date should be after today", futureDate.after(today));
 
         Expense futureExpense = new Expense(
-                "Future Expense", 10.0, "Other", futureDate, "", "user");
+                "Future Expense", 10.0, CATEGORY_OTHER, futureDate, "", "user");
         assertNotNull("Future date expense should be created", futureExpense);
         assertEquals("Future date should be set correctly",
                 futureDate, futureExpense.getDate());
@@ -116,12 +122,12 @@ public class ExpenseValidationTest {
     @Test
     public void testExpenseNameValidation() {
         Expense validExpense = new Expense(
-                "Coffee", 5.0, "Food & Dining", new Date(), "", "user");
+                "Coffee", 5.0, CATEGORY_FOOD_DINING, new Date(), "", "user");
         assertNotNull("Valid expense should be created", validExpense);
         assertEquals("Name should be set correctly", "Coffee", validExpense.getName());
 
         Expense emptyNameExpense = new Expense(
-                "", 5.0, "Food & Dining", new Date(), "", "user");
+                "", 5.0, CATEGORY_FOOD_DINING, new Date(), "", "user");
         assertNotNull("Empty name expense should be created", emptyNameExpense);
         assertTrue("Empty name should be empty",
                 emptyNameExpense.getName().isEmpty());
@@ -130,8 +136,8 @@ public class ExpenseValidationTest {
     @Test
     public void testExpenseCategoryValidation() {
         String[] validCategories = {
-            "Food & Dining", "Transportation", "Shopping", "Entertainment",
-            "Bills & Utilities", "Healthcare", "Education", "Travel", "Other"
+            CATEGORY_FOOD_DINING, CATEGORY_TRANSPORTATION, "Shopping", "Entertainment",
+            "Bills & Utilities", "Healthcare", "Education", "Travel", CATEGORY_OTHER
         };
 
         for (String category : validCategories) {
@@ -142,11 +148,11 @@ public class ExpenseValidationTest {
     @Test
     public void testExpenseNotesOptional() {
         Expense expenseWithNotes = new Expense(
-                "Test", 10.0, "Other", new Date(), "Has notes", "user");
+                "Test", 10.0, CATEGORY_OTHER, new Date(), "Has notes", "user");
         assertNotNull("Notes should be present", expenseWithNotes.getNotes());
 
         Expense expenseWithoutNotes = new Expense(
-                "Test", 10.0, "Other", new Date(), "", "user");
+                "Test", 10.0, CATEGORY_OTHER, new Date(), "", "user");
         assertTrue("Empty notes should be allowed",
                 expenseWithoutNotes.getNotes().isEmpty());
     }
@@ -156,7 +162,7 @@ public class ExpenseValidationTest {
         String expenseString = testExpense.toString();
         assertNotNull("toString should not be null", expenseString);
         assertTrue("toString should contain expense name",
-                expenseString.contains("Test Expense"));
+                expenseString.contains(TEST_EXPENSE_NAME));
         assertTrue("toString should contain amount",
                 expenseString.contains("25.5"));
     }

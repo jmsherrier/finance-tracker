@@ -54,7 +54,10 @@ public class BudgetDetailFragment extends Fragment {
     private final SimpleDateFormat fmt =
             new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
 
-    // Default constructor required for Fragment instantiation
+    /**
+     * Default constructor required for Fragment instantiation.
+     * Fragments must have a public no-argument constructor.
+     */
     public BudgetDetailFragment() { }
 
     @Nullable

@@ -64,7 +64,10 @@ public class BudgetListFragment extends Fragment {
     };
     private final String[] frequencies = {"weekly", "monthly"};
 
-    // Default constructor required for Fragment instantiation
+    /**
+     * Default constructor required for Fragment instantiation.
+     * Fragments must have a public no-argument constructor.
+     */
     public BudgetListFragment() {
     }
 

@@ -41,14 +41,12 @@ import java.util.List;
 import java.util.Locale;
 
 public class ExpenseLogFragment extends Fragment {
-    private TimeViewModel timeViewModel;
+    private static final String COLLECTION_EXPENSES = "expenses";
 
     private RecyclerView recyclerView;
     private TextView emptyText;
     private TextView expenseCount;
-    private FloatingActionButton fabAddExpense;
     private List<Expense> expenses = new ArrayList<>();
-    private ExpenseAdapter expenseAdapter;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
 
@@ -69,13 +67,13 @@ public class ExpenseLogFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_expense_log, container, false);
 
-        timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
+        TimeViewModel timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
 
         timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
             SimpleDateFormat fmt =
                     new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
             Log.d("ExpenseFragment", "Global date changed to " + fmt.format(date));
-            reloadExpensesFor(date);
+            reloadExpensesFor();
         });
         
         // Initialize Firestore
@@ -87,11 +85,11 @@ public class ExpenseLogFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_expenses);
         emptyText = view.findViewById(R.id.text_empty);
         expenseCount = view.findViewById(R.id.expense_count);
-        fabAddExpense = view.findViewById(R.id.fab_add_expense);
+        FloatingActionButton fabAddExpense = view.findViewById(R.id.fab_add_expense);
         
         // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        expenseAdapter = new ExpenseAdapter(expenses);
+        ExpenseAdapter expenseAdapter = new ExpenseAdapter(expenses);
         recyclerView.setAdapter(expenseAdapter);
         
         // Setup FloatingActionButton
@@ -103,7 +101,7 @@ public class ExpenseLogFragment extends Fragment {
         return view;
     }
 
-    private void reloadExpensesFor(Date date) {
+    private void reloadExpensesFor() {
         // Filter expenses for the selected date
         loadExpenses();
     }
@@ -160,7 +158,7 @@ public class ExpenseLogFragment extends Fragment {
         
         btnSave.setOnClickListener(v -> {
             if (validateForm(editName, editAmount, dropdownCategory, editDate)) {
-                saveExpense(editName, editAmount, dropdownCategory, editDate, editNotes, calendar);
+                saveExpense(editName, editAmount, dropdownCategory, editNotes, calendar);
                 dialog.dismiss();
             }
         });
@@ -172,69 +170,77 @@ public class ExpenseLogFragment extends Fragment {
                                AutoCompleteTextView dropdownCategory, TextInputEditText editDate) {
         boolean isValid = true;
         
-        // Validate name
-        String name = editName.getText().toString().trim();
-        if (name.isEmpty()) {
-            editName.setError("Expense name is required");
-            isValid = false;
-        } else {
-            editName.setError(null);
-        }
-        
-        // Validate amount
-        String amountStr = editAmount.getText().toString().trim();
-        if (amountStr.isEmpty()) {
-            editAmount.setError("Amount is required");
-            isValid = false;
-        } else {
-            try {
-                double amount = Double.parseDouble(amountStr);
-                if (amount <= 0) {
-                    editAmount.setError("Amount must be greater than 0");
-                    isValid = false;
-                } else {
-                    editAmount.setError(null);
-                }
-            } catch (NumberFormatException e) {
-                editAmount.setError("Please enter a valid amount");
-                isValid = false;
-            }
-        }
-        
-        // Validate category
-        String category = dropdownCategory.getText().toString().trim();
-        if (category.isEmpty()) {
-            dropdownCategory.setError("Category is required");
-            isValid = false;
-        } else {
-            dropdownCategory.setError(null);
-        }
-        
-        // Date is always valid since we set it by default
-        // Additional validation: ensure date is not in the future
-        String dateStr = editDate.getText().toString().trim();
-        if (!dateStr.isEmpty()) {
-            try {
-                SimpleDateFormat dateFormat =
-                        new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
-                Date selectedDate = dateFormat.parse(dateStr);
-                if (selectedDate != null && selectedDate.after(new Date())) {
-                    editDate.setError("Date cannot be in the future");
-                    isValid = false;
-                } else {
-                    editDate.setError(null);
-                }
-            } catch (Exception e) {
-                editDate.setError("Invalid date format");
-                isValid = false;
-            }
-        }
+        isValid = validateName(editName) && isValid;
+        isValid = validateAmount(editAmount) && isValid;
+        isValid = validateCategory(dropdownCategory) && isValid;
+        isValid = validateDate(editDate) && isValid;
         
         return isValid;
     }
+
+    private boolean validateName(TextInputEditText editName) {
+        String name = editName.getText().toString().trim();
+        if (name.isEmpty()) {
+            editName.setError("Expense name is required");
+            return false;
+        }
+        editName.setError(null);
+        return true;
+    }
+
+    private boolean validateAmount(TextInputEditText editAmount) {
+        String amountStr = editAmount.getText().toString().trim();
+        if (amountStr.isEmpty()) {
+            editAmount.setError("Amount is required");
+            return false;
+        }
+        try {
+            double amount = Double.parseDouble(amountStr);
+            if (amount <= 0) {
+                editAmount.setError("Amount must be greater than 0");
+                return false;
+            }
+            editAmount.setError(null);
+            return true;
+        } catch (NumberFormatException e) {
+            editAmount.setError("Please enter a valid amount");
+            return false;
+        }
+    }
+
+    private boolean validateCategory(AutoCompleteTextView dropdownCategory) {
+        String category = dropdownCategory.getText().toString().trim();
+        if (category.isEmpty()) {
+            dropdownCategory.setError("Category is required");
+            return false;
+        }
+        dropdownCategory.setError(null);
+        return true;
+    }
+
+    private boolean validateDate(TextInputEditText editDate) {
+        String dateStr = editDate.getText().toString().trim();
+        if (dateStr.isEmpty()) {
+            return true;
+        }
+        try {
+            SimpleDateFormat dateFormat =
+                    new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+            Date selectedDate = dateFormat.parse(dateStr);
+            if (selectedDate != null && selectedDate.after(new Date())) {
+                editDate.setError("Date cannot be in the future");
+                return false;
+            }
+            editDate.setError(null);
+            return true;
+        } catch (Exception e) {
+            editDate.setError("Invalid date format");
+            return false;
+        }
+    }
     
     private void saveExpense(TextInputEditText editName, TextInputEditText editAmount,
-                           AutoCompleteTextView dropdownCategory, TextInputEditText editDate,
+                           AutoCompleteTextView dropdownCategory,
                            TextInputEditText editNotes, Calendar calendar) {
         
         String name = editName.getText().toString().trim();
@@ -248,27 +254,30 @@ public class ExpenseLogFragment extends Fragment {
         Expense expense = new Expense(name, amount, category, date, notes, userId);
         
         // Save to Firestore
-        db.collection("expenses")
+        db.collection(COLLECTION_EXPENSES)
             .add(expense)
             .addOnSuccessListener(documentReference -> {
                 expense.setId(documentReference.getId());
                 expenses.add(expense);
-                expenseAdapter.updateExpenses(expenses);
+                ExpenseAdapter adapter = (ExpenseAdapter) recyclerView.getAdapter();
+                if (adapter != null) {
+                    adapter.updateExpenses(expenses);
+                }
                 updateUI();
                 Toast.makeText(getContext(), "Expense saved successfully!",
                         Toast.LENGTH_SHORT).show();
             })
-            .addOnFailureListener(e -> {
+            .addOnFailureListener(e ->
                 Toast.makeText(getContext(), "Error saving expense: "
-                        + e.getMessage(), Toast.LENGTH_SHORT).show();
-            });
+                        + e.getMessage(), Toast.LENGTH_SHORT).show()
+            );
     }
     
     private void loadExpenses() {
         String userId = auth.getCurrentUser() != null
                 ? auth.getCurrentUser().getUid() : "anonymous";
         
-        db.collection("expenses")
+        db.collection(COLLECTION_EXPENSES)
             .whereEqualTo("userId", userId)
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -295,14 +304,17 @@ public class ExpenseLogFragment extends Fragment {
                     }
                 });
                 
-                expenseAdapter.updateExpenses(expenses);
+                ExpenseAdapter adapter = (ExpenseAdapter) recyclerView.getAdapter();
+                if (adapter != null) {
+                    adapter.updateExpenses(expenses);
+                }
                 updateUI();
             })
-            .addOnFailureListener(e -> {
+            .addOnFailureListener(e ->
                 Toast.makeText(getContext(),
                         "Error loading expenses: " + e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-            });
+                        Toast.LENGTH_SHORT).show()
+            );
     }
     
     private void createSeedExpenses(String userId) {
@@ -332,12 +344,12 @@ public class ExpenseLogFragment extends Fragment {
         );
         
         // Save both seed expenses to Firestore
-        db.collection("expenses").add(expense1)
+        db.collection(COLLECTION_EXPENSES).add(expense1)
             .addOnSuccessListener(doc1 -> {
                 expense1.setId(doc1.getId());
                 expenses.add(expense1);
                 
-                db.collection("expenses").add(expense2)
+                db.collection(COLLECTION_EXPENSES).add(expense2)
                     .addOnSuccessListener(doc2 -> {
                         expense2.setId(doc2.getId());
                         expenses.add(expense2);
@@ -350,19 +362,22 @@ public class ExpenseLogFragment extends Fragment {
                             }
                         });
                         
-                        expenseAdapter.updateExpenses(expenses);
+                        ExpenseAdapter adapter = (ExpenseAdapter) recyclerView.getAdapter();
+                        if (adapter != null) {
+                            adapter.updateExpenses(expenses);
+                        }
                         updateUI();
                         Toast.makeText(getContext(),
                                 "Welcome! Sample expenses loaded.",
                                 Toast.LENGTH_SHORT).show();
                     })
-                    .addOnFailureListener(e -> {
-                        Log.e("ExpenseLog", "Error creating seed expense 2", e);
-                    });
+                    .addOnFailureListener(e ->
+                        Log.e("ExpenseLog", "Error creating seed expense 2", e)
+                    );
             })
-            .addOnFailureListener(e -> {
-                Log.e("ExpenseLog", "Error creating seed expense 1", e);
-            });
+            .addOnFailureListener(e ->
+                Log.e("ExpenseLog", "Error creating seed expense 1", e)
+            );
     }
     
     private void updateUI() {

@@ -69,6 +69,7 @@ public class BudgetListFragment extends Fragment {
      * Fragments must have a public no-argument constructor.
      */
     public BudgetListFragment() {
+        // Empty constructor - Fragment framework requires this
     }
 
     @Nullable

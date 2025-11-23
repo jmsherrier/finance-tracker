@@ -58,7 +58,9 @@ public class BudgetDetailFragment extends Fragment {
      * Default constructor required for Fragment instantiation.
      * Fragments must have a public no-argument constructor.
      */
-    public BudgetDetailFragment() { }
+    public BudgetDetailFragment() {
+        // Empty constructor - Fragment framework requires this
+    }
 
     @Nullable
     @Override

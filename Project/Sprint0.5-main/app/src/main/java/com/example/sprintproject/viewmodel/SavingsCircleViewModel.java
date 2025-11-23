@@ -59,27 +59,35 @@ public class SavingsCircleViewModel extends ViewModel {
     public LiveData<List<SavingsCircle>> getCircles() {
         return circlesLiveData;
     }
+
     public LiveData<SavingsCircle> getCurrentCircle() {
         return currentCircleLiveData;
     }
+
     public LiveData<List<CircleMember>> getMembers() {
         return membersLiveData;
     }
+
     public LiveData<List<CircleInvitation>> getPendingInvitations() {
         return pendingInvitationsLiveData;
     }
+
     public LiveData<List<CircleContribution>> getContributions() {
         return contributionsLiveData;
     }
+
     public LiveData<Double> getCircleProgress() {
         return circleProgressLiveData;
     }
+
     public LiveData<String> getError() {
         return errorLiveData;
     }
+
     public LiveData<Boolean> getLoading() {
         return loadingLiveData;
     }
+
     public LiveData<String> getSuccessMessage() {
         return successMessageLiveData;
     }
@@ -102,10 +110,18 @@ public class SavingsCircleViewModel extends ViewModel {
             return;
         }
 
-        SavingsCircle circle = CircleFactory.createCircle(
-                frequency, groupName, userEmail, userId,
-                challengeTitle, goalAmount, startDate, notes
-        );
+        // Use the new CircleFactory.CircleParams builder
+        CircleFactory.CircleParams params = new CircleFactory.CircleParams()
+                .setFrequency(frequency)
+                .setGroupName(groupName)
+                .setCreatorEmail(userEmail)
+                .setCreatorId(userId)
+                .setChallengeTitle(challengeTitle)
+                .setGoalAmount(goalAmount)
+                .setStartDate(startDate)
+                .setNotes(notes);
+
+        SavingsCircle circle = CircleFactory.createCircle(params);
 
         repository.createCircle(circle,
                 new SavingsCircleRepository.RepositoryCallback<SavingsCircle>() {
@@ -271,7 +287,6 @@ public class SavingsCircleViewModel extends ViewModel {
             return;
         }
 
-        // Use dashboard date selector (TimeViewModel) if available, otherwise use current date
         Date acceptanceDate = new Date();
         if (timeViewModel != null && timeViewModel.getCurrentDate().getValue() != null) {
             acceptanceDate = timeViewModel.getCurrentDate().getValue();
@@ -460,5 +475,6 @@ public class SavingsCircleViewModel extends ViewModel {
         stopObservingProgress();
     }
 }
+
 
 

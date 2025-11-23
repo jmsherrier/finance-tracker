@@ -25,6 +25,21 @@ import java.util.List;
  */
 public class SavingsCircleTest {
 
+    // Constants for test data to avoid string literal duplication
+    private static final String STATUS_ACTIVE = "active";
+    private static final String ROLE_LEADER = "leader";
+    private static final String ROLE_MEMBER = "member";
+    private static final String TEST_CIRCLE_ID = "circle123";
+    private static final String TEST_MEMBER_EMAIL = "member@test.com";
+    private static final String TEST_INVITER_EMAIL = "inviter@test.com";
+    private static final String TEST_INVITEE_EMAIL = "invitee@test.com";
+    private static final String TEST_INVITER_ID = "inviter123";
+    private static final String TEST_CREATOR_EMAIL = TEST_CREATOR_EMAIL;
+    private static final String TEST_CREATOR_ID = TEST_CREATOR_ID;
+    private static final String TEST_GROUP_NAME = TEST_GROUP_NAME;
+    private static final String FREQUENCY_WEEKLY = FREQUENCY_WEEKLY;
+    private static final String TEST_NOTES = TEST_NOTES;
+
     private Date today;
     private Date nextWeek;
 
@@ -41,10 +56,11 @@ public class SavingsCircleTest {
     @Test
     public void testSavingsCircleProgressCalculation() {
         SavingsCircle circle = new SavingsCircle(
-                "Test Group", "creator@test.com", "creator123",
-                "Save $1000", 1000.0, "weekly", today)
-                .withNotes("Test notes");
-
+            TEST_GROUP_NAME, TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Save $1000", 1000.0, FREQUENCY_WEEKLY, today, "Test notes"
+        );
+        
+        // Test 50% progress
         double progress50 = circle.calculateProgressPercentage(500.0);
         assertEquals(50.0, progress50, 0.01);
 
@@ -60,16 +76,16 @@ public class SavingsCircleTest {
     @Test
     public void testSavingsCircleIsActive() {
         SavingsCircle activeCircle = new SavingsCircle(
-                "Active Group", "creator@test.com", "creator123",
-                "Active Challenge", 500.0, "weekly", today)
-                .withNotes("Notes");
-        activeCircle.setStatus("active");
+            "Active Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Active Challenge", 500.0, FREQUENCY_WEEKLY, today, TEST_NOTES
+        );
+        activeCircle.setStatus(STATUS_ACTIVE);
         assertTrue("Circle should be active", activeCircle.isActive());
 
         SavingsCircle completedCircle = new SavingsCircle(
-                "Completed Group", "creator@test.com", "creator123",
-                "Completed Challenge", 500.0, "weekly", today)
-                .withNotes("Notes");
+            "Completed Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Completed Challenge", 500.0, FREQUENCY_WEEKLY, today, TEST_NOTES
+        );
         completedCircle.setStatus("completed");
         assertFalse("Completed circle should not be active", completedCircle.isActive());
     }
@@ -78,9 +94,11 @@ public class SavingsCircleTest {
     @Test
     public void testCircleMemberContributionPercentage() {
         CircleMember member = new CircleMember(
-                "user123", "member@test.com", "circle123",
-                "member", today, nextWeek);
-
+            "user123", TEST_MEMBER_EMAIL, TEST_CIRCLE_ID, 
+            ROLE_MEMBER, today, nextWeek
+        );
+        
+        // Test 25% contribution
         member.setTotalContribution(250.0);
         double percentage25 = member.getContributionPercentage(1000.0);
         assertEquals(25.0, percentage25, 0.01);
@@ -94,8 +112,10 @@ public class SavingsCircleTest {
     @Test
     public void testCircleInvitationAcceptDecline() {
         CircleInvitation invitation = new CircleInvitation(
-                "circle123", "inviter@test.com", "inviter123", "invitee@test.com");
-
+            TEST_CIRCLE_ID, TEST_INVITER_EMAIL, TEST_INVITER_ID, TEST_INVITEE_EMAIL
+        );
+        
+        // Test initial status
         assertEquals("pending", invitation.getStatus());
         assertTrue(invitation.isPending());
 
@@ -111,33 +131,34 @@ public class SavingsCircleTest {
     @Test
     public void testCircleFactoryCreation() {
         SavingsCircle weeklyCircle = CircleFactory.createWeeklyCircle(
-                        "Weekly Group", "creator@test.com", "creator123",
-                        "Weekly Challenge", 500.0, today)
-                .withNotes("Weekly notes");
-
-        assertNotNull(weeklyCircle);
-        assertEquals("weekly", weeklyCircle.getFrequency());
+            "Weekly Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Weekly Challenge", 500.0, today, "Weekly notes"
+        );
+        
+        assertNotNull("Weekly circle should not be null", weeklyCircle);
+        assertEquals(FREQUENCY_WEEKLY, weeklyCircle.getFrequency());
         assertEquals("Weekly Group", weeklyCircle.getGroupName());
-        assertEquals("active", weeklyCircle.getStatus());
-
+        assertEquals(STATUS_ACTIVE, weeklyCircle.getStatus());
+        
+        // Test monthly circle
         SavingsCircle monthlyCircle = CircleFactory.createMonthlyCircle(
-                        "Monthly Group", "creator@test.com", "creator123",
-                        "Monthly Challenge", 2000.0, today)
-                .withNotes("Monthly notes");
-
-        assertNotNull(monthlyCircle);
+            "Monthly Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Monthly Challenge", 2000.0, today, "Monthly notes"
+        );
+        
+        assertNotNull("Monthly circle should not be null", monthlyCircle);
         assertEquals("monthly", monthlyCircle.getFrequency());
         assertEquals("Monthly Group", monthlyCircle.getGroupName());
-        assertEquals("active", monthlyCircle.getStatus());
+        assertEquals(STATUS_ACTIVE, monthlyCircle.getStatus());
     }
 
     /** Test 6: SavingsCircle completion detection. */
     @Test
     public void testSavingsCircleCompletion() {
         SavingsCircle circle = new SavingsCircle(
-                "Goal Group", "creator@test.com", "creator123",
-                "Goal Challenge", 1000.0, "monthly", today)
-                .withNotes("Notes");
+                "Goal Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+                "Goal Challenge", 1000.0, "monthly", today, TEST_NOTES
+        );
 
         assertFalse(circle.isComplete(500.0));
         assertTrue(circle.isComplete(1000.0));
@@ -148,9 +169,9 @@ public class SavingsCircleTest {
     @Test
     public void testSavingsCircleGoalChangeAffectsProgress() {
         SavingsCircle circle = new SavingsCircle(
-                "Mutable Goal Group", "creator@test.com", "creator123",
-                "Change Goal Challenge", 1000.0, "weekly", today)
-                .withNotes("Notes");
+                "Mutable Goal Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+                "Change Goal Challenge", 1000.0, FREQUENCY_WEEKLY, today, TEST_NOTES
+        );
 
         double progress50 = circle.calculateProgressPercentage(500.0);
         assertEquals(50.0, progress50, 0.01);
@@ -173,8 +194,9 @@ public class SavingsCircleTest {
         Date end = cal.getTime();
 
         CircleMember activeMember = new CircleMember(
-                "u1", "active@test.com", "c1", "member", start, end);
-        assertTrue(activeMember.isActive());
+                "u1", "active@test.com", "c1", ROLE_MEMBER, start, end
+        );
+        assertTrue("Member should be active", activeMember.isActive());
 
         cal.setTime(now);
         cal.add(Calendar.DAY_OF_YEAR, 1);
@@ -183,8 +205,9 @@ public class SavingsCircleTest {
         Date futureEnd = cal.getTime();
 
         CircleMember futureMember = new CircleMember(
-                "u2", "future@test.com", "c2", "member", futureStart, futureEnd);
-        assertFalse(futureMember.isActive());
+                "u2", "future@test.com", "c2", ROLE_MEMBER, futureStart, futureEnd
+        );
+        assertFalse("Member should not yet be active", futureMember.isActive());
 
         cal.setTime(now);
         cal.add(Calendar.DAY_OF_YEAR, -5);
@@ -193,35 +216,42 @@ public class SavingsCircleTest {
         Date pastEnd = cal.getTime();
 
         CircleMember pastMember = new CircleMember(
-                "u3", "past@test.com", "c3", "member", pastStart, pastEnd);
-        assertFalse(pastMember.isActive());
+                "u3", "past@test.com", "c3", ROLE_MEMBER, pastStart, pastEnd
+        );
+        assertFalse("Member's challenge period is over", pastMember.isActive());
     }
 
     /** Test 9: CircleMember leader detection, joinedAt, and toString. */
     @Test
     public void testCircleMemberLeaderAndToString() {
         CircleMember leader = new CircleMember(
-                "lead1", "leader@test.com", "circle1", "leader", today, nextWeek);
+                "lead1", "leader@test.com", "circle1", ROLE_LEADER, today, nextWeek
+        );
         CircleMember member = new CircleMember(
-                "mem1", "member@test.com", "circle1", "member", today, nextWeek);
+                "mem1", TEST_MEMBER_EMAIL, "circle1", ROLE_MEMBER, today, nextWeek
+        );
 
-        assertTrue(leader.isLeader());
-        assertFalse(member.isLeader());
-        assertEquals("leader", leader.getRole());
+        // Role checks
+        assertTrue("Leader should return true for isLeader()", leader.isLeader());
+        assertFalse("Member should return false for isLeader()", member.isLeader());
+
+        // Basic field checks
+        assertEquals(ROLE_LEADER, leader.getRole());
         assertEquals("leader@test.com", leader.getEmail());
         assertNotNull(leader.getJoinedAt());
 
         String s = leader.toString();
         assertTrue(s.contains("lead1"));
         assertTrue(s.contains("leader@test.com"));
-        assertTrue(s.contains("leader"));
+        assertTrue(s.contains(ROLE_LEADER));
     }
 
     /** Test 10: CircleMember contribution percentage edge cases. */
     @Test
     public void testCircleMemberContributionEdgeCases() {
         CircleMember member = new CircleMember(
-                "u4", "edge@test.com", "c4", "member", today, nextWeek);
+                "u4", "edge@test.com", "c4", ROLE_MEMBER, today, nextWeek
+        );
 
         member.setTotalContribution(0.0);
         assertEquals(0.0, member.getContributionPercentage(0.0), 0.01);
@@ -237,14 +267,17 @@ public class SavingsCircleTest {
     @Test
     public void testSavingsCircleIsComplete() {
         SavingsCircle circle = new SavingsCircle(
-                "Test Group", "creator@test.com", "creator123",
-                "Save $1000", 1000.0, "weekly", today)
-                .withNotes("Notes");
-
-        assertFalse(circle.isComplete(500.0));
-        assertTrue(circle.isComplete(1000.0));
-        assertTrue(circle.isComplete(1500.0));
-
+            TEST_GROUP_NAME, TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Save $1000", 1000.0, FREQUENCY_WEEKLY, today, TEST_NOTES
+        );
+        
+        assertFalse("Circle should not be complete with 500/1000", 
+            circle.isComplete(500.0));
+        assertTrue("Circle should be complete with 1000/1000", 
+            circle.isComplete(1000.0));
+        assertTrue("Circle should be complete with 1500/1000", 
+            circle.isComplete(1500.0));
+        
         circle.setStatus("completed");
         assertTrue(circle.isComplete(0.0));
     }
@@ -253,10 +286,10 @@ public class SavingsCircleTest {
     @Test
     public void testSavingsCircleDaysRemaining() {
         SavingsCircle circle = new SavingsCircle(
-                "Test Group", "creator@test.com", "creator123",
-                "Weekly Challenge", 500.0, "weekly", today)
-                .withNotes("Notes");
-
+            TEST_GROUP_NAME, TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Weekly Challenge", 500.0, FREQUENCY_WEEKLY, today, TEST_NOTES
+        );
+        
         long daysRemaining = circle.getDaysRemaining();
         assertTrue(daysRemaining >= 6 && daysRemaining <= 8);
 
@@ -268,25 +301,29 @@ public class SavingsCircleTest {
     @Test
     public void testCircleMemberIsActiveRange() {
         CircleMember activeMember = new CircleMember(
-                "user123", "member@test.com", "circle123",
-                "member", today, nextWeek);
-        assertTrue(activeMember.isActive());
-
+            "user123", TEST_MEMBER_EMAIL, TEST_CIRCLE_ID,
+            ROLE_MEMBER, today, nextWeek
+        );
+        assertTrue("Member should be active within date range", activeMember.isActive());
+        
         CircleMember nullDateMember = new CircleMember(
-                "user456", "member2@test.com", "circle123",
-                "member", null, null);
-        assertFalse(nullDateMember.isActive());
+            "user456", "member2@test.com", TEST_CIRCLE_ID,
+            ROLE_MEMBER, null, null
+        );
+        assertFalse("Member with null dates should not be active", nullDateMember.isActive());
     }
 
     /** Test 14: CircleInvitation isExpired method. */
     @Test
     public void testCircleInvitationIsExpired() {
         CircleInvitation validInvitation = new CircleInvitation(
-                "circle123", "inviter@test.com", "inviter123", "invitee@test.com");
-        assertFalse(validInvitation.isExpired());
-
+            TEST_CIRCLE_ID, TEST_INVITER_EMAIL, TEST_INVITER_ID, TEST_INVITEE_EMAIL
+        );
+        assertFalse("Invitation should not be expired", validInvitation.isExpired());
+        
         CircleInvitation expiredInvitation = new CircleInvitation(
-                "circle123", "inviter@test.com", "inviter123", "invitee@test.com");
+            TEST_CIRCLE_ID, TEST_INVITER_EMAIL, TEST_INVITER_ID, TEST_INVITEE_EMAIL
+        );
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_YEAR, -8);
         expiredInvitation.setExpiresAt(cal.getTime());

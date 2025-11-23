@@ -1,5 +1,3 @@
-package com.example.sprintproject.solid_grasp;
-
 public class ProjectManager extends TeamMember {
     private Project project;
 

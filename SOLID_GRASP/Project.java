@@ -1,5 +1,3 @@
-package com.example.sprintproject.solid_grasp;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;

@@ -35,6 +35,11 @@ public class SavingsCircleTest {
     private static final String TEST_INVITER_EMAIL = "inviter@test.com";
     private static final String TEST_INVITEE_EMAIL = "invitee@test.com";
     private static final String TEST_INVITER_ID = "inviter123";
+    private static final String TEST_CREATOR_EMAIL = TEST_CREATOR_EMAIL;
+    private static final String TEST_CREATOR_ID = TEST_CREATOR_ID;
+    private static final String TEST_GROUP_NAME = TEST_GROUP_NAME;
+    private static final String FREQUENCY_WEEKLY = FREQUENCY_WEEKLY;
+    private static final String TEST_NOTES = TEST_NOTES;
 
     private Date today;
     private Date nextWeek;
@@ -54,8 +59,8 @@ public class SavingsCircleTest {
     @Test
     public void testSavingsCircleProgressCalculation() {
         SavingsCircle circle = new SavingsCircle(
-            "Test Group", "creator@test.com", "creator123",
-            "Save $1000", 1000.0, "weekly", today, "Test notes"
+            TEST_GROUP_NAME, TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Save $1000", 1000.0, FREQUENCY_WEEKLY, today, "Test notes"
         );
         
         // Test 50% progress
@@ -79,16 +84,16 @@ public class SavingsCircleTest {
     public void testSavingsCircleIsActive() {
         // Create active circle
         SavingsCircle activeCircle = new SavingsCircle(
-            "Active Group", "creator@test.com", "creator123",
-            "Active Challenge", 500.0, "weekly", today, "Notes"
+            "Active Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Active Challenge", 500.0, FREQUENCY_WEEKLY, today, TEST_NOTES
         );
         activeCircle.setStatus(STATUS_ACTIVE);
         assertTrue("Circle should be active", activeCircle.isActive());
         
         // Create completed circle
         SavingsCircle completedCircle = new SavingsCircle(
-            "Completed Group", "creator@test.com", "creator123",
-            "Completed Challenge", 500.0, "weekly", today, "Notes"
+            "Completed Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Completed Challenge", 500.0, FREQUENCY_WEEKLY, today, TEST_NOTES
         );
         completedCircle.setStatus("completed");
         assertFalse("Completed circle should not be active", completedCircle.isActive());
@@ -145,18 +150,18 @@ public class SavingsCircleTest {
     public void testCircleFactoryCreation() {
         // Test weekly circle
         SavingsCircle weeklyCircle = CircleFactory.createWeeklyCircle(
-            "Weekly Group", "creator@test.com", "creator123",
+            "Weekly Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
             "Weekly Challenge", 500.0, today, "Weekly notes"
         );
         
         assertNotNull("Weekly circle should not be null", weeklyCircle);
-        assertEquals("weekly", weeklyCircle.getFrequency());
+        assertEquals(FREQUENCY_WEEKLY, weeklyCircle.getFrequency());
         assertEquals("Weekly Group", weeklyCircle.getGroupName());
         assertEquals(STATUS_ACTIVE, weeklyCircle.getStatus());
         
         // Test monthly circle
         SavingsCircle monthlyCircle = CircleFactory.createMonthlyCircle(
-            "Monthly Group", "creator@test.com", "creator123",
+            "Monthly Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
             "Monthly Challenge", 2000.0, today, "Monthly notes"
         );
         
@@ -171,8 +176,8 @@ public class SavingsCircleTest {
     @Test
     public void testSavingsCircleCompletion() {
         SavingsCircle circle = new SavingsCircle(
-                "Goal Group", "creator@test.com", "creator123",
-                "Goal Challenge", 1000.0, "monthly", today, "Notes"
+                "Goal Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+                "Goal Challenge", 1000.0, "monthly", today, TEST_NOTES
         );
 
         // Not complete at 500.0
@@ -191,8 +196,8 @@ public class SavingsCircleTest {
     @Test
     public void testSavingsCircleGoalChangeAffectsProgress() {
         SavingsCircle circle = new SavingsCircle(
-                "Mutable Goal Group", "creator@test.com", "creator123",
-                "Change Goal Challenge", 1000.0, "weekly", today, "Notes"
+                "Mutable Goal Group", TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+                "Change Goal Challenge", 1000.0, FREQUENCY_WEEKLY, today, TEST_NOTES
         );
 
         // Initial: 500 / 1000 = 50%
@@ -306,8 +311,8 @@ public class SavingsCircleTest {
     @Test
     public void testSavingsCircleIsComplete() {
         SavingsCircle circle = new SavingsCircle(
-            "Test Group", "creator@test.com", "creator123",
-            "Save $1000", 1000.0, "weekly", today, "Notes"
+            TEST_GROUP_NAME, TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Save $1000", 1000.0, FREQUENCY_WEEKLY, today, TEST_NOTES
         );
         
         assertFalse("Circle should not be complete with 500/1000", 
@@ -328,8 +333,8 @@ public class SavingsCircleTest {
     @Test
     public void testSavingsCircleDaysRemaining() {
         SavingsCircle circle = new SavingsCircle(
-            "Test Group", "creator@test.com", "creator123",
-            "Weekly Challenge", 500.0, "weekly", today, "Notes"
+            TEST_GROUP_NAME, TEST_CREATOR_EMAIL, TEST_CREATOR_ID,
+            "Weekly Challenge", 500.0, FREQUENCY_WEEKLY, today, TEST_NOTES
         );
         
         long daysRemaining = circle.getDaysRemaining();

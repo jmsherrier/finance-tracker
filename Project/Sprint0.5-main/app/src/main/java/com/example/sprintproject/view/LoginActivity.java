@@ -16,7 +16,6 @@ public class LoginActivity extends AppCompatActivity {
     private EditText emailField;
     private EditText passwordField;
     private Button loginBtn;
-    private Button registerBtn;
     private FirebaseAuth auth;
 
     private boolean looksLikeEmail(String e) {
@@ -35,7 +34,7 @@ public class LoginActivity extends AppCompatActivity {
         emailField = findViewById(R.id.emailField);
         passwordField = findViewById(R.id.passwordField);
         loginBtn = findViewById(R.id.loginBtn);
-        registerBtn = findViewById(R.id.registerBtn);
+        Button registerBtn = findViewById(R.id.registerBtn);
 
         auth = FirebaseAuth.getInstance();
 

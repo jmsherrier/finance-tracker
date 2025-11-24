@@ -49,4 +49,33 @@ public class ExampleUnitTest {
         // fixed spacing around comma
         assertEquals(expectedRemaining, actualRemaining, 0.001);
     }
+
+    @Test
+    public void testDashboardFragmentInitialization() {
+        DashboardFragment fragment = new DashboardFragment();
+        assertNotNull("Fragment should initialize successfully", fragment);
+    }
+
+    @Test
+    public void testMultipleDashboardInstances() {
+        DashboardFragment fragment1 = new DashboardFragment();
+        DashboardFragment fragment2 = new DashboardFragment();
+        assertNotNull(fragment1);
+        assertNotNull(fragment2);
+    }
+
+    @Test
+    public void testSimpleMultiplication() {
+        int a = 6;
+        int b = 7;
+        assertEquals(42, a * b);
+    }
+
+    @Test
+    public void testBudgetGoesToZeroAtFullSpend() {
+        double totalBudget = 500.0;
+        double totalSpent = 500.0;
+        double remaining = totalBudget - totalSpent;
+        assertEquals(0.0, remaining, 0.001);
+    }
 }

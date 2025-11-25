@@ -1,7 +1,10 @@
 package com.example.sprintproject;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 /**
  * Singleton class that manages Firestore and Firebase Auth instances.
@@ -32,5 +35,14 @@ public final class FirestoreManager {
 
     public FirebaseAuth getAuth() {
         return auth;
+    }
+
+    public void getLastExpenseDate(String userId, OnCompleteListener<QuerySnapshot> listener) {
+        db.collection("expenses")
+                .whereEqualTo("userId", userId)
+                .orderBy("date", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnCompleteListener(listener);
     }
 }

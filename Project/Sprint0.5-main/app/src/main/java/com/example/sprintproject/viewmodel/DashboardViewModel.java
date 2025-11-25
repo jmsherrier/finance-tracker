@@ -1,5 +1,9 @@
 package com.example.sprintproject.viewmodel;
 
+import android.util.Log;
+
+import com.example.sprintproject.FirestoreManager;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
@@ -14,6 +18,10 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.utils.ColorTemplate;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,6 +41,9 @@ public class DashboardViewModel extends ViewModel {
             new MutableLiveData<>();
     private final MutableLiveData<List<String>> barLabelsLive =
             new MutableLiveData<>(new ArrayList<>());
+
+    private final MutableLiveData<Boolean> showExpenseReminder =
+            new MutableLiveData<>(false);
 
     // Combined data, recomputed whenever currentDate changes
     private final LiveData<Map<String, Object>> dashboardData =
@@ -60,6 +71,11 @@ public class DashboardViewModel extends ViewModel {
 
     public void setCurrentDate(Date date) {
         currentDate.setValue(date);
+    }
+
+
+    public LiveData<Boolean> getExpenseReminder() {
+        return showExpenseReminder;
     }
 
     @SuppressWarnings("unchecked")
@@ -168,6 +184,44 @@ public class DashboardViewModel extends ViewModel {
             this.labels = labels;
         }
     }
+
+    public void checkExpenseReminder() {
+        Log.d("REMINDER_DEBUG", "checkExpenseReminder() called");
+
+        FirebaseAuth auth = FirestoreManager.getInstance().getAuth();
+        String userId = auth.getCurrentUser() != null
+                ? auth.getCurrentUser().getUid()
+                : null;
+
+        Log.d("REMINDER_DEBUG", "User ID = " + userId);
+
+        FirestoreManager.getInstance().getLastExpenseDate(userId, task -> {
+            if (!task.isSuccessful()) {
+                Log.e("REMINDER_DEBUG", "Query failed: ", task.getException());
+                return;
+            }
+
+            QuerySnapshot snap = task.getResult();
+            Log.d("REMINDER_DEBUG", "Snap size = " + (snap == null ? -1 : snap.size()));
+
+            if (snap.isEmpty()) {
+                Log.d("REMINDER_DEBUG", "No expenses found → showing reminder");
+                showExpenseReminder.postValue(true);
+                return;
+            }
+
+            DocumentSnapshot doc = snap.getDocuments().get(0);
+            Date last = doc.getDate("date");
+            Log.d("REMINDER_DEBUG", "Last expense date = " + last);
+
+            long diff = (System.currentTimeMillis() - last.getTime()) / (1000L * 60 * 60 * 24);
+            Log.d("REMINDER_DEBUG", "Days since last expense = " + diff);
+
+            showExpenseReminder.postValue(diff >= 3);
+        });
+    }
+
+
 
     // For tests / cleanup
     public void clearData() {

@@ -282,12 +282,7 @@ public class ExpenseLogFragment extends Fragment {
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 expenses.clear();
-                
-                // If no expenses exist, create seed expenses
-                if (queryDocumentSnapshots.isEmpty()) {
-                    createSeedExpenses(userId);
-                    return;
-                }
+
                 
                 for (com.google.firebase.firestore.DocumentSnapshot document
                         : queryDocumentSnapshots.getDocuments()) {

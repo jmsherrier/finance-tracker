@@ -12,6 +12,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 
 import java.util.ArrayList;
@@ -132,7 +133,7 @@ public final class SavingsCircleRepository {
                         e -> callback.onError("Error loading circles: " + e.getMessage()));
     }
 
-    private List<String> extractCircleIds(com.google.firebase.firestore.QuerySnapshot querySnapshot) {
+    private List<String> extractCircleIds(QuerySnapshot querySnapshot) {
         List<String> circleIds = new ArrayList<>();
         for (QueryDocumentSnapshot circleDoc : querySnapshot) {
             circleIds.add(circleDoc.getId());
@@ -146,13 +147,16 @@ public final class SavingsCircleRepository {
         final int[] completed = {0};
 
         for (String circleId : circleIds) {
-            checkMembershipForCircle(userId, circleId, userCircles, completed, circleIds.size(), callback);
+            checkMembershipForCircle(
+                    userId, circleId, userCircles,
+                    completed, circleIds.size(), callback);
         }
     }
 
     private void checkMembershipForCircle(String userId, String circleId,
                                          List<SavingsCircle> userCircles, int[] completed,
-                                         int totalCircles, RepositoryCallback<List<SavingsCircle>> callback) {
+                                         int totalCircles,
+                                          RepositoryCallback<List<SavingsCircle>> callback) {
         db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .document(circleId)
                 .collection(COLLECTION_MEMBERS)
@@ -167,7 +171,7 @@ public final class SavingsCircleRepository {
                 })
                 .addOnFailureListener(e ->
                     incrementCompleted(completed, totalCircles, userCircles, callback)
-                );
+            );
     }
 
     private void loadCircleForUser(String circleId, List<SavingsCircle> userCircles,
@@ -413,7 +417,7 @@ public final class SavingsCircleRepository {
                 )
                 .addOnFailureListener(e ->
                     callback.onError("Error updating invitation: " + e.getMessage())
-                );
+            );
     }
 
     private void loadCircleAndAddMember(String circleId, String userId,
@@ -474,7 +478,7 @@ public final class SavingsCircleRepository {
                             .addOnSuccessListener(aVoid -> callback.onSuccess(null))
                             .addOnFailureListener(e -> callback.onError(
                                 "Error declining invitation: " + e.getMessage())
-                            );
+                        );
                 })
                 .addOnFailureListener(e -> callback.onError(
                     "Error loading invitation: " + e.getMessage()));

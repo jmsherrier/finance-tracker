@@ -128,7 +128,8 @@ public class SavingsCirclesFragment extends Fragment {
         });
 
         // Observe pending invitations
-        viewModel.getPendingInvitations().observe(getViewLifecycleOwner(), this::updateInvitationsList);
+        viewModel.getPendingInvitations().observe(
+                getViewLifecycleOwner(), this::updateInvitationsList);
     }
 
     private void updateInvitationsList(List<CircleInvitation> invitations) {

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Header with Icon -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/ic_dialog_alert"
+            android:layout_marginEnd="12dp"
+            android:tint="#FF9800" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Missed Expense Logging"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
+
+    <!-- Message -->
+    <TextView
+        android:id="@+id/text_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:text="You haven't logged any expenses recently. Would you like to log your expenses now?"
+        android:textSize="16sp"
+        android:textColor="#444444"
+        android:lineSpacingExtra="4dp" />
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/btn_dismiss"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Dismiss"
+            android:textColor="#666666"
+            android:backgroundTint="@android:color/transparent" />
+
+        <Button
+            android:id="@+id/btn_log_expense"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Log Expense"
+            android:backgroundTint="#6366F1"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+</LinearLayout>

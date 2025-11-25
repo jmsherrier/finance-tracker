@@ -67,7 +67,8 @@ public class ExpenseLogFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_expense_log, container, false);
 
-        TimeViewModel timeViewModel = new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
+        TimeViewModel timeViewModel =
+                new ViewModelProvider(requireActivity()).get(TimeViewModel.class);
 
         timeViewModel.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
             SimpleDateFormat fmt =
@@ -282,12 +283,7 @@ public class ExpenseLogFragment extends Fragment {
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 expenses.clear();
-                
-                // If no expenses exist, create seed expenses
-                if (queryDocumentSnapshots.isEmpty()) {
-                    createSeedExpenses(userId);
-                    return;
-                }
+
                 
                 for (com.google.firebase.firestore.DocumentSnapshot document
                         : queryDocumentSnapshots.getDocuments()) {
@@ -373,11 +369,11 @@ public class ExpenseLogFragment extends Fragment {
                     })
                     .addOnFailureListener(e ->
                         Log.e("ExpenseLog", "Error creating seed expense 2", e)
-                    );
+                );
             })
             .addOnFailureListener(e ->
                 Log.e("ExpenseLog", "Error creating seed expense 1", e)
-            );
+        );
     }
     
     private void updateUI() {

@@ -1,6 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base application theme -->
     <style name="Base.Theme.SprintProject" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
+    </style>
+
+    <!-- Custom AlertDialog theme -->
+    <style name="ThemeOverlay.SprintProject.AlertDialog"
+        parent="ThemeOverlay.Material3.MaterialAlertDialog">
     </style>
 </resources>

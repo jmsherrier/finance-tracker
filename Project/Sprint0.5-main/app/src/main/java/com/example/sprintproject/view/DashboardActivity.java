@@ -14,6 +14,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 public class DashboardActivity extends AppCompatActivity {
 
     private boolean reminderDialogShown = false;
+    private boolean openExpenseLog = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

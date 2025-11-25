@@ -36,9 +36,17 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Load DashboardFragment by default
         if (savedInstanceState == null) {
+            Fragment initialFragment = openExpenseLog
+                    ? new ExpenseLogFragment()
+                    : new DashboardFragment();
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new DashboardFragment())
+                    .replace(R.id.fragment_container, initialFragment)
                     .commit();
+
+            // If opening expense log, also select the nav item
+            if (openExpenseLog) {
+                bottomNav.setSelectedItemId(R.id.nav_expense);
+            }
         }
 
         // Handle navigation clicks

@@ -13,6 +13,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class DashboardActivity extends AppCompatActivity {
 
+    private boolean reminderDialogShown = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -20,12 +22,14 @@ public class DashboardActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
+
         DashboardViewModel viewModel =
                 new ViewModelProvider(this).get(DashboardViewModel.class);
         viewModel.checkExpenseReminder();
 
         viewModel.getExpenseReminder().observe(this, shouldShow -> {
-            if (shouldShow != null && shouldShow) {
+            if (Boolean.TRUE.equals(shouldShow) && !reminderDialogShown) {
+                reminderDialogShown = true;
                 showExpenseReminderDialog();
             }
         });
@@ -78,17 +82,19 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void showExpenseReminderDialog() {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.ThemeOverlay_SprintProject_AlertDialog)
                 .setTitle("Expense Reminder")
-                .setMessage("You haven't logged any expenses recently. Would you like to update your expense log?")
-                .setPositiveButton("Go to Expense Log", (dialog, which) -> {
+                .setMessage("You haven't logged any expenses recently.")
+                .setPositiveButton("Go to Expense Log", (d, w) -> {
+                    reminderDialogShown = false;
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.fragment_container, new ExpenseLogFragment())
                             .commit();
                 })
-                .setNegativeButton("Dismiss", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton("Dismiss", (d, w) -> reminderDialogShown = false)
                 .show();
     }
+
 }
 
 

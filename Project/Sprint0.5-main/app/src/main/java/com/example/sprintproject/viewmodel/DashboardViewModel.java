@@ -178,12 +178,20 @@ public class DashboardViewModel extends ViewModel {
     }
 
     private static class BarChartData {
-        final List<BarEntry> barEntries;
-        final List<String> labels;
+        private List<BarEntry> barEntries;
+        private List<String> labels;
 
         BarChartData(List<BarEntry> barEntries, List<String> labels) {
             this.barEntries = barEntries;
             this.labels = labels;
+        }
+
+        public List<BarEntry> getBarEntries() {
+            return barEntries;
+        }
+
+        public List<String> getLabels() {
+            return labels;
         }
     }
 
@@ -212,7 +220,9 @@ public class DashboardViewModel extends ViewModel {
 
             // prevent repeated pop-ups in the same day
             if (lastReminderShownDate != null) {
-                long diffSinceReminder = (System.currentTimeMillis() - lastReminderShownDate.getTime()) / (1000L * 60 * 60 * 24);
+                long diffSinceReminder =
+                        (System.currentTimeMillis() - lastReminderShownDate.getTime())
+                                / (1000L * 60 * 60 * 24);
                 if (diffSinceReminder < 1) {
                     Log.d("REMINDER_DEBUG", "Reminder already shown today → skipping");
                     return;

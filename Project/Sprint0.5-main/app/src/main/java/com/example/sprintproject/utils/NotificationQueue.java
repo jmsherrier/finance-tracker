@@ -17,13 +17,17 @@ public class NotificationQueue {
         this.onShow = onShow;
     }
     public synchronized void enqueue(ThresholdNotification item) {
-        if (item == null) return;
+        if (item == null) {
+            return;
+        }
         queue.offer(item);
         run();
     }
 
     private synchronized void run() {
-        if (running) return;
+        if (running) {
+            return;
+        }
         running = true;
         processNext();
     }

@@ -2,13 +2,18 @@ package com.example.sprintproject.view;
 
 import android.os.Bundle;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.viewmodel.DashboardViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class DashboardActivity extends AppCompatActivity {
+
+    private boolean reminderDialogShown = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,10 +22,19 @@ public class DashboardActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
-        // Check if we should open ExpenseLogFragment directly
-        boolean openExpenseLog = getIntent().getBooleanExtra("openExpenseLog", false);
 
-        // Load DashboardFragment by default, or ExpenseLogFragment if requested
+        DashboardViewModel viewModel =
+                new ViewModelProvider(this).get(DashboardViewModel.class);
+        viewModel.checkExpenseReminder();
+
+        viewModel.getExpenseReminder().observe(this, shouldShow -> {
+            if (Boolean.TRUE.equals(shouldShow) && !reminderDialogShown) {
+                reminderDialogShown = true;
+                showExpenseReminderDialog();
+            }
+        });
+
+        // Load DashboardFragment by default
         if (savedInstanceState == null) {
             Fragment initialFragment = openExpenseLog
                     ? new ExpenseLogFragment()
@@ -74,6 +88,21 @@ public class DashboardActivity extends AppCompatActivity {
             return true;
         });
     }
+
+    private void showExpenseReminderDialog() {
+        new AlertDialog.Builder(this, R.style.ThemeOverlay_SprintProject_AlertDialog)
+                .setTitle("Expense Reminder")
+                .setMessage("You haven't logged any expenses recently.")
+                .setPositiveButton("Go to Expense Log", (d, w) -> {
+                    reminderDialogShown = false;
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment_container, new ExpenseLogFragment())
+                            .commit();
+                })
+                .setNegativeButton("Dismiss", (d, w) -> reminderDialogShown = false)
+                .show();
+    }
+
 }
 
 

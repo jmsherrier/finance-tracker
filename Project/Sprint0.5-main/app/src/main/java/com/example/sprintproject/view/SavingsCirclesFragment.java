@@ -32,13 +32,10 @@ public class SavingsCirclesFragment extends Fragment {
     private TimeViewModel timeViewModel;
     
     private RecyclerView recyclerViewCircles;
-    private RecyclerView recyclerViewInvitations;
     private View emptyCard;
     private View invitationsSection;
-    private TextView textEmpty;
     private TextView circleCount;
     private TextView textCirclesSectionTitle;
-    private FloatingActionButton fabCreateCircle;
     private CircleAdapter circleAdapter;
     private InvitationAdapter invitationAdapter;
 
@@ -62,13 +59,12 @@ public class SavingsCirclesFragment extends Fragment {
 
         // Initialize UI components
         recyclerViewCircles = view.findViewById(R.id.recycler_circles);
-        recyclerViewInvitations = view.findViewById(R.id.recycler_invitations);
+        RecyclerView recyclerViewInvitations = view.findViewById(R.id.recycler_invitations);
         emptyCard = view.findViewById(R.id.empty_card);
         invitationsSection = view.findViewById(R.id.invitations_section);
-        textEmpty = view.findViewById(R.id.text_empty_circles);
         circleCount = view.findViewById(R.id.circle_count);
         textCirclesSectionTitle = view.findViewById(R.id.text_circles_section_title);
-        fabCreateCircle = view.findViewById(R.id.fab_create_circle);
+        FloatingActionButton fabCreateCircle = view.findViewById(R.id.fab_create_circle);
 
         // Setup Circles RecyclerView
         recyclerViewCircles.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -132,9 +128,8 @@ public class SavingsCirclesFragment extends Fragment {
         });
 
         // Observe pending invitations
-        viewModel.getPendingInvitations().observe(getViewLifecycleOwner(), invitations -> {
-            updateInvitationsList(invitations);
-        });
+        viewModel.getPendingInvitations().observe(
+                getViewLifecycleOwner(), this::updateInvitationsList);
     }
 
     private void updateInvitationsList(List<CircleInvitation> invitations) {
@@ -202,10 +197,7 @@ public class SavingsCirclesFragment extends Fragment {
             getContext(),
             viewModel,
             timeViewModel,
-            () -> {
-                // Refresh list after creation
-                viewModel.loadUserCircles();
-            }
+            () -> viewModel.loadUserCircles()
         );
         dialog.show();
     }

@@ -16,8 +16,6 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText emailField;
     private EditText passwordField;
     private EditText confirmPasswordField;
-    private Button registerBtn;
-    private Button backToLoginBtn;
     private FirebaseAuth auth;
 
     private boolean looksLikeEmail(String e) {
@@ -37,8 +35,8 @@ public class RegisterActivity extends AppCompatActivity {
         emailField = findViewById(R.id.emailField);
         passwordField = findViewById(R.id.passwordField);
         confirmPasswordField = findViewById(R.id.confirmPasswordField);
-        registerBtn = findViewById(R.id.registerBtn);
-        backToLoginBtn = findViewById(R.id.backToLoginBtn);
+        Button registerBtn = findViewById(R.id.registerBtn);
+        Button backToLoginBtn = findViewById(R.id.backToLoginBtn);
 
         auth = FirebaseAuth.getInstance();
 
@@ -63,7 +61,7 @@ public class RegisterActivity extends AppCompatActivity {
             passwordField.setError("Password must be at least 6 characters");
             ok = false;
         }
-        if (!password.equals(confirm)) {
+        if (password == null || !password.equals(confirm)) {
             confirmPasswordField.setError("Passwords do not match");
             ok = false;
         }

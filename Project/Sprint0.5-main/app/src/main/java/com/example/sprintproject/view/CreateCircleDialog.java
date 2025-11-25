@@ -128,68 +128,79 @@ public class CreateCircleDialog {
                                 TextInputEditText editStartDate) {
         boolean isValid = true;
 
-        // Validate group name
+        isValid = validateGroupName(editGroupName) && isValid;
+        isValid = validateChallengeTitle(editChallengeTitle) && isValid;
+        isValid = validateGoalAmount(editGoalAmount) && isValid;
+        isValid = validateFrequency(dropdownFrequency) && isValid;
+        isValid = validateStartDate(editStartDate) && isValid;
+
+        return isValid;
+    }
+
+    private boolean validateGroupName(TextInputEditText editGroupName) {
         String groupName = editGroupName.getText().toString().trim();
         if (groupName.isEmpty()) {
             editGroupName.setError("Group name is required");
-            isValid = false;
-        } else {
-            editGroupName.setError(null);
+            return false;
         }
+        editGroupName.setError(null);
+        return true;
+    }
 
-        // Validate challenge title
+    private boolean validateChallengeTitle(TextInputEditText editChallengeTitle) {
         String challengeTitle = editChallengeTitle.getText().toString().trim();
         if (challengeTitle.isEmpty()) {
             editChallengeTitle.setError("Challenge title is required");
-            isValid = false;
-        } else {
-            editChallengeTitle.setError(null);
+            return false;
         }
+        editChallengeTitle.setError(null);
+        return true;
+    }
 
-        // Validate goal amount
+    private boolean validateGoalAmount(TextInputEditText editGoalAmount) {
         String amountStr = editGoalAmount.getText().toString().trim();
         if (amountStr.isEmpty()) {
             editGoalAmount.setError("Goal amount is required");
-            isValid = false;
-        } else {
-            try {
-                double amount = Double.parseDouble(amountStr);
-                if (amount <= 0) {
-                    editGoalAmount.setError("Goal amount must be greater than 0");
-                    isValid = false;
-                } else {
-                    editGoalAmount.setError(null);
-                }
-            } catch (NumberFormatException e) {
-                editGoalAmount.setError("Please enter a valid amount");
-                isValid = false;
-            }
+            return false;
         }
+        try {
+            double amount = Double.parseDouble(amountStr);
+            if (amount <= 0) {
+                editGoalAmount.setError("Goal amount must be greater than 0");
+                return false;
+            }
+            editGoalAmount.setError(null);
+            return true;
+        } catch (NumberFormatException e) {
+            editGoalAmount.setError("Please enter a valid amount");
+            return false;
+        }
+    }
 
-        // Validate frequency
+    private boolean validateFrequency(AutoCompleteTextView dropdownFrequency) {
         String frequency = dropdownFrequency.getText().toString().trim();
         if (frequency.isEmpty()) {
             dropdownFrequency.setError("Frequency is required");
-            isValid = false;
-        } else if (!"weekly".equalsIgnoreCase(frequency)
+            return false;
+        }
+        if (!"weekly".equalsIgnoreCase(frequency)
             && !"monthly".equalsIgnoreCase(frequency)) {
             dropdownFrequency.setError(
                 "Frequency must be 'Weekly' or 'Monthly'");
-            isValid = false;
-        } else {
-            dropdownFrequency.setError(null);
+            return false;
         }
+        dropdownFrequency.setError(null);
+        return true;
+    }
 
-        // Date is always valid since we set it by default
+    private boolean validateStartDate(TextInputEditText editStartDate) {
         String dateStr = editStartDate.getText().toString().trim();
         if (dateStr.isEmpty()) {
             editStartDate.setError("Start date is required");
-            isValid = false;
-        } else {
-            editStartDate.setError(null);
+            return false;
         }
-
-        return isValid;
+        editStartDate.setError(null);
+        return true;
     }
 }
 

@@ -238,14 +238,12 @@ public class UnifiedBudgetAdapter
         private double computeUsed(Budget budget) {
             double total = 0;
             for (Expense e : expenses) {
-                if (!budget.getCategory().equalsIgnoreCase(e.getCategory())) {
-                    continue;
+                if (budget.getCategory().equalsIgnoreCase(e.getCategory())) {
+                    Date d = e.getDate();
+                    if (!d.after(windowEnd(budget)) && !d.before(windowStart(budget))) {
+                        total += e.getAmount();
+                    }
                 }
-                Date d = e.getDate();
-                if (d.after(windowEnd(budget)) || d.before(windowStart(budget))) {
-                    continue;
-                }
-                total += e.getAmount();
             }
             return total;
         }

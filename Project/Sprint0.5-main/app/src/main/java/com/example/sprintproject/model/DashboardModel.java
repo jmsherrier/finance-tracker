@@ -23,6 +23,8 @@ import java.util.Map;
 
 public class DashboardModel {
 
+    private static final String FIELD_USER_ID = "userId";
+
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
 
@@ -36,6 +38,7 @@ public class DashboardModel {
     private List<Budget> latestBudgets = new ArrayList<>();
     private Date selectedDate = new Date();
 
+    // Default constructor - initialization handled in getDashboardData()
     public DashboardModel() {
     }
 
@@ -58,10 +61,14 @@ public class DashboardModel {
             return;
         }
 
-        // Listen to top-level /expenses filtered by userId (matches your data)
+        startListeningToExpenses(uid);
+        startListeningToBudgets(uid);
+    }
+
+    private void startListeningToExpenses(String uid) {
         if (expensesListener == null) {
             expensesListener = db.collection("expenses")
-                    .whereEqualTo("userId", uid)
+                    .whereEqualTo(FIELD_USER_ID, uid)
                     .addSnapshotListener(new EventListener<QuerySnapshot>() {
                         @Override
                         public void onEvent(@Nullable QuerySnapshot snapshots,
@@ -69,26 +76,31 @@ public class DashboardModel {
                             if (e != null) {
                                 return;
                             }
-                            List<Expense> list = new ArrayList<>();
-                            if (snapshots != null) {
-                                for (QueryDocumentSnapshot ds : snapshots) {
-                                    Expense ex = ds.toObject(Expense.class);
-                                    if (ex != null) {
-                                        ex.setId(ds.getId());
-                                        if (ex.getUserId() == null) {
-                                            ex.setUserId(uid);
-                                        }
-                                        list.add(ex);
-                                    }
-                                }
-                            }
-                            latestExpenses = list;
+                            latestExpenses = parseExpenses(snapshots, uid);
                             recomputeAndPost();
                         }
                     });
         }
+    }
 
-        // Listen to budgets under users/{uid}/budgets
+    private List<Expense> parseExpenses(@Nullable QuerySnapshot snapshots, String uid) {
+        List<Expense> list = new ArrayList<>();
+        if (snapshots != null) {
+            for (QueryDocumentSnapshot ds : snapshots) {
+                Expense ex = ds.toObject(Expense.class);
+                if (ex != null) {
+                    ex.setId(ds.getId());
+                    if (ex.getUserId() == null) {
+                        ex.setUserId(uid);
+                    }
+                    list.add(ex);
+                }
+            }
+        }
+        return list;
+    }
+
+    private void startListeningToBudgets(String uid) {
         if (budgetsListener == null) {
             final CollectionReference budRef = db.collection("users")
                     .document(uid)
@@ -102,20 +114,7 @@ public class DashboardModel {
                             if (e != null) {
                                 return;
                             }
-                            List<Budget> list = new ArrayList<>();
-                            if (snapshots != null) {
-                                for (QueryDocumentSnapshot ds : snapshots) {
-                                    Budget b = ds.toObject(Budget.class);
-                                    if (b != null) {
-                                        b.setId(ds.getId());
-                                        if (b.getUserId() == null) {
-                                            b.setUserId(uid);
-                                        }
-                                        list.add(b);
-                                    }
-                                }
-                            }
-                            latestBudgets = list;
+                            latestBudgets = parseBudgets(snapshots, uid);
                             if (latestBudgets.isEmpty()) {
                                 seedBudgetsIfNeeded(budRef, uid);
                             }
@@ -123,6 +122,23 @@ public class DashboardModel {
                         }
                     });
         }
+    }
+
+    private List<Budget> parseBudgets(@Nullable QuerySnapshot snapshots, String uid) {
+        List<Budget> list = new ArrayList<>();
+        if (snapshots != null) {
+            for (QueryDocumentSnapshot ds : snapshots) {
+                Budget b = ds.toObject(Budget.class);
+                if (b != null) {
+                    b.setId(ds.getId());
+                    if (b.getUserId() == null) {
+                        b.setUserId(uid);
+                    }
+                    list.add(b);
+                }
+            }
+        }
+        return list;
     }
 
     public void stopListening() {
@@ -137,62 +153,13 @@ public class DashboardModel {
     }
 
     private void recomputeAndPost() {
-        // Calculate month range based on selectedDate
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(selectedDate);
-        cal.set(Calendar.DAY_OF_MONTH, 1);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        Date start = cal.getTime();
+        Date[] monthRange = calculateMonthRange();
+        Date start = monthRange[0];
+        Date end = monthRange[1];
 
-        cal.add(Calendar.MONTH, 1);
-        Date end = cal.getTime();
-
-        double totalSpent = 0.0;
-        Map<String, Double> categories = new HashMap<>();
-
-        // Filter expenses within this month
-        if (latestExpenses != null) {
-            for (Expense e : latestExpenses) {
-                if (e == null) {
-                    continue;
-                }
-                Date expenseDate = e.getDate();
-                if (expenseDate == null) {
-                    continue;
-                }
-
-                if (!expenseDate.before(start) && expenseDate.before(end)) {
-                    double amt = e.getAmount();
-                    totalSpent += amt;
-                    String cat = (e.getCategory() == null)
-                            ? "Uncategorized"
-                            : e.getCategory();
-                    categories.put(cat,
-                            categories.getOrDefault(cat, 0.0) + amt);
-                }
-            }
-        }
-
-        // Sum budgets applicable to this month
-        double totalBudget = 0.0;
-        if (latestBudgets != null) {
-            for (Budget b : latestBudgets) {
-                if (b == null) {
-                    continue;
-                }
-                Date bStart = b.getStartDate();
-
-                // Count budgets that either have no startDate
-                // or start within this month
-                if (bStart == null
-                        || (!bStart.before(start) && bStart.before(end))) {
-                    totalBudget += b.getTotalAmount();
-                }
-            }
-        }
+        double totalSpent = calculateTotalSpent(start, end);
+        Map<String, Double> categories = calculateCategories(start, end);
+        double totalBudget = calculateTotalBudget(start, end);
 
         Map<String, Object> combined = new HashMap<>();
         combined.put("totalSpent", totalSpent);
@@ -206,6 +173,74 @@ public class DashboardModel {
         combinedLive.postValue(combined);
     }
 
+    private Date[] calculateMonthRange() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(selectedDate);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Date start = cal.getTime();
+
+        cal.add(Calendar.MONTH, 1);
+        Date end = cal.getTime();
+        return new Date[]{start, end};
+    }
+
+    private double calculateTotalSpent(Date start, Date end) {
+        double totalSpent = 0.0;
+        if (latestExpenses != null) {
+            for (Expense e : latestExpenses) {
+                if (e != null && isExpenseInRange(e, start, end)) {
+                    totalSpent += e.getAmount();
+                }
+            }
+        }
+        return totalSpent;
+    }
+
+    private boolean isExpenseInRange(Expense e, Date start, Date end) {
+        Date expenseDate = e.getDate();
+        return expenseDate != null
+                && !expenseDate.before(start)
+                && expenseDate.before(end);
+    }
+
+    private Map<String, Double> calculateCategories(Date start, Date end) {
+        Map<String, Double> categories = new HashMap<>();
+        if (latestExpenses != null) {
+            for (Expense e : latestExpenses) {
+                if (e != null && isExpenseInRange(e, start, end)) {
+                    String cat = (e.getCategory() == null)
+                            ? "Uncategorized"
+                            : e.getCategory();
+                    categories.put(cat,
+                            categories.getOrDefault(cat, 0.0) + e.getAmount());
+                }
+            }
+        }
+        return categories;
+    }
+
+    private double calculateTotalBudget(Date start, Date end) {
+        double totalBudget = 0.0;
+        if (latestBudgets != null) {
+            for (Budget b : latestBudgets) {
+                if (b != null && isBudgetInRange(b, start, end)) {
+                    totalBudget += b.getTotalAmount();
+                }
+            }
+        }
+        return totalBudget;
+    }
+
+    private boolean isBudgetInRange(Budget b, Date start, Date end) {
+        Date bStart = b.getStartDate();
+        return bStart == null
+                || (!bStart.before(start) && bStart.before(end));
+    }
+
     private void seedBudgetsIfNeeded(CollectionReference budRef, String uid) {
         // Simple demo budgets only if user has none
         Map<String, Object> b1 = new HashMap<>();
@@ -214,7 +249,7 @@ public class DashboardModel {
         b1.put("category", "General");
         b1.put("frequency", "monthly");
         b1.put("startDate", new Date());
-        b1.put("userId", uid);
+        b1.put(FIELD_USER_ID, uid);
         b1.put("createdAt", new Date());
         b1.put("spentAmount", 0.0);
 
@@ -224,7 +259,7 @@ public class DashboardModel {
         b2.put("category", "Entertainment");
         b2.put("frequency", "monthly");
         b2.put("startDate", new Date());
-        b2.put("userId", uid);
+        b2.put(FIELD_USER_ID, uid);
         b2.put("createdAt", new Date());
         b2.put("spentAmount", 0.0);
 

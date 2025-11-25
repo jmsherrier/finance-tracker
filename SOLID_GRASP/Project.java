@@ -7,7 +7,7 @@ public class Project {
     private String projDescription;
     private LocalDate startDate;
     private LocalDate endDate;
-    private List<Main_Task> tasks;
+    private List<MainTask> tasks;
     private List<TeamMember> members;
     private ProjectManager projManager;
 
@@ -21,11 +21,11 @@ public class Project {
         this.projManager = projManager;
     }
 
-    public void addTask(Main_Task task) {
+    public void addTask(MainTask task) {
         tasks.add(task);
     }
 
-    public void removeTask(Main_Task task) {
+    public void removeTask(MainTask task) {
         tasks.remove(task);
     }
 

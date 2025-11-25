@@ -43,11 +43,9 @@ public class ProgressCalculationContext {
     /**
      * Factory method to create appropriate strategy based on circle type.
      * @param circle The savings circle
-     * @param contributions The list of contributions
      * @return The configured context
      */
-    public static ProgressCalculationContext createContext(SavingsCircle circle,
-            List<CircleContribution> contributions) {
+    public static ProgressCalculationContext createContext(SavingsCircle circle) {
         if (circle == null) {
             return new ProgressCalculationContext(new SumContributionStrategy());
         }

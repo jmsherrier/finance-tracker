@@ -1,13 +1,14 @@
 import java.time.LocalDate;
+import java.util.Objects;
 
-public abstract class Task implements Main_Task {
+public abstract class Task implements MainTask {
     protected String taskTitle;
     protected String taskDescription;
     protected LocalDate taskDeadLine;
     protected String taskStatus;
     protected int priority;
 
-    public Task(String taskTitle, String taskDescription, LocalDate taskDeadLine, int priority) {
+    protected Task(String taskTitle, String taskDescription, LocalDate taskDeadLine, int priority) {
         this.taskTitle = taskTitle;
         this.taskDescription = taskDescription;
         this.taskDeadLine = taskDeadLine;
@@ -35,14 +36,11 @@ public abstract class Task implements Main_Task {
         if (this == obj) return true;
         if (obj == null || this.getClass() != obj.getClass()) return false;
         Task o = (Task) obj;
-        if (this.priority == o.priority &&
+        return this.priority == o.priority &&
                this.taskTitle.equals(o.taskTitle) &&
                this.taskDescription.equals(o.taskDescription) &&
                this.taskDeadLine.equals(o.taskDeadLine) &&
-               this.taskStatus.equals(o.taskStatus)) {
-                return true;
-               }
-        return false;
+               this.taskStatus.equals(o.taskStatus);
     }
 
     @Override

@@ -36,7 +36,6 @@ public class BudgetDetailFragment extends Fragment {
     private TextInputEditText calcTotal;
     private TextInputEditText calcSpent;
     private TextInputEditText calcRemaining;
-    private Button btnCalculate;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private String budgetId;
@@ -55,7 +54,13 @@ public class BudgetDetailFragment extends Fragment {
     private final SimpleDateFormat fmt =
             new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
 
-    public BudgetDetailFragment() { }
+    /**
+     * Default constructor required for Fragment instantiation.
+     * Fragments must have a public no-argument constructor.
+     */
+    public BudgetDetailFragment() {
+        // Empty constructor - Fragment framework requires this
+    }
 
     @Nullable
     @Override
@@ -71,7 +76,7 @@ public class BudgetDetailFragment extends Fragment {
         calcTotal = v.findViewById(R.id.calc_total);
         calcSpent = v.findViewById(R.id.calc_spent);
         calcRemaining = v.findViewById(R.id.calc_remaining);
-        btnCalculate = v.findViewById(R.id.btn_calculate);
+        Button btnCalculate = v.findViewById(R.id.btn_calculate);
         btnCalculate.setOnClickListener(view -> calculateBudget());
         textTitle = v.findViewById(R.id.text_title);
         textCategoryFreq = v.findViewById(R.id.text_category_freq);

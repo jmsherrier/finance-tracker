@@ -4,7 +4,6 @@ import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -63,7 +62,6 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
     }
 
     class BudgetViewHolder extends RecyclerView.ViewHolder {
-        private ImageView iconCategory;
         private TextView textTitle;
         private TextView textMeta;
         private TextView textAmount;
@@ -72,7 +70,6 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
 
         BudgetViewHolder(@NonNull View itemView) {
             super(itemView);
-            iconCategory = itemView.findViewById(R.id.icon_category);
             textTitle = itemView.findViewById(R.id.text_title);
             textMeta = itemView.findViewById(R.id.text_meta);
             textAmount = itemView.findViewById(R.id.text_amount);
@@ -105,14 +102,12 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         private double computeUsed(Budget budget) {
             double total = 0;
             for (Expense e : expenses) {
-                if (!budget.getCategory().equalsIgnoreCase(e.getCategory())) {
-                    continue;
+                if (budget.getCategory().equalsIgnoreCase(e.getCategory())) {
+                    Date d = e.getDate();
+                    if (!d.after(windowEnd(budget)) && !d.before(windowStart(budget))) {
+                        total += e.getAmount();
+                    }
                 }
-                Date d = e.getDate();
-                if (d.after(windowEnd(budget)) || d.before(windowStart(budget))) {
-                    continue;
-                }
-                total += e.getAmount();
             }
             return total;
         }

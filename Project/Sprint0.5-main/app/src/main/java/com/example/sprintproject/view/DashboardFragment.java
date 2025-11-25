@@ -35,13 +35,7 @@ import java.util.Map;
 
 public class DashboardFragment extends Fragment {
 
-    private TextView totalSpentText;
-    private TextView totalRemainingText;
     private TextView timeDisplay;
-    private TextView selectedDateDisplay;
-    private LinearLayout categoriesContainer;
-    private PieChart pieChart;
-    private BarChart barChart;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable updateTimeRunnable;
@@ -57,17 +51,14 @@ public class DashboardFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
 
         // Views
-        totalSpentText = view.findViewById(R.id.text_total_spent);
-        totalRemainingText = view.findViewById(R.id.text_total_remaining);
-        categoriesContainer = view.findViewById(R.id.categories_container);
         timeDisplay = view.findViewById(R.id.time_display);
-        selectedDateDisplay = view.findViewById(R.id.selected_date_display);
+        TextView selectedDateDisplay = view.findViewById(R.id.selected_date_display);
         ImageView calendarIcon = view.findViewById(R.id.calendar_icon);
         Button logoutButton = view.findViewById(R.id.logout_button);
 
         // Charts
-        pieChart = view.findViewById(R.id.pieChart);
-        barChart = view.findViewById(R.id.barChart);
+        PieChart pieChart = view.findViewById(R.id.pieChart);
+        BarChart barChart = view.findViewById(R.id.barChart);
 
         pieChart.getDescription().setEnabled(false);
         pieChart.setUsePercentValues(false);
@@ -159,52 +150,7 @@ public class DashboardFragment extends Fragment {
                     if (data == null) {
                         return;
                     }
-
-                    // Numbers
-                    Double totalSpentObj = (Double) data.get("totalSpent");
-                    Double totalBudgetObj = (Double) data.get("totalBudget");
-                    double totalSpent = totalSpentObj != null ? totalSpentObj : 0.0;
-                    double totalBudget = totalBudgetObj != null ? totalBudgetObj : 0.0;
-                    double remaining = Math.max(0.0, totalBudget - totalSpent);
-
-                    totalSpentText.setText(String.format(
-                            Locale.getDefault(),
-                            "Total Spent This Period: $%.2f",
-                            totalSpent
-                    ));
-                    totalRemainingText.setText(String.format(
-                            Locale.getDefault(),
-                            "Remaining Budget: $%.2f",
-                            remaining
-                    ));
-
-                    // Category list
-                    categoriesContainer.removeAllViews();
-                    Map<String, Double> categories =
-                            (Map<String, Double>) data.get("categories");
-
-                    if (categories != null && !categories.isEmpty()) {
-                        for (Map.Entry<String, Double> entry : categories.entrySet()) {
-                            TextView tv = new TextView(requireContext());
-                            tv.setText(String.format(
-                                    Locale.getDefault(),
-                                    "%s: $%.2f",
-                                    entry.getKey(),
-                                    entry.getValue()
-                            ));
-                            tv.setTextSize(16);
-                            tv.setPadding(0, 4, 0, 4);
-                            categoriesContainer.addView(tv);
-                        }
-                    } else {
-                        TextView tv = new TextView(requireContext());
-                        tv.setText("No expenses for this period.");
-                        tv.setTextSize(16);
-                        tv.setPadding(0, 4, 0, 4);
-                        categoriesContainer.addView(tv);
-                    }
-
-                    // Update chart data in ViewModel
+                    updateDashboardUI(view, data);
                     dashboardViewModel.updateCharts(data);
                 }
         );
@@ -216,6 +162,7 @@ public class DashboardFragment extends Fragment {
                     if (pieData == null) {
                         return;
                     }
+                    PieChart pieChart = view.findViewById(R.id.pieChart);
                     pieChart.setData(pieData);
                     pieChart.invalidate();
                 }
@@ -228,10 +175,79 @@ public class DashboardFragment extends Fragment {
                     if (barData == null) {
                         return;
                     }
+                    BarChart barChart = view.findViewById(R.id.barChart);
                     barChart.setData(barData);
                     barChart.invalidate();
                 }
         );
+    }
+
+    private void updateDashboardUI(@NonNull View view, Map<String, Object> data) {
+        updateTotalAmounts(view, data);
+        updateCategoriesList(view, data);
+    }
+
+    private void updateTotalAmounts(@NonNull View view, Map<String, Object> data) {
+        Double totalSpentObj = (Double) data.get("totalSpent");
+        Double totalBudgetObj = (Double) data.get("totalBudget");
+        double totalSpent = totalSpentObj != null ? totalSpentObj : 0.0;
+        double totalBudget = totalBudgetObj != null ? totalBudgetObj : 0.0;
+        double remaining = Math.max(0.0, totalBudget - totalSpent);
+
+        TextView totalSpentText = view.findViewById(R.id.text_total_spent);
+        TextView totalRemainingText = view.findViewById(R.id.text_total_remaining);
+
+        totalSpentText.setText(String.format(
+                Locale.getDefault(),
+                "Total Spent This Period: $%.2f",
+                totalSpent
+        ));
+        totalRemainingText.setText(String.format(
+                Locale.getDefault(),
+                "Remaining Budget: $%.2f",
+                remaining
+        ));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void updateCategoriesList(@NonNull View view, Map<String, Object> data) {
+        LinearLayout categoriesContainer = view.findViewById(R.id.categories_container);
+        categoriesContainer.removeAllViews();
+        Map<String, Double> categories = (Map<String, Double>) data.get("categories");
+
+        if (categories != null && !categories.isEmpty()) {
+            addCategoryViews(categoriesContainer, categories);
+        } else {
+            addEmptyCategoryView(categoriesContainer);
+        }
+    }
+
+    private void addCategoryViews(LinearLayout container, Map<String, Double> categories) {
+        for (Map.Entry<String, Double> entry : categories.entrySet()) {
+            TextView tv = createCategoryTextView(entry.getKey(), entry.getValue());
+            container.addView(tv);
+        }
+    }
+
+    private void addEmptyCategoryView(LinearLayout container) {
+        TextView tv = new TextView(requireContext());
+        tv.setText("No expenses for this period.");
+        tv.setTextSize(16);
+        tv.setPadding(0, 4, 0, 4);
+        container.addView(tv);
+    }
+
+    private TextView createCategoryTextView(String category, Double amount) {
+        TextView tv = new TextView(requireContext());
+        tv.setText(String.format(
+                Locale.getDefault(),
+                "%s: $%.2f",
+                category,
+                amount
+        ));
+        tv.setTextSize(16);
+        tv.setPadding(0, 4, 0, 4);
+        return tv;
     }
 
     @Override

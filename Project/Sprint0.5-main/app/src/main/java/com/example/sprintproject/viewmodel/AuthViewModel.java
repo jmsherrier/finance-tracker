@@ -25,7 +25,7 @@ public class AuthViewModel extends ViewModel {
     }
 
     public void createUser(String email, String password) {
-        userRepository.createUser(email, password, new UserRepository.CreateUserCallback() {
+        userRepository.createUser(email, new UserRepository.CreateUserCallback() {
             @Override
             public void onSuccess(User user) {
                 userLiveData.postValue(user);

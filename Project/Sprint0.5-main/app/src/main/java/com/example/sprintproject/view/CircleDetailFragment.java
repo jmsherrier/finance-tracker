@@ -44,7 +44,6 @@ public class CircleDetailFragment extends Fragment {
     private TextView textStatus;
     private LinearProgressIndicator progressBar;
     private RecyclerView recyclerViewMembers;
-    private Button btnAddContribution;
     private Button btnInviteMember;
     private TextView textEmptyMembers;
 
@@ -85,7 +84,7 @@ public class CircleDetailFragment extends Fragment {
         textStatus = view.findViewById(R.id.text_status_detail);
         progressBar = view.findViewById(R.id.progress_circle_detail);
         recyclerViewMembers = view.findViewById(R.id.recycler_members);
-        btnAddContribution = view.findViewById(R.id.btn_add_contribution);
+        Button btnAddContribution = view.findViewById(R.id.btn_add_contribution);
         btnInviteMember = view.findViewById(R.id.btn_invite_member);
         textEmptyMembers = view.findViewById(R.id.text_empty_members);
 

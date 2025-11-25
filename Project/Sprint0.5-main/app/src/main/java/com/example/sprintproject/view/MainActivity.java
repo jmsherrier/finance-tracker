@@ -15,9 +15,6 @@ import com.example.sprintproject.databinding.ActivityMainBinding;
 import com.example.sprintproject.viewmodel.AuthViewModel;
 
 public class MainActivity extends AppCompatActivity {
-    private Button startBtn;
-    private Button quitBtn;
-    private AuthViewModel authViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,11 +23,11 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(binding.getRoot());
 
-        startBtn = findViewById(R.id.startBtn);
-        quitBtn = findViewById(R.id.quitBtn);
+        Button startBtn = findViewById(R.id.startBtn);
+        Button quitBtn = findViewById(R.id.quitBtn);
 
         // ViewModel setup
-        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
+        AuthViewModel authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
         // Observe user changes
         authViewModel.getUser().observe(this, user -> {
@@ -51,13 +48,13 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, LoginActivity.class))
         );
 
-        quitBtn.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("Quit app?")
-                    .setMessage("Are you sure you want to exit?")
-                    .setPositiveButton("Yes", (d, which) -> finish())
-                    .setNegativeButton("No", (d, which) -> d.dismiss())
-                    .show();
-        });
+        quitBtn.setOnClickListener(v ->
+                new AlertDialog.Builder(this)
+                        .setTitle("Quit app?")
+                        .setMessage("Are you sure you want to exit?")
+                        .setPositiveButton("Yes", (d, which) -> finish())
+                        .setNegativeButton("No", (d, which) -> d.dismiss())
+                        .show()
+        );
     }
 }

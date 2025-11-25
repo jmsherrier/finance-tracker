@@ -12,6 +12,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 
 import java.util.ArrayList;
@@ -24,6 +25,11 @@ import java.util.List;
  * All Firestore operations are mediated through this repository.
  */
 public final class SavingsCircleRepository {
+    private static final String COLLECTION_SAVINGS_CIRCLES = "savingsCircles";
+    private static final String COLLECTION_MEMBERS = "members";
+    private static final String COLLECTION_CIRCLE_INVITATIONS = "circleInvitations";
+    private static final String COLLECTION_CONTRIBUTIONS = "contributions";
+
     private static SavingsCircleRepository instance;
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
@@ -56,28 +62,6 @@ public final class SavingsCircleRepository {
         return instance;
     }
 
-    /**
-     * Get current user ID.
-     * @return The current user ID or null if not logged in
-     */
-    private String getCurrentUserId() {
-        if (auth.getCurrentUser() != null) {
-            return auth.getCurrentUser().getUid();
-        }
-        return null;
-    }
-
-    /**
-     * Get current user email.
-     * @return The current user email or null if not logged in
-     */
-    private String getCurrentUserEmail() {
-        if (auth.getCurrentUser() != null) {
-            return auth.getCurrentUser().getEmail();
-        }
-        return null;
-    }
-
     // ==================== Circle CRUD Operations ====================
 
     /**
@@ -87,7 +71,7 @@ public final class SavingsCircleRepository {
      */
     public void createCircle(SavingsCircle circle,
                              RepositoryCallback<SavingsCircle> callback) {
-        db.collection("savingsCircles")
+        db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .add(circle)
                 .addOnSuccessListener(documentReference -> {
                     circle.setId(documentReference.getId());
@@ -135,73 +119,85 @@ public final class SavingsCircleRepository {
      */
     public void loadUserCircles(String userId, RepositoryCallback<List<SavingsCircle>> callback) {
         // Query all savings circles
-        db.collection("savingsCircles")
+        db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    List<String> circleIds = new ArrayList<>();
-
-                    // Check each circle to see if user is a member
-                    for (QueryDocumentSnapshot circleDoc : querySnapshot) {
-                        String circleId = circleDoc.getId();
-                        circleIds.add(circleId);
-                    }
-
+                    List<String> circleIds = extractCircleIds(querySnapshot);
                     if (circleIds.isEmpty()) {
                         callback.onSuccess(new ArrayList<>());
                         return;
                     }
-
-                    // Check membership for each circle
-                    List<SavingsCircle> userCircles = new ArrayList<>();
-                    final int[] completed = {0};
-
-                    for (String circleId : circleIds) {
-                        // Check if user is a member of this circle
-                        db.collection("savingsCircles")
-                                .document(circleId)
-                                .collection("members")
-                                .document(userId)
-                                .get()
-                                .addOnSuccessListener(memberDoc -> {
-                                    if (memberDoc.exists()) {
-                                        // User is a member, load the circle
-                                        loadCircle(circleId,
-                                            new RepositoryCallback<SavingsCircle>() {
-                                                    @Override
-                                                    public void onSuccess(SavingsCircle circle) {
-                                                        userCircles.add(circle);
-                                                        completed[0]++;
-                                                        if (completed[0] == circleIds.size()) {
-                                                            callback.onSuccess(userCircles);
-                                                        }
-                                                    }
-
-                                                    @Override
-                                                    public void onError(String error) {
-                                                        completed[0]++;
-                                                        if (completed[0] == circleIds.size()) {
-                                                            callback.onSuccess(userCircles);
-                                                        }
-                                                    }
-                                                });
-                                    } else {
-                                        // User is not a member
-                                        completed[0]++;
-                                        if (completed[0] == circleIds.size()) {
-                                            callback.onSuccess(userCircles);
-                                        }
-                                    }
-                                })
-                                .addOnFailureListener(e -> {
-                                    completed[0]++;
-                                    if (completed[0] == circleIds.size()) {
-                                        callback.onSuccess(userCircles);
-                                    }
-                                });
-                    }
+                    checkMembershipAndLoadCircles(userId, circleIds, callback);
                 })
                 .addOnFailureListener(
                         e -> callback.onError("Error loading circles: " + e.getMessage()));
+    }
+
+    private List<String> extractCircleIds(QuerySnapshot querySnapshot) {
+        List<String> circleIds = new ArrayList<>();
+        for (QueryDocumentSnapshot circleDoc : querySnapshot) {
+            circleIds.add(circleDoc.getId());
+        }
+        return circleIds;
+    }
+
+    private void checkMembershipAndLoadCircles(String userId, List<String> circleIds,
+                                               RepositoryCallback<List<SavingsCircle>> callback) {
+        List<SavingsCircle> userCircles = new ArrayList<>();
+        final int[] completed = {0};
+
+        for (String circleId : circleIds) {
+            checkMembershipForCircle(
+                    userId, circleId, userCircles,
+                    completed, circleIds.size(), callback);
+        }
+    }
+
+    private void checkMembershipForCircle(String userId, String circleId,
+                                         List<SavingsCircle> userCircles, int[] completed,
+                                         int totalCircles,
+                                          RepositoryCallback<List<SavingsCircle>> callback) {
+        db.collection(COLLECTION_SAVINGS_CIRCLES)
+                .document(circleId)
+                .collection(COLLECTION_MEMBERS)
+                .document(userId)
+                .get()
+                .addOnSuccessListener(memberDoc -> {
+                    if (memberDoc.exists()) {
+                        loadCircleForUser(circleId, userCircles, completed, totalCircles, callback);
+                    } else {
+                        incrementCompleted(completed, totalCircles, userCircles, callback);
+                    }
+                })
+                .addOnFailureListener(e ->
+                    incrementCompleted(completed, totalCircles, userCircles, callback)
+            );
+    }
+
+    private void loadCircleForUser(String circleId, List<SavingsCircle> userCircles,
+                                   int[] completed, int totalCircles,
+                                   RepositoryCallback<List<SavingsCircle>> callback) {
+        loadCircle(circleId, new RepositoryCallback<SavingsCircle>() {
+            @Override
+            public void onSuccess(SavingsCircle circle) {
+                userCircles.add(circle);
+                incrementCompleted(completed, totalCircles, userCircles, callback);
+            }
+
+            @Override
+            public void onError(String error) {
+                incrementCompleted(completed, totalCircles, userCircles, callback);
+            }
+        });
+    }
+
+    private void incrementCompleted(int[] completed, int totalCircles,
+                                    List<SavingsCircle> userCircles,
+                                    RepositoryCallback<List<SavingsCircle>> callback) {
+        completed[0]++;
+        if (completed[0] == totalCircles) {
+            callback.onSuccess(userCircles);
+        }
     }
 
     /**
@@ -211,7 +207,7 @@ public final class SavingsCircleRepository {
      */
     public void loadCircle(String circleId,
                            RepositoryCallback<SavingsCircle> callback) {
-        db.collection("savingsCircles")
+        db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .document(circleId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -238,7 +234,7 @@ public final class SavingsCircleRepository {
      */
     public void updateCircle(SavingsCircle circle,
                              RepositoryCallback<Void> callback) {
-        db.collection("savingsCircles")
+        db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .document(circle.getId())
                 .set(circle)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
@@ -256,9 +252,9 @@ public final class SavingsCircleRepository {
      */
     public void addMember(String circleId, CircleMember member,
                           RepositoryCallback<Void> callback) {
-        db.collection("savingsCircles")
+        db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .document(circleId)
-                .collection("members")
+                .collection(COLLECTION_MEMBERS)
                 .document(member.getUserId())
                 .set(member)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
@@ -273,9 +269,9 @@ public final class SavingsCircleRepository {
      */
     public void loadCircleMembers(String circleId,
                                   RepositoryCallback<List<CircleMember>> callback) {
-        db.collection("savingsCircles")
+        db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .document(circleId)
-                .collection("members")
+                .collection(COLLECTION_MEMBERS)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     List<CircleMember> members = new ArrayList<>();
@@ -301,9 +297,9 @@ public final class SavingsCircleRepository {
     public void updateMemberContribution(String circleId, String userId,
                                          double amount,
                                          RepositoryCallback<Void> callback) {
-        DocumentReference memberRef = db.collection("savingsCircles")
+        DocumentReference memberRef = db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .document(circleId)
-                .collection("members")
+                .collection(COLLECTION_MEMBERS)
                 .document(userId);
 
         memberRef.get()
@@ -338,7 +334,7 @@ public final class SavingsCircleRepository {
      */
     public void sendInvitation(CircleInvitation invitation,
                                RepositoryCallback<Void> callback) {
-        db.collection("circleInvitations")
+        db.collection(COLLECTION_CIRCLE_INVITATIONS)
                 .add(invitation)
                 .addOnSuccessListener(documentReference -> {
                     invitation.setId(documentReference.getId());
@@ -355,7 +351,7 @@ public final class SavingsCircleRepository {
      */
     public void loadPendingInvitations(String userEmail,
                                        RepositoryCallback<List<CircleInvitation>> callback) {
-        db.collection("circleInvitations")
+        db.collection(COLLECTION_CIRCLE_INVITATIONS)
                 .whereEqualTo("inviteeEmail", userEmail)
                 .whereEqualTo("status", "pending")
                 .get()
@@ -385,66 +381,73 @@ public final class SavingsCircleRepository {
     public void acceptInvitation(String invitationId, String userId,
                                  String userEmail, Date acceptanceDate,
                                  RepositoryCallback<Void> callback) {
-        db.collection("circleInvitations")
+        db.collection(COLLECTION_CIRCLE_INVITATIONS)
                 .document(invitationId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        CircleInvitation invitation =
-                            documentSnapshot.toObject(CircleInvitation.class);
-                        if (invitation != null && invitation.isPending()) {
-                            // Update invitation status
-                            invitation.accept();
-                            db.collection("circleInvitations")
-                                    .document(invitationId)
-                                    .set(invitation)
-                                    .addOnSuccessListener(aVoid -> {
-                                        // Load circle to get frequency and dates
-                                        loadCircle(invitation.getCircleId(),
-                                                new RepositoryCallback<SavingsCircle>() {
-                                                @Override
-                                                public void onSuccess(
-                                                        SavingsCircle circle) {
-                                                    // Calculate member dates
-                                                    // using dashboard date selector
-                                                    Date memberStartDate = calculateMemberStartDate(
-                                                            circle.getFrequency(), acceptanceDate);
-                                                    Date memberEndDate = calculateMemberEndDate(
-                                                            circle.getFrequency(), memberStartDate);
-
-                                                    // Add user as member
-                                                    CircleMember member = new CircleMember(
-                                                            userId,
-                                                            userEmail,
-                                                            circle.getId(),
-                                                            "member",
-                                                            memberStartDate,
-                                                            memberEndDate
-                                                    );
-
-                                                    addMember(circle.getId(), member, callback);
-                                                }
-
-                                                @Override
-                                                public void onError(String error) {
-                                                    callback.onError(
-                                                        "Error loading circle: "
-                                                        + error);
-                                                }
-                                            });
-                                    })
-                                    .addOnFailureListener(e -> callback.onError(
-                                        "Error updating invitation: "
-                                        + e.getMessage()));
-                        } else {
-                            callback.onError("Invitation is no longer valid");
-                        }
-                    } else {
+                    if (!documentSnapshot.exists()) {
                         callback.onError("Invitation not found");
+                        return;
                     }
+                    CircleInvitation invitation =
+                        documentSnapshot.toObject(CircleInvitation.class);
+                    if (invitation == null || !invitation.isPending()) {
+                        callback.onError("Invitation is no longer valid");
+                        return;
+                    }
+                    processInvitationAcceptance(invitationId, invitation, userId,
+                            userEmail, acceptanceDate, callback);
                 })
                 .addOnFailureListener(e ->
                     callback.onError("Error loading invitation: " + e.getMessage()));
+    }
+
+    private void processInvitationAcceptance(String invitationId,
+                                             CircleInvitation invitation,
+                                             String userId, String userEmail,
+                                             Date acceptanceDate,
+                                             RepositoryCallback<Void> callback) {
+        invitation.accept();
+        db.collection(COLLECTION_CIRCLE_INVITATIONS)
+                .document(invitationId)
+                .set(invitation)
+                .addOnSuccessListener(aVoid ->
+                    loadCircleAndAddMember(invitation.getCircleId(), userId,
+                            userEmail, acceptanceDate, callback)
+                )
+                .addOnFailureListener(e ->
+                    callback.onError("Error updating invitation: " + e.getMessage())
+            );
+    }
+
+    private void loadCircleAndAddMember(String circleId, String userId,
+                                       String userEmail, Date acceptanceDate,
+                                       RepositoryCallback<Void> callback) {
+        loadCircle(circleId, new RepositoryCallback<SavingsCircle>() {
+            @Override
+            public void onSuccess(SavingsCircle circle) {
+                Date memberStartDate = calculateMemberStartDate(
+                        circle.getFrequency(), acceptanceDate);
+                Date memberEndDate = calculateMemberEndDate(
+                        circle.getFrequency(), memberStartDate);
+
+                CircleMember member = new CircleMember(
+                        userId,
+                        userEmail,
+                        circle.getId(),
+                        "member",
+                        memberStartDate,
+                        memberEndDate
+                );
+
+                addMember(circle.getId(), member, callback);
+            }
+
+            @Override
+            public void onError(String error) {
+                callback.onError("Error loading circle: " + error);
+            }
+        });
     }
 
     /**
@@ -454,29 +457,28 @@ public final class SavingsCircleRepository {
      */
     public void declineInvitation(String invitationId,
                                   RepositoryCallback<Void> callback) {
-        db.collection("circleInvitations")
+        db.collection(COLLECTION_CIRCLE_INVITATIONS)
                 .document(invitationId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        CircleInvitation invitation =
-                            documentSnapshot.toObject(CircleInvitation.class);
-                        if (invitation != null) {
-                            invitation.decline();
-                            db.collection("circleInvitations")
-                                    .document(invitationId)
-                                    .set(invitation)
-                                    .addOnSuccessListener(
-                                        aVoid -> callback.onSuccess(null))
-                                    .addOnFailureListener(e -> callback.onError(
-                                        "Error declining invitation: "
-                                        + e.getMessage()));
-                        } else {
-                            callback.onError("Invalid invitation data");
-                        }
-                    } else {
+                    if (!documentSnapshot.exists()) {
                         callback.onError("Invitation not found");
+                        return;
                     }
+                    CircleInvitation invitation =
+                        documentSnapshot.toObject(CircleInvitation.class);
+                    if (invitation == null) {
+                        callback.onError("Invalid invitation data");
+                        return;
+                    }
+                    invitation.decline();
+                    db.collection(COLLECTION_CIRCLE_INVITATIONS)
+                            .document(invitationId)
+                            .set(invitation)
+                            .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                            .addOnFailureListener(e -> callback.onError(
+                                "Error declining invitation: " + e.getMessage())
+                        );
                 })
                 .addOnFailureListener(e -> callback.onError(
                     "Error loading invitation: " + e.getMessage()));
@@ -491,9 +493,9 @@ public final class SavingsCircleRepository {
      */
     public void addContribution(CircleContribution contribution,
                                 RepositoryCallback<CircleContribution> callback) {
-        db.collection("savingsCircles")
+        db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .document(contribution.getCircleId())
-                .collection("contributions")
+                .collection(COLLECTION_CONTRIBUTIONS)
                 .add(contribution)
                 .addOnSuccessListener(documentReference -> {
                     contribution.setId(documentReference.getId());
@@ -528,9 +530,9 @@ public final class SavingsCircleRepository {
      */
     public void loadCircleContributions(String circleId,
             RepositoryCallback<List<CircleContribution>> callback) {
-        db.collection("savingsCircles")
+        db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .document(circleId)
-                .collection("contributions")
+                .collection(COLLECTION_CONTRIBUTIONS)
                 .orderBy("date", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
@@ -555,9 +557,9 @@ public final class SavingsCircleRepository {
      */
     public void calculateTotalProgress(String circleId,
                                        RepositoryCallback<Double> callback) {
-        db.collection("savingsCircles")
+        db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .document(circleId)
-                .collection("contributions")
+                .collection(COLLECTION_CONTRIBUTIONS)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     double total = 0.0;
@@ -583,9 +585,9 @@ public final class SavingsCircleRepository {
      */
     public ListenerRegistration observeCircleProgress(String circleId,
             RepositoryCallback<Double> callback) {
-        return db.collection("savingsCircles")
+        return db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .document(circleId)
-                .collection("contributions")
+                .collection(COLLECTION_CONTRIBUTIONS)
                 .addSnapshotListener((snapshot, error) -> {
                     if (error != null) {
                         callback.onError(error.getMessage());
@@ -614,9 +616,9 @@ public final class SavingsCircleRepository {
      */
     public ListenerRegistration observeCircleMembers(String circleId,
             RepositoryCallback<List<CircleMember>> callback) {
-        return db.collection("savingsCircles")
+        return db.collection(COLLECTION_SAVINGS_CIRCLES)
                 .document(circleId)
-                .collection("members")
+                .collection(COLLECTION_MEMBERS)
                 .addSnapshotListener((snapshot, error) -> {
                     if (error != null) {
                         callback.onError(error.getMessage());

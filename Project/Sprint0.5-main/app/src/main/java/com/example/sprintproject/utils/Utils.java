@@ -3,6 +3,8 @@ package com.example.sprintproject.utils;
 import android.content.Context;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Utility helper methods for clearing app data and cache.
@@ -43,13 +45,24 @@ public final class Utils {
     private static boolean deleteDir(File dir) {
         if (dir != null && dir.isDirectory()) {
             String[] children = dir.list();
-            for (String child : children) {
-                boolean success = deleteDir(new File(dir, child));
-                if (!success) {
-                    return false;
+            if (children != null) {
+                for (String child : children) {
+                    boolean success = deleteDir(new File(dir, child));
+                    if (!success) {
+                        return false;
+                    }
                 }
             }
         }
-        return dir != null && dir.delete();
+        if (dir != null) {
+            try {
+                Path path = dir.toPath();
+                Files.delete(path);
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        return false;
     }
 }

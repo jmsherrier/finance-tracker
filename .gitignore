@@ -32,3 +32,12 @@ local.properties
 
 repo.txt
 Project/Sprint0.5-main/.vscode/settings.json
+
+# SOLID_GRASP assignment files (local only, not tracked in Git)
+SOLID_GRASP/
+
+# Google Services configuration (contains API keys - keep local only)
+**/google-services.json
+
+# ChatbotFragment (not yet implemented)
+**/ChatbotFragment.java

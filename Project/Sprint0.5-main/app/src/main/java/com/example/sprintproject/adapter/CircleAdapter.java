@@ -12,10 +12,8 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.model.SavingsCircle;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -29,13 +27,11 @@ public class CircleAdapter extends RecyclerView.Adapter<CircleAdapter.CircleView
 
     private List<SavingsCircle> circles;
     private OnCircleClickListener listener;
-    private SimpleDateFormat dateFormat;
     private Map<String, Double> circleProgressMap; // Store progress for each circle by ID
 
     public CircleAdapter(List<SavingsCircle> circles, OnCircleClickListener listener) {
         this.circles = circles;
         this.listener = listener;
-        this.dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
         this.circleProgressMap = new HashMap<>();
     }
 

@@ -45,11 +45,9 @@ import java.util.Locale;
  * Displays all budgets, allows creation, and opens details on tap.
  */
 public class BudgetListFragment extends Fragment {
-    private TimeViewModel timeViewModel;
     private SavingsCircleViewModel savingsCircleViewModel;
 
     private RecyclerView recyclerBudgets;
-    private FloatingActionButton fabAddBudget;
     private View textEmpty;
     private View textCount;
     private FirebaseFirestore db;
@@ -66,7 +64,12 @@ public class BudgetListFragment extends Fragment {
     };
     private final String[] frequencies = {"weekly", "monthly"};
 
+    /**
+     * Default constructor required for Fragment instantiation.
+     * Fragments must have a public no-argument constructor.
+     */
     public BudgetListFragment() {
+        // Empty constructor - Fragment framework requires this
     }
 
     @Nullable
@@ -76,7 +79,7 @@ public class BudgetListFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_budget_list, container, false);
 
-        timeViewModel = new ViewModelProvider(requireActivity()).get(
+        TimeViewModel timeViewModel = new ViewModelProvider(requireActivity()).get(
             TimeViewModel.class);
         savingsCircleViewModel = new ViewModelProvider(requireActivity()).get(
             SavingsCircleViewModel.class);
@@ -85,7 +88,7 @@ public class BudgetListFragment extends Fragment {
             SimpleDateFormat fmt =
                     new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
             Log.d("ExpenseFragment", "Global date changed to " + fmt.format(date));
-            reloadExpensesFor(date);
+            reloadExpensesFor();
         });
 
         FirestoreManager fm = FirestoreManager.getInstance();
@@ -93,7 +96,7 @@ public class BudgetListFragment extends Fragment {
         auth = fm.getAuth();
 
         recyclerBudgets = view.findViewById(R.id.recycler_budgets);
-        fabAddBudget = view.findViewById(R.id.fab_add_budget);
+        FloatingActionButton fabAddBudget = view.findViewById(R.id.fab_add_budget);
         textEmpty = view.findViewById(R.id.text_empty_budgets);
         textCount = view.findViewById(R.id.budget_count);
 
@@ -125,8 +128,9 @@ public class BudgetListFragment extends Fragment {
     }
 
 
-    private void reloadExpensesFor(Date date) {
-        // Use this date to filter or validate expenses
+    // Placeholder method for future date-based expense filtering
+    private void reloadExpensesFor() {
+        // Implementation pending - will filter expenses based on selected date
     }
 
     private String uid() {

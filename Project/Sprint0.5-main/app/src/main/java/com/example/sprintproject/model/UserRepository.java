@@ -10,7 +10,7 @@ public class UserRepository {
         void onError(@NonNull String error);
     }
 
-    public void createUser(String email, String password, CreateUserCallback callback) {
+    public void createUser(String email, CreateUserCallback callback) {
         // Placeholder: immediately return a fake user for template
         User user = new User("uid-123", email);
         callback.onSuccess(user);

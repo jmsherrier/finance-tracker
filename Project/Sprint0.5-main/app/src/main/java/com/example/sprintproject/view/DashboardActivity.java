@@ -17,11 +17,22 @@ public class DashboardActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
-        // Load DashboardFragment by default
+        // Check if we should open ExpenseLogFragment directly
+        boolean openExpenseLog = getIntent().getBooleanExtra("openExpenseLog", false);
+
+        // Load DashboardFragment by default, or ExpenseLogFragment if requested
         if (savedInstanceState == null) {
+            Fragment initialFragment = openExpenseLog
+                    ? new ExpenseLogFragment()
+                    : new DashboardFragment();
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new DashboardFragment())
+                    .replace(R.id.fragment_container, initialFragment)
                     .commit();
+
+            // If opening expense log, also select the nav item
+            if (openExpenseLog) {
+                bottomNav.setSelectedItemId(R.id.nav_expense);
+            }
         }
 
         // Handle navigation clicks

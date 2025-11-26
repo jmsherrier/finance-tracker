@@ -6,7 +6,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/background_light"
     tools:context=".view.DashboardFragment">
 
     <!-- Header Card -->
@@ -18,7 +18,7 @@
         android:layout_marginBottom="8dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="@color/white"
+        app:cardBackgroundColor="@color/surface_light"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -54,7 +54,7 @@
                         android:scaleType="centerCrop"
                         android:src="@android:drawable/ic_menu_myplaces"
                         android:contentDescription="Profile picture"
-                        android:background="?attr/colorPrimary" />
+                        android:background="@android:color/holo_blue_dark" />
                 </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
@@ -69,7 +69,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Dashboard"
-                    android:textColor="@color/black"
+                    android:textColor="@color/text_primary_light"
                     android:textSize="28sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-medium" />
@@ -87,7 +87,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Date: --/--/----"
-                        android:textColor="#666666"
+                        android:textColor="@color/text_secondary_light"
                         android:textSize="14sp"
                         android:fontFamily="sans-serif"
                         android:layout_marginEnd="12dp" />
@@ -105,7 +105,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="00:00:00"
-                        android:textColor="#666666"
+                        android:textColor="@color/text_secondary_light"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:layout_marginEnd="12dp" />
@@ -127,8 +127,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Logout"
-                        android:textColor="@android:color/black"
-                        android:backgroundTint="@color/white"
+                        android:textColor="@color/text_primary_light"
+                        android:backgroundTint="@color/surface_light"
                         android:textSize="12sp"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="4dp" />
@@ -165,7 +165,7 @@
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#F0F9FF">
+                app:cardBackgroundColor="@color/surface_light">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -180,7 +180,7 @@
                         android:text="Total Spent This Period: $0.00"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/black"
+                        android:textColor="@color/text_primary_light"
                         android:fontFamily="sans-serif-medium" />
 
                     <TextView
@@ -191,7 +191,7 @@
                         android:text="Remaining Budget: $0.00"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/black"
+                        android:textColor="@color/text_primary_light"
                         android:fontFamily="sans-serif-medium" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -203,7 +203,7 @@
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/white">
+                app:cardBackgroundColor="@color/surface_light">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -217,7 +217,7 @@
                         android:text="Spending by Category"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/black"
+                        android:textColor="@color/text_primary_light"
                         android:fontFamily="sans-serif-medium"
                         android:paddingBottom="8dp" />
 
@@ -242,7 +242,7 @@
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/white">
+                app:cardBackgroundColor="@color/surface_light">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -256,7 +256,7 @@
                         android:text="Budget Overview"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/black"
+                        android:textColor="@color/text_primary_light"
                         android:fontFamily="sans-serif-medium"
                         android:paddingBottom="8dp" />
 

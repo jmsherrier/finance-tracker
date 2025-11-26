@@ -6,7 +6,7 @@ xmlns:tools="http://schemas.android.com/tools"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
 tools:context=".view.DashboardActivity"
-android:background="#D3D3D3">
+android:background="@color/background_light">
 
 <!-- Title (same style as Chatbot screen) -->
 <TextView
@@ -17,7 +17,7 @@ android:background="#D3D3D3">
     android:gravity="center"
     android:padding="12dp"
     android:text="Dashboard"
-    android:textColor="@color/black"
+    android:textColor="@color/text_primary_light"
     android:textSize="40sp"
     android:textStyle="bold"
     app:layout_constraintTop_toTopOf="parent"
@@ -29,7 +29,7 @@ android:background="#D3D3D3">
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:text="Total Spent this Period:"
-    android:textColor="@color/black"
+    android:textColor="@color/text_primary_light"
     android:textSize="18sp"
     android:textStyle="bold"
     android:layout_margin="24dp"
@@ -42,7 +42,7 @@ android:background="#D3D3D3">
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:text="______"
-    android:textColor="@color/black"
+    android:textColor="@color/text_primary_light"
     android:textSize="18sp"
     android:textStyle="bold"
     app:layout_constraintBaseline_toBaselineOf="@id/aggregate_totals"

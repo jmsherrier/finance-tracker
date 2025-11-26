@@ -5,8 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".view.SavingsCirclesFragment">
+    tools:context=".view.ChatbotFragment">
 
+    <!-- Header -->
     <LinearLayout
         android:id="@+id/chatbot_header"
         android:layout_width="0dp"
@@ -29,7 +30,164 @@
             android:textColor="@android:color/white"
             android:textSize="26sp"
             android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_import_context"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Import Context"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#1E40AF"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_marginEnd="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_conversations"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="History"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#1E40AF"
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
     </LinearLayout>
 
+    <!-- Messages RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_messages"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:layout_marginBottom="8dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical"
+        app:layout_constraintTop_toBottomOf="@id/chatbot_header"
+        app:layout_constraintBottom_toTopOf="@id/layout_input_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Empty State -->
+    <LinearLayout
+        android:id="@+id/layout_empty_state"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="40dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/chatbot_header"
+        app:layout_constraintBottom_toTopOf="@id/layout_input_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@android:drawable/ic_dialog_info"
+            android:alpha="0.3"
+            android:tint="#6366F1" />
+
+        <TextView
+            android:id="@+id/text_empty_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Start a conversation"
+            android:textColor="#64748B"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Ask me about your finances, budgets, or expenses"
+            android:textColor="#94A3B8"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:fontFamily="sans-serif" />
+
+    </LinearLayout>
+
+    <!-- Error Message -->
+    <TextView
+        android:id="@+id/text_error"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:padding="12dp"
+        android:background="#FEE2E2"
+        android:textColor="#DC2626"
+        android:textSize="14sp"
+        android:visibility="gone"
+        android:fontFamily="sans-serif"
+        app:layout_constraintBottom_toTopOf="@id/layout_input_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Input Container -->
+    <LinearLayout
+        android:id="@+id/layout_input_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/white"
+        android:elevation="8dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:layout_marginBottom="64dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Type a message..."
+            app:boxBackgroundMode="outline"
+            app:boxStrokeColor="#6366F1"
+            app:hintTextColor="#6366F1"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_message_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="4"
+                android:inputType="textMultiLine"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:contentDescription="Send message"
+            app:srcCompat="@android:drawable/ic_menu_send"
+            app:backgroundTint="#6366F1"
+            app:tint="@color/white"
+            app:fabSize="normal" />
+
+    </LinearLayout>
+
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/progress_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:indeterminateTint="#6366F1"
+        app:layout_constraintTop_toBottomOf="@id/chatbot_header"
+        app:layout_constraintBottom_toTopOf="@id/layout_input_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

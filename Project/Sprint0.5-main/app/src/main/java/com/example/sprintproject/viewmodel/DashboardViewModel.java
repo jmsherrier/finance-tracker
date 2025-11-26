@@ -52,6 +52,7 @@ public class DashboardViewModel extends ViewModel {
     // Budget warnings LiveData
     private final LiveData<BudgetWarning> budgetWarning =
             BudgetWarningManager.getInstance().getCurrentWarning();
+    private final MutableLiveData<List<Budget>> budgetsLive = new MutableLiveData<>();
 
     // Combined data, recomputed whenever currentDate changes
     private final LiveData<Map<String, Object>> dashboardData =
@@ -86,6 +87,10 @@ public class DashboardViewModel extends ViewModel {
         return showExpenseReminder;
     }
 
+    public LiveData<List<Budget>> getBudgets()  {
+        return budgetsLive;
+    }
+
     /**
      * Gets the LiveData for budget warnings.
      *
@@ -99,6 +104,12 @@ public class DashboardViewModel extends ViewModel {
     public void updateCharts(Map<String, Object> data) {
         updatePieChart(data);
         updateBarChart(data);
+        if (data != null && data.get("budgets") instanceof List) {
+            List<Budget> budgets = (List<Budget>) data.get("budgets");
+            budgetsLive.postValue(budgets);
+        } else {
+            budgetsLive.postValue(new ArrayList<>());
+        }
     }
 
     @SuppressWarnings("unchecked")

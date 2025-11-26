@@ -41,8 +41,12 @@ public class DashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-
-
+        queue = new NotificationQueue((item, onComplete) -> runOnUiThread(() -> {
+            ThresholdDialogFragment frag = ThresholdDialogFragment.newInstance(item);
+            frag.setOnComplete(onComplete);
+            frag.show(getSupportFragmentManager(), "threshold_" + item.getBudgetId() + "_" + item.getThresholdPercent());
+        }));
+        monitor = new BudgetMonitor(getApplicationContext(), queue, DEFAULT_THRESHOLDS, PREFS_KEY);
         DashboardViewModel viewModel =
                 new ViewModelProvider(this).get(DashboardViewModel.class);
         viewModel.checkExpenseReminder();
@@ -52,13 +56,10 @@ public class DashboardActivity extends AppCompatActivity {
                 reminderDialogShown = true;
                 showExpenseReminderDialog();
             }
-        queue = new NotificationQueue((item, onComplete) -> {
-                ThresholdDialogFragment frag = ThresholdDialogFragment.newInstance(item);
-                frag.setOnComplete(onComplete);
-                frag.show(getSupportFragmentManager(), "threshold_" + item.getBudgetId() + "_" + item.getThresholdPercent());
-            });
         });
-        monitor = new BudgetMonitor(getApplicationContext(), queue, DEFAULT_THRESHOLDS, PREFS_KEY);
+        viewModel.getBudgets().observe(this, budgets -> {
+            monitor.onBudgetsUpdated(budgets);
+        });
 
         // Load DashboardFragment by default
         if (savedInstanceState == null) {

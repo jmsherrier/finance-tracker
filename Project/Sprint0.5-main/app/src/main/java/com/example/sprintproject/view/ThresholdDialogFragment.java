@@ -23,9 +23,9 @@ public class ThresholdDialogFragment extends DialogFragment{
     public static ThresholdDialogFragment newInstance(ThresholdNotification n) {
         ThresholdDialogFragment f = new ThresholdDialogFragment();
         Bundle b = new Bundle();
-        b.putString(ARG_TITLE, n.budgetTitle);
-        b.putInt(ARG_THRESHOLD, n.thresholdPercent);
-        b.putDouble(ARG_PROGRESS, n.progress);
+        b.putString(ARG_TITLE, n.getBudgetTitle());
+        b.putInt(ARG_THRESHOLD, n.getThresholdPercent());
+        b.putDouble(ARG_PROGRESS, n.getProgress());
         f.setArguments(b);
         return f;
     }

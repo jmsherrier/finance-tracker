@@ -1,10 +1,13 @@
 package com.example.sprintproject.model;
 
+import java.io.Serializable;
+
 /**
  * Represents a budget warning notification.
  * Contains information about a budget that has reached a threshold percentage.
  */
-public class BudgetWarning {
+public class BudgetWarning implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String budgetId;
     private String category;
     private double spentAmount;

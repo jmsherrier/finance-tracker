@@ -27,6 +27,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.manager.BudgetWarningManager;
+import com.example.sprintproject.model.BudgetWarning;
 import com.example.sprintproject.utils.Utils;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
 import com.github.mikephil.charting.charts.BarChart;
@@ -219,6 +221,16 @@ public class DashboardFragment extends Fragment {
                     barChart.invalidate();
                 }
         );
+
+        // Observe Budget warnings
+        dashboardViewModel.getBudgetWarning().observe(
+                getViewLifecycleOwner(),
+                warning -> {
+                    if (warning != null && isAdded()) {
+                        showBudgetWarningDialog(warning);
+                    }
+                }
+        );
     }
 
     private void updateDashboardUI(@NonNull View view, Map<String, Object> data) {
@@ -287,6 +299,18 @@ public class DashboardFragment extends Fragment {
         tv.setTextSize(16);
         tv.setPadding(0, 4, 0, 4);
         return tv;
+    }
+
+    /**
+     * Shows the budget warning dialog.
+     *
+     * @param warning the budget warning to display
+     */
+    private void showBudgetWarningDialog(BudgetWarning warning) {
+        if (getParentFragmentManager() != null && !isStateSaved()) {
+            BudgetWarningDialog dialog = BudgetWarningDialog.newInstance(warning);
+            dialog.show(getParentFragmentManager(), "BudgetWarningDialog");
+        }
     }
 
     @Override

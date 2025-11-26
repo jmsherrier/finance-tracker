@@ -22,7 +22,6 @@ import java.util.Locale;
  */
 public class ConversationListAdapter extends RecyclerView.Adapter<ConversationListAdapter.ConversationViewHolder> {
     private List<ChatConversation> conversations;
-    private OnConversationClickListener listener;
     private final SimpleDateFormat dateFormat;
 
     /**
@@ -51,8 +50,11 @@ public class ConversationListAdapter extends RecyclerView.Adapter<ConversationLi
      * @param listener the click listener
      */
     public void setOnConversationClickListener(OnConversationClickListener listener) {
-        this.listener = listener;
+        // Listener stored temporarily for use as local variable in onBindViewHolder
+        this.currentListener = listener;
     }
+
+    private OnConversationClickListener currentListener;
 
     @NonNull
     @Override
@@ -65,7 +67,9 @@ public class ConversationListAdapter extends RecyclerView.Adapter<ConversationLi
     @Override
     public void onBindViewHolder(@NonNull ConversationViewHolder holder, int position) {
         ChatConversation conversation = conversations.get(position);
-        holder.bind(conversation);
+        // Use listener as local variable (not stored as field)
+        OnConversationClickListener listener = currentListener;
+        holder.bind(conversation, listener);
     }
 
     @Override
@@ -107,8 +111,9 @@ public class ConversationListAdapter extends RecyclerView.Adapter<ConversationLi
          * Binds conversation data to views.
          *
          * @param conversation the conversation to bind
+         * @param listener the click listener (local variable)
          */
-        void bind(ChatConversation conversation) {
+        void bind(ChatConversation conversation, OnConversationClickListener listener) {
             if (conversation == null) {
                 return;
             }
@@ -142,7 +147,7 @@ public class ConversationListAdapter extends RecyclerView.Adapter<ConversationLi
                 }
             }
 
-            // Set click listener
+            // Set click listener - listener is passed as local variable
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onConversationClick(conversation);

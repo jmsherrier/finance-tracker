@@ -11,9 +11,10 @@ android:background="@color/background_light">
 <!-- Title (same style as Chatbot screen) -->
 <TextView
     android:id="@+id/dashboardTitle"
-    android:layout_width="match_parent"
+    android:layout_width="0dp"
     android:layout_height="wrap_content"
     android:layout_marginTop="4dp"
+    android:layout_marginEnd="8dp"
     android:gravity="center"
     android:padding="12dp"
     android:text="Dashboard"
@@ -22,6 +23,18 @@ android:background="@color/background_light">
     android:textStyle="bold"
     app:layout_constraintTop_toTopOf="parent"
     app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toStartOf="@+id/logout_button" />
+
+<!-- Logout Button -->
+<Button
+    android:id="@+id/logout_button"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="16dp"
+    android:text="Logout"
+    android:textSize="14sp"
+    app:layout_constraintTop_toTopOf="parent"
     app:layout_constraintEnd_toEndOf="parent" />
 
 <TextView

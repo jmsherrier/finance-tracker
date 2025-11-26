@@ -19,6 +19,8 @@ public class LoginActivity extends AppCompatActivity {
     private EditText passwordField;
     private Button loginBtn;
     private FirebaseAuth auth;
+    private static final String PREFS_NAME = "ExpenseTrackerPrefs";
+    private static final String KEY_SESSION_CHECKED = "session_expense_check_done";
     private FirebaseFirestore db;
 
     private boolean looksLikeEmail(String e) {
@@ -40,7 +42,6 @@ public class LoginActivity extends AppCompatActivity {
         Button registerBtn = findViewById(R.id.registerBtn);
 
         auth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
 
         // Initialize ExpenseReminderManager
         ExpenseReminderManager.getInstance().initialize(
@@ -94,6 +95,88 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Checks if user has missed logging expenses and shows dialog if needed.
+     */
+    private void checkMissedExpenses() {
+        String userId = auth.getCurrentUser() != null
+                ? auth.getCurrentUser().getUid() : null;
+
+        if (userId == null) {
+            navigateToDashboard();
+            return;
+        }
+
+        // Check if we've already shown the dialog this session
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        boolean alreadyChecked = prefs.getBoolean(KEY_SESSION_CHECKED, false);
+
+        if (alreadyChecked) {
+            navigateToDashboard();
+            return;
+        }
+
+        // Query Firestore for last expense
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("expenses")
+                .whereEqualTo("userId", userId)
+                .orderBy("date", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        // User has never logged an expense - don't show dialog
+                        navigateToDashboard();
+                        return;
+                    }
+
+                    // Get the last expense date
+                    QueryDocumentSnapshot lastExpenseDoc =
+                            (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
+                    Date lastExpenseDate = lastExpenseDoc.getDate("date");
+
+                    if (lastExpenseDate != null) {
+                        long daysSinceLastExpense = calculateDaysSince(lastExpenseDate);
+
+                        if (daysSinceLastExpense > 0) {
+                            // Mark that we've checked this session
+                            prefs.edit().putBoolean(KEY_SESSION_CHECKED, true).apply();
+
+                            // Show the dialog
+                            MissedExpenseDialog dialog = new MissedExpenseDialog(
+                                    this,
+                                    (int) daysSinceLastExpense,
+                                    () -> {
+                                        Intent intent = new Intent(this, DashboardActivity.class);
+                                        intent.putExtra("openExpenseLog", true);
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                            );
+                            dialog.show();
+                        } else {
+                            navigateToDashboard();
+                        }
+                    } else {
+                        navigateToDashboard();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // On error, just navigate to dashboard
+                    navigateToDashboard();
+                });
+    }
+
+    /**
+     * Calculates the number of days since a given date.
+     *
+     * @param pastDate The date to calculate from
+     * @return Number of complete days since the date
+     */
+    private long calculateDaysSince(Date pastDate) {
+        long diffInMillis = new Date().getTime() - pastDate.getTime();
+        return TimeUnit.MILLISECONDS.toDays(diffInMillis);
+    }
 
     /**
      * Navigates to the Dashboard activity.
@@ -103,13 +186,4 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
-    /**
-     * Navigates to the Dashboard with intent to open ExpenseLogFragment.
-     */
-    private void navigateToDashboardWithExpenseLog() {
-        Intent intent = new Intent(this, DashboardActivity.class);
-        intent.putExtra("openExpenseLog", true);
-        startActivity(intent);
-        finish();
-    }
 }

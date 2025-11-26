@@ -40,6 +40,7 @@ public class DashboardModel {
 
     // Default constructor - initialization handled in getDashboardData()
     public DashboardModel() {
+        // Constructor intentionally empty - initialization happens in getDashboardData()
     }
 
     public LiveData<Map<String, Object>> getDashboardData(Date selectedDate) {

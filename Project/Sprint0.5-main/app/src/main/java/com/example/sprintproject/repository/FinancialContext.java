@@ -25,8 +25,10 @@ public class FinancialContext {
 
     /**
      * Default constructor.
+     * Initializes an empty financial context.
      */
     public FinancialContext() {
+        // Constructor intentionally empty - fields are initialized via setters
     }
 
     /**

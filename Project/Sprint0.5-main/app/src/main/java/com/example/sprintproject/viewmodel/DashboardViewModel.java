@@ -32,6 +32,10 @@ import java.util.Map;
 
 public class DashboardViewModel extends ViewModel {
 
+    // Constants for Firestore collections and log tags
+    private static final String COLLECTION_BUDGETS = "budgets";
+    private static final String LOG_TAG_REMINDER_DEBUG = "REMINDER_DEBUG";
+
     private final DashboardModel repository = new DashboardModel();
 
     private final MutableLiveData<Date> currentDate =
@@ -176,8 +180,8 @@ public class DashboardViewModel extends ViewModel {
         List<BarEntry> barEntries = new ArrayList<>();
         List<String> labels = new ArrayList<>();
 
-        if (data != null && data.get("budgets") instanceof List) {
-            List<Budget> budgets = (List<Budget>) data.get("budgets");
+        if (data != null && data.get(COLLECTION_BUDGETS) instanceof List) {
+            List<Budget> budgets = (List<Budget>) data.get(COLLECTION_BUDGETS);
             if (budgets != null && !budgets.isEmpty()) {
                 for (int i = 0; i < budgets.size(); i++) {
                     Budget b = budgets.get(i);
@@ -222,60 +226,74 @@ public class DashboardViewModel extends ViewModel {
     }
 
     public void checkExpenseReminder() {
-        Log.d("REMINDER_DEBUG", "checkExpenseReminder() called");
+        Log.d(LOG_TAG_REMINDER_DEBUG, "checkExpenseReminder() called");
 
         FirebaseAuth auth = FirestoreManager.getInstance().getAuth();
         String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
 
         if (userId == null) {
-            Log.d("REMINDER_DEBUG", "No user → no reminder");
+            Log.d(LOG_TAG_REMINDER_DEBUG, "No user → no reminder");
             return;
         }
 
         FirestoreManager.getInstance().getLastExpenseDate(userId, task -> {
             if (!task.isSuccessful()) {
-                Log.e("REMINDER_DEBUG", "Query failed: ", task.getException());
+                Log.e(LOG_TAG_REMINDER_DEBUG, "Query failed: ", task.getException());
                 return;
             }
 
             QuerySnapshot snap = task.getResult();
             if (snap == null) {
-                Log.e("REMINDER_DEBUG", "Snap is NULL → skip reminder");
+                Log.e(LOG_TAG_REMINDER_DEBUG, "Snap is NULL → skip reminder");
                 return;
             }
 
-            // prevent repeated pop-ups in the same day
-            if (lastReminderShownDate != null) {
-                long diffSinceReminder =
-                        (System.currentTimeMillis() - lastReminderShownDate.getTime())
-                                / (1000L * 60 * 60 * 24);
-                if (diffSinceReminder < 1) {
-                    Log.d("REMINDER_DEBUG", "Reminder already shown today → skipping");
-                    return;
-                }
+            if (shouldSkipReminder()) {
+                return;
             }
 
             if (snap.isEmpty()) {
-                showExpenseReminder.postValue(true);
-                lastReminderShownDate = new Date();
+                showReminder();
                 return;
             }
 
-            DocumentSnapshot doc = snap.getDocuments().get(0);
-            Date last = doc.getDate("date");
-
-            if (last == null) {
-                Log.d("REMINDER_DEBUG", "Last date NULL → skip reminder");
-                return;
-            }
-
-            long diff = (System.currentTimeMillis() - last.getTime()) / (1000L * 60 * 60 * 24);
-
-            if (diff >= 3) {
-                showExpenseReminder.postValue(true);
-                lastReminderShownDate = new Date();
-            }
+            processLastExpenseDate(snap);
         });
+    }
+
+    private boolean shouldSkipReminder() {
+        if (lastReminderShownDate == null) {
+            return false;
+        }
+        long diffSinceReminder =
+                (System.currentTimeMillis() - lastReminderShownDate.getTime())
+                        / (1000L * 60 * 60 * 24);
+        if (diffSinceReminder < 1) {
+            Log.d(LOG_TAG_REMINDER_DEBUG, "Reminder already shown today → skipping");
+            return true;
+        }
+        return false;
+    }
+
+    private void showReminder() {
+        showExpenseReminder.postValue(true);
+        lastReminderShownDate = new Date();
+    }
+
+    private void processLastExpenseDate(QuerySnapshot snap) {
+        DocumentSnapshot doc = snap.getDocuments().get(0);
+        Date last = doc.getDate("date");
+
+        if (last == null) {
+            Log.d(LOG_TAG_REMINDER_DEBUG, "Last date NULL → skip reminder");
+            return;
+        }
+
+        long diff = (System.currentTimeMillis() - last.getTime()) / (1000L * 60 * 60 * 24);
+
+        if (diff >= 3) {
+            showReminder();
+        }
     }
 
 

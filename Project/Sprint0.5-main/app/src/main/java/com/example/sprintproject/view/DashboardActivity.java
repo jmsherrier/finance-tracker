@@ -1,7 +1,10 @@
 package com.example.sprintproject.view;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,10 +13,12 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.utils.Utils;
 import com.example.sprintproject.model.BudgetMonitor;
 import com.example.sprintproject.utils.NotificationQueue;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class DashboardActivity extends AppCompatActivity {
 
@@ -41,12 +46,26 @@ public class DashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-        queue = new NotificationQueue((item, onComplete) -> runOnUiThread(() -> {
-            ThresholdDialogFragment frag = ThresholdDialogFragment.newInstance(item);
-            frag.setOnComplete(onComplete);
-            frag.show(getSupportFragmentManager(), "threshold_" + item.getBudgetId() + "_" + item.getThresholdPercent());
-        }));
-        monitor = new BudgetMonitor(getApplicationContext(), queue, DEFAULT_THRESHOLDS, PREFS_KEY);
+        Button logoutButton = findViewById(R.id.logout_button);
+
+        // Setup logout button
+        logoutButton.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
+            Utils.clearCache(this);
+            getViewModelStore().clear();
+
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    | Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+
+            Toast.makeText(this,
+                    "Logged out successfully!", Toast.LENGTH_SHORT).show();
+        });
+
+
         DashboardViewModel viewModel =
                 new ViewModelProvider(this).get(DashboardViewModel.class);
         viewModel.checkExpenseReminder();
@@ -71,49 +90,45 @@ public class DashboardActivity extends AppCompatActivity {
                     .commit();
 
             // If opening expense log, also select the nav item
-            if (openExpenseLog) {
+            if (openExpenseLog)
                 bottomNav.setSelectedItemId(R.id.nav_expense);
-            }
         }
 
         // Handle navigation clicks
         bottomNav.setOnItemSelectedListener(item -> {
-            Fragment selectedFragment = null;
-
-            if (item.getItemId() == R.id.nav_dashboard) {
-                selectedFragment = new DashboardFragment();
-                android.widget.Toast.makeText(this, "Dashboard",
-                        android.widget.Toast.LENGTH_SHORT).show();
-            } else if (item.getItemId() == R.id.nav_expense) {
-                selectedFragment = new ExpenseLogFragment();
-                android.widget.Toast.makeText(this, "Expense Log",
-                        android.widget.Toast.LENGTH_SHORT).show();
-
-            } else if (item.getItemId() == R.id.nav_budgets) {
-                selectedFragment = new BudgetListFragment();
-                android.widget.Toast.makeText(this, "Budgets",
-                        android.widget.Toast.LENGTH_SHORT).show();
-
-            } else if (item.getItemId() == R.id.nav_chatbot) {
-                selectedFragment = new ChatbotFragment();
-                android.widget.Toast.makeText(this, "Chatbot",
-                        android.widget.Toast.LENGTH_SHORT).show();
-
-            } else if (item.getItemId() == R.id.nav_saving_circles) {
-                selectedFragment = new SavingsCirclesFragment();
-                android.widget.Toast.makeText(this, "Savings Circles",
-                        android.widget.Toast.LENGTH_SHORT).show();
-
-            }
-
+            Fragment selectedFragment = getFragmentForNavigation(item.getItemId());
             if (selectedFragment != null) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, selectedFragment)
                         .commit();
             }
-
             return true;
         });
+    }
+
+    private Fragment getFragmentForNavigation(int itemId) {
+        if (itemId == R.id.nav_dashboard) {
+            android.widget.Toast.makeText(this, "Dashboard",
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return new DashboardFragment();
+        } else if (itemId == R.id.nav_expense) {
+            android.widget.Toast.makeText(this, "Expense Log",
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return new ExpenseLogFragment();
+        } else if (itemId == R.id.nav_budgets) {
+            android.widget.Toast.makeText(this, "Budgets",
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return new BudgetListFragment();
+        } else if (itemId == R.id.nav_chatbot) {
+            android.widget.Toast.makeText(this, "Chatbot",
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return new ChatbotFragment();
+        } else if (itemId == R.id.nav_saving_circles) {
+            android.widget.Toast.makeText(this, "Savings Circles",
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return new SavingsCirclesFragment();
+        }
+        return null;
     }
 
     private void showExpenseReminderDialog() {

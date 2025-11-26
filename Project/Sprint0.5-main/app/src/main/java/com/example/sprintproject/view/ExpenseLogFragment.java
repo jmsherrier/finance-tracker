@@ -320,69 +320,6 @@ public class ExpenseLogFragment extends Fragment {
             );
     }
     
-    private void createSeedExpenses(String userId) {
-        Calendar calendar = Calendar.getInstance();
-        
-        // Seed Expense 1: Grocery shopping from 3 days ago
-        calendar.add(Calendar.DAY_OF_MONTH, -3);
-        Expense expense1 = new Expense(
-            "Grocery Shopping",
-            85.50,
-            "Food & Dining",
-            calendar.getTime(),
-            "Weekly groceries from supermarket",
-            userId
-        );
-        
-        // Seed Expense 2: Gas fill-up from 1 day ago
-        calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_MONTH, -1);
-        Expense expense2 = new Expense(
-            "Gas Fill-up",
-            45.00,
-            "Transportation",
-            calendar.getTime(),
-            "Regular gas at local station",
-            userId
-        );
-        
-        // Save both seed expenses to Firestore
-        db.collection(COLLECTION_EXPENSES).add(expense1)
-            .addOnSuccessListener(doc1 -> {
-                expense1.setId(doc1.getId());
-                expenses.add(expense1);
-                
-                db.collection(COLLECTION_EXPENSES).add(expense2)
-                    .addOnSuccessListener(doc2 -> {
-                        expense2.setId(doc2.getId());
-                        expenses.add(expense2);
-                        
-                        // Sort expenses by date (newest first)
-                        Collections.sort(expenses, new Comparator<Expense>() {
-                            @Override
-                            public int compare(Expense e1, Expense e2) {
-                                return e2.getDate().compareTo(e1.getDate());
-                            }
-                        });
-                        
-                        ExpenseAdapter adapter = (ExpenseAdapter) recyclerView.getAdapter();
-                        if (adapter != null) {
-                            adapter.updateExpenses(expenses);
-                        }
-                        updateUI();
-                        Toast.makeText(getContext(),
-                                "Welcome! Sample expenses loaded.",
-                                Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e ->
-                        Log.e("ExpenseLog", "Error creating seed expense 2", e)
-                );
-            })
-            .addOnFailureListener(e ->
-                Log.e("ExpenseLog", "Error creating seed expense 1", e)
-        );
-    }
-    
     private void updateUI() {
         expenseCount.setText(expenses.size() + " expenses");
         

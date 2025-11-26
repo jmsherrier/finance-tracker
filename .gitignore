@@ -38,6 +38,3 @@ SOLID_GRASP/
 
 # Google Services configuration (contains API keys - keep local only)
 **/google-services.json
-
-# ChatbotFragment (not yet implemented)
-**/ChatbotFragment.java

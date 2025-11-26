@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 import com.example.sprintproject.utils.NotificationQueue;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +23,10 @@ public class BudgetMonitor {
         this.prefsKey = prefsKey;
         this.prefs = ctx.getSharedPreferences("budget_monitor", Context.MODE_PRIVATE);
         loadPresisted();
+    }
+
+    public BudgetMonitor(Context ctx, int[] thresholds, String prefsKey) {
+        this(ctx, null, thresholds, prefsKey);
     }
 
     private void loadPresisted() {
@@ -44,6 +49,10 @@ public class BudgetMonitor {
     }
 
     public void onBudgetsUpdated(List<Budget> budgets) {
+        if (queue == null) {
+            List<ThresholdNotification> notifs = checkBudgetsForNewNotif(budgets);
+            return;
+        }
         if (budgets == null) return;
         for (Budget b : budgets) {
             if (b == null) continue;
@@ -63,6 +72,29 @@ public class BudgetMonitor {
                 }
             }
         }
+    }
+    public List<ThresholdNotification> checkBudgetsForNewNotif(List<Budget> budgets) {
+        List<ThresholdNotification> result = new ArrayList<>();
+        if (budgets == null) return result;
+        for (Budget b : budgets) {
+            if (b == null) continue;
+            double total = b.getTotalAmount();
+            double spent = b.getSpentAmount();
+            if (total <= 0) continue;
+            double progress = Math.max(0.0, Math.min(1.0, spent / total));
+            for (int t : thresholds) {
+                if (progress * 100.0 >= t) {
+                    String key = b.getId() + "_" + t;
+                    if (!shownSet.contains(key)) {
+                        shownSet.add(key);
+                        persist();
+                        ThresholdNotification tn = new ThresholdNotification(b.getId(), b.getTitle(), t, progress);
+                        result.add(tn);
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     public void clearShownForBudgetIfBelow(Budget b) {

@@ -8,6 +8,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.model.BudgetMonitor;
+import com.example.sprintproject.utils.NotificationQueue;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -15,6 +17,11 @@ public class DashboardActivity extends AppCompatActivity {
 
     private boolean reminderDialogShown = false;
     private boolean openExpenseLog = false;
+
+    private NotificationQueue queue;
+    private BudgetMonitor monitor;
+    private static final int[] DEFAULT_THRESHOLDS = new int[] {80, 90};
+    private static final String PREFS_KEY = "shownBudgetAlerts";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +40,13 @@ public class DashboardActivity extends AppCompatActivity {
                 reminderDialogShown = true;
                 showExpenseReminderDialog();
             }
+        queue = new NotificationQueue((item, onComplete) -> {
+                ThresholdDialogFragment frag = ThresholdDialogFragment.newInstance(item);
+                frag.setOnComplete(onComplete);
+                frag.show(getSupportFragmentManager(), "threshold_" + item.getBudgetId() + "_" + item.getThresholdPercent());
+            });
         });
+        monitor = new BudgetMonitor(getApplicationContext(), queue, DEFAULT_THRESHOLDS, PREFS_KEY);
 
         // Load DashboardFragment by default
         if (savedInstanceState == null) {

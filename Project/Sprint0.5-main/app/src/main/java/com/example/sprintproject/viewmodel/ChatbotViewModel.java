@@ -12,6 +12,8 @@ import com.example.sprintproject.model.ChatConversation;
 import com.example.sprintproject.model.ChatMessage;
 import com.example.sprintproject.repository.ChatbotRepository;
 import com.example.sprintproject.repository.FinancialContext;
+import com.example.sprintproject.utils.ChatCommandParser;
+import com.example.sprintproject.utils.FinancialDataAggregator;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -654,6 +656,254 @@ public class ChatbotViewModel extends ViewModel {
             }
         }
         return currentUserId;
+    }
+
+    /**
+     * Executes a custom command (Phase 6).
+     *
+     * @param commandType the type of command to execute
+     */
+    public void executeCommand(ChatCommandParser.CommandType commandType) {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            error.setValue("User not authenticated");
+            return;
+        }
+
+        String conversationId = currentConversationId.getValue();
+        if (conversationId == null || conversationId.isEmpty()) {
+            startNewConversation();
+            conversationId = currentConversationId.getValue();
+        }
+
+        if (conversationId == null) {
+            error.setValue("Failed to create conversation");
+            return;
+        }
+
+        final String finalConversationId = conversationId;
+        loading.setValue(true);
+        error.setValue(null);
+
+        // Fetch financial context for command execution
+        repository.fetchFinancialContext(userId,
+                new ChatbotRepository.FinancialContextCallback() {
+                    @Override
+                    public void onSuccess(FinancialContext financialContext) {
+                        String response = generateCommandResponse(commandType, financialContext);
+                        
+                        // Post to main thread
+                        mainHandler.post(() -> {
+                            try {
+                                loading.setValue(false);
+
+                                // Create assistant message with command response
+                                ChatMessage assistantMessage = new ChatMessage(
+                                        finalConversationId, response, "assistant", userId);
+
+                                // Add assistant message
+                                if (currentMessages == null) {
+                                    currentMessages = new ArrayList<>();
+                                }
+                                currentMessages.add(assistantMessage);
+                                messages.setValue(new ArrayList<>(currentMessages));
+
+                                // Save assistant message
+                                repository.saveMessage(assistantMessage,
+                                        new ChatbotRepository.SaveCallback() {
+                                            @Override
+                                            public void onSuccess() {
+                                                updateConversationTimestamp(finalConversationId);
+                                            }
+
+                                            @Override
+                                            public void onError(String errorMsg) {
+                                                Log.e(TAG, "Error saving command response: " + errorMsg);
+                                            }
+                                        });
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error handling command response", e);
+                                loading.setValue(false);
+                                error.setValue("Error processing command");
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String errorMsg) {
+                        mainHandler.post(() -> {
+                            loading.setValue(false);
+                            error.setValue("Error fetching financial data: " + errorMsg);
+                        });
+                    }
+                });
+    }
+
+    /**
+     * Generates a response for a command based on financial context.
+     *
+     * @param commandType the command type
+     * @param financialContext the financial context
+     * @return the generated response
+     */
+    private String generateCommandResponse(ChatCommandParser.CommandType commandType,
+                                           FinancialContext financialContext) {
+        if (financialContext == null || !financialContext.hasData()) {
+            return "I don't have access to your financial data yet. Please make sure you have expenses, budgets, or savings goals recorded.";
+        }
+
+        switch (commandType) {
+            case SUMMARIZE_SPENDING:
+                return generateSpendingSummary(financialContext);
+            case COST_CUT_SUGGESTIONS:
+                return generateCostCutSuggestions(financialContext);
+            case MONTHLY_COMPARISON:
+                return generateMonthlyComparison(financialContext);
+            case BUDGET_STATUS:
+                return generateBudgetStatus(financialContext);
+            case SAVINGS_GOALS:
+                return generateSavingsGoals(financialContext);
+            default:
+                return "Unknown command. Please try again.";
+        }
+    }
+
+    /**
+     * Generates spending summary response.
+     */
+    private String generateSpendingSummary(FinancialContext context) {
+        if (context.getRecentExpenses() == null || context.getRecentExpenses().isEmpty()) {
+            return "You haven't recorded any expenses yet. Start tracking your spending to see summaries!";
+        }
+
+        Date monthStart = FinancialDataAggregator.getCurrentMonthStart();
+        String summary = FinancialDataAggregator.getSpendingSummary(
+                context.getRecentExpenses(), monthStart, new Date());
+
+        StringBuilder response = new StringBuilder();
+        response.append("📊 **Spending Summary (Current Month)**\n\n");
+        response.append(summary).append("\n\n");
+
+        // Add top expenses
+        List<com.example.sprintproject.model.Expense> expenses = context.getRecentExpenses();
+        if (expenses.size() > 0) {
+            response.append("**Top Expenses:**\n");
+            int count = Math.min(5, expenses.size());
+            for (int i = 0; i < count; i++) {
+                com.example.sprintproject.model.Expense exp = expenses.get(i);
+                if (exp != null) {
+                    response.append(String.format("• %s: $%.2f (%s)\n",
+                            exp.getName() != null ? exp.getName() : "Unnamed",
+                            exp.getAmount(),
+                            exp.getCategory() != null ? exp.getCategory() : "Uncategorized"));
+                }
+            }
+        }
+
+        return response.toString();
+    }
+
+    /**
+     * Generates cost-cutting suggestions response.
+     */
+    private String generateCostCutSuggestions(FinancialContext context) {
+        List<String> suggestions = FinancialDataAggregator.getCostCutSuggestions(
+                context.getRecentExpenses(),
+                context.getActiveBudgets());
+
+        StringBuilder response = new StringBuilder();
+        response.append("💰 **Ways to Save Money**\n\n");
+
+        for (int i = 0; i < suggestions.size(); i++) {
+            response.append(String.format("%d. %s\n", i + 1, suggestions.get(i)));
+        }
+
+        return response.toString();
+    }
+
+    /**
+     * Generates monthly comparison response.
+     */
+    private String generateMonthlyComparison(FinancialContext context) {
+        if (context.getRecentExpenses() == null || context.getRecentExpenses().isEmpty()) {
+            return "You don't have enough expense data to compare months. Start tracking expenses to see comparisons!";
+        }
+
+        Date currentMonthStart = FinancialDataAggregator.getCurrentMonthStart();
+        Date lastMonthStart = FinancialDataAggregator.getLastMonthStart();
+        Date lastMonthEnd = FinancialDataAggregator.getLastMonthEnd();
+
+        List<com.example.sprintproject.model.Expense> currentMonthExpenses =
+                FinancialDataAggregator.filterExpensesByDate(
+                        context.getRecentExpenses(), currentMonthStart, new Date());
+        List<com.example.sprintproject.model.Expense> lastMonthExpenses =
+                FinancialDataAggregator.filterExpensesByDate(
+                        context.getRecentExpenses(), lastMonthStart, lastMonthEnd);
+
+        String comparison = FinancialDataAggregator.getMonthlyComparison(
+                currentMonthExpenses, lastMonthExpenses);
+
+        StringBuilder response = new StringBuilder();
+        response.append("📈 **Monthly Spending Comparison**\n\n");
+        response.append(comparison);
+
+        return response.toString();
+    }
+
+    /**
+     * Generates budget status response.
+     */
+    private String generateBudgetStatus(FinancialContext context) {
+        if (context.getActiveBudgets() == null || context.getActiveBudgets().isEmpty()) {
+            return "You don't have any active budgets. Create budgets to track your spending goals!";
+        }
+
+        StringBuilder response = new StringBuilder();
+        response.append("📋 **Budget Status**\n\n");
+
+        for (com.example.sprintproject.model.Budget budget : context.getActiveBudgets()) {
+            if (budget != null) {
+                double utilization = budget.getTotalAmount() > 0
+                        ? (budget.getSpentAmount() / budget.getTotalAmount()) * 100 : 0;
+                double remaining = budget.getTotalAmount() - budget.getSpentAmount();
+                
+                String status = utilization >= 100 ? "⚠️ Over budget"
+                        : utilization >= 80 ? "⚠️ Close to limit"
+                        : "✅ On track";
+
+                response.append(String.format("**%s**\n", budget.getCategory()));
+                response.append(String.format("Budget: $%.2f | Spent: $%.2f | Remaining: $%.2f\n",
+                        budget.getTotalAmount(), budget.getSpentAmount(), remaining));
+                response.append(String.format("Utilization: %.1f%% %s\n\n",
+                        utilization, status));
+            }
+        }
+
+        return response.toString();
+    }
+
+    /**
+     * Generates savings goals response.
+     */
+    private String generateSavingsGoals(FinancialContext context) {
+        if (context.getActiveSavingsCircles() == null
+                || context.getActiveSavingsCircles().isEmpty()) {
+            return "You don't have any active savings goals. Create savings circles to track your progress!";
+        }
+
+        StringBuilder response = new StringBuilder();
+        response.append("🎯 **Active Savings Goals**\n\n");
+
+        for (com.example.sprintproject.model.SavingsCircle circle
+                : context.getActiveSavingsCircles()) {
+            if (circle != null) {
+                response.append(String.format("**%s**\n", circle.getChallengeTitle()));
+                response.append(String.format("Goal: $%.2f\n", circle.getGoalAmount()));
+                response.append(String.format("Frequency: %s\n\n", circle.getFrequency()));
+            }
+        }
+
+        return response.toString();
     }
 }
 

@@ -62,7 +62,7 @@
         android:clipToPadding="false"
         android:scrollbars="vertical"
         app:layout_constraintTop_toBottomOf="@id/chatbot_header"
-        app:layout_constraintBottom_toTopOf="@id/layout_input_container"
+        app:layout_constraintBottom_toTopOf="@id/scroll_commands"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -126,6 +126,74 @@
         app:layout_constraintBottom_toTopOf="@id/layout_input_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Command Buttons Container -->
+    <HorizontalScrollView
+        android:id="@+id/scroll_commands"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:fadeScrollbars="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@id/layout_input_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cmd_summarize"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Summarize Spending"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="#6366F1"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cmd_save_money"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Save Money"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="#6366F1"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cmd_compare"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Compare Months"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="#6366F1"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cmd_budget"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Budget Status"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="#6366F1"
+                app:strokeWidth="1dp" />
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
 
     <!-- Input Container -->
     <LinearLayout

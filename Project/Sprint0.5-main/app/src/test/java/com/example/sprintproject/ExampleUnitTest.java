@@ -78,4 +78,25 @@ public class ExampleUnitTest {
         double remaining = totalBudget - totalSpent;
         assertEquals(0.0, remaining, 0.001);
     }
+
+    @Test
+    public void testNegativeSpendingDoesNotAffectBudget() {
+        double totalBudget = 300.0;
+        double totalSpent = -50.0;  // invalid negative spend
+        double expectedRemaining = totalBudget;
+        double actualRemaining = totalBudget - Math.max(totalSpent, 0);
+
+        assertEquals(expectedRemaining, actualRemaining, 0.001);
+    }
+
+    @Test
+    public void testBudgetCalculationWithDecimals() {
+        double totalBudget = 1234.56;
+        double totalSpent = 789.12;
+        double expectedRemaining = totalBudget - totalSpent;
+        double actualRemaining = totalBudget - totalSpent;
+
+        assertEquals(expectedRemaining, actualRemaining, 0.0001);
+    }
+
 }

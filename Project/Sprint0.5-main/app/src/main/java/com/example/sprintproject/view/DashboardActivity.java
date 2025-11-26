@@ -14,6 +14,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.utils.Utils;
+import com.example.sprintproject.model.BudgetMonitor;
+import com.example.sprintproject.utils.NotificationQueue;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,6 +24,11 @@ public class DashboardActivity extends AppCompatActivity {
 
     private boolean reminderDialogShown = false;
     private boolean openExpenseLog = false;
+
+    private NotificationQueue queue;
+    private BudgetMonitor monitor;
+    private static final int[] DEFAULT_THRESHOLDS = new int[] {80, 90};
+    private static final String PREFS_KEY = "shownBudgetAlerts";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +75,9 @@ public class DashboardActivity extends AppCompatActivity {
                 reminderDialogShown = true;
                 showExpenseReminderDialog();
             }
+        });
+        viewModel.getBudgets().observe(this, budgets -> {
+            monitor.onBudgetsUpdated(budgets);
         });
 
         // Load DashboardFragment by default

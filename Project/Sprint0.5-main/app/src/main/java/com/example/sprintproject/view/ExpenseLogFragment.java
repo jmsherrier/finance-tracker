@@ -24,7 +24,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.R;
 import com.example.sprintproject.adapter.ExpenseAdapter;
+import com.example.sprintproject.manager.BudgetWarningManager;
 import com.example.sprintproject.model.Expense;
+import com.example.sprintproject.repository.ExpenseRepository;
 import com.example.sprintproject.viewmodel.TimeViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -49,6 +51,7 @@ public class ExpenseLogFragment extends Fragment {
     private List<Expense> expenses = new ArrayList<>();
     private FirebaseFirestore db;
     private FirebaseAuth auth;
+    private ExpenseRepository expenseRepository;
 
     // Categories for dropdown
     private final String[] categories = {
@@ -81,6 +84,11 @@ public class ExpenseLogFragment extends Fragment {
         FirestoreManager firestoreManager = FirestoreManager.getInstance();
         db = firestoreManager.getDb();
         auth = firestoreManager.getAuth();
+        
+        // Initialize ExpenseRepository (Singleton)
+        BudgetWarningManager warningManager = BudgetWarningManager.getInstance();
+        warningManager.initialize(requireContext().getApplicationContext());
+        expenseRepository = ExpenseRepository.getInstance(db, warningManager);
         
         // Initialize views
         recyclerView = view.findViewById(R.id.recycler_expenses);
@@ -254,24 +262,23 @@ public class ExpenseLogFragment extends Fragment {
         
         Expense expense = new Expense(name, amount, category, date, notes, userId);
         
-        // Save to Firestore
-        db.collection(COLLECTION_EXPENSES)
-            .add(expense)
-            .addOnSuccessListener(documentReference -> {
-                expense.setId(documentReference.getId());
-                expenses.add(expense);
-                ExpenseAdapter adapter = (ExpenseAdapter) recyclerView.getAdapter();
-                if (adapter != null) {
-                    adapter.updateExpenses(expenses);
-                }
-                updateUI();
-                Toast.makeText(getContext(), "Expense saved successfully!",
-                        Toast.LENGTH_SHORT).show();
-            })
-            .addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Error saving expense: "
+        // Save expense using repository
+        expenseRepository.addExpense(
+                expense,
+                documentReference -> {
+                    expense.setId(documentReference.getId());
+                    expenses.add(expense);
+                    ExpenseAdapter adapter = (ExpenseAdapter) recyclerView.getAdapter();
+                    if (adapter != null) {
+                        adapter.updateExpenses(expenses);
+                    }
+                    updateUI();
+                    Toast.makeText(getContext(), "Expense saved successfully!",
+                            Toast.LENGTH_SHORT).show();
+                },
+                e -> Toast.makeText(getContext(), "Error saving expense: "
                         + e.getMessage(), Toast.LENGTH_SHORT).show()
-            );
+        );
     }
     
     private void loadExpenses() {

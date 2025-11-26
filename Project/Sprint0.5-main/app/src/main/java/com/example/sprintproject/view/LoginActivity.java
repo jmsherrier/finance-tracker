@@ -1,7 +1,6 @@
 package com.example.sprintproject.view;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,13 +9,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.manager.ExpenseReminderManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -26,6 +21,7 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private static final String PREFS_NAME = "ExpenseTrackerPrefs";
     private static final String KEY_SESSION_CHECKED = "session_expense_check_done";
+    private FirebaseFirestore db;
 
     private boolean looksLikeEmail(String e) {
         return e != null && e.contains("@") && e.contains(".");
@@ -46,6 +42,12 @@ public class LoginActivity extends AppCompatActivity {
         Button registerBtn = findViewById(R.id.registerBtn);
 
         auth = FirebaseAuth.getInstance();
+
+        // Initialize ExpenseReminderManager
+        ExpenseReminderManager.getInstance().initialize(
+                getApplicationContext(),
+                db
+        );
 
         loginBtn.setOnClickListener(v -> loginUser());
         registerBtn.setOnClickListener(v ->
@@ -76,7 +78,15 @@ public class LoginActivity extends AppCompatActivity {
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
                     Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
-                    checkMissedExpenses();
+                    
+                    // Check for missed expenses using the manager
+                    String userId = auth.getCurrentUser() != null
+                            ? auth.getCurrentUser().getUid() : null;
+                    if (userId != null) {
+                        ExpenseReminderManager.getInstance().checkMissedExpenses(userId);
+                    }
+                    
+                    navigateToDashboard();
                 })
                 .addOnFailureListener(e -> {
                     loginBtn.setEnabled(true);

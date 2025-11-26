@@ -9,7 +9,9 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
+import com.example.sprintproject.manager.BudgetWarningManager;
 import com.example.sprintproject.model.Budget;
+import com.example.sprintproject.model.BudgetWarning;
 import com.example.sprintproject.model.DashboardModel;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
@@ -51,6 +53,11 @@ public class DashboardViewModel extends ViewModel {
 
     private Date lastReminderShownDate = null;
 
+    // Budget warnings LiveData
+    private final LiveData<BudgetWarning> budgetWarning =
+            BudgetWarningManager.getInstance().getCurrentWarning();
+    private final MutableLiveData<List<Budget>> budgetsLive = new MutableLiveData<>();
+
     // Combined data, recomputed whenever currentDate changes
     private final LiveData<Map<String, Object>> dashboardData =
             Transformations.switchMap(currentDate, repository::getDashboardData);
@@ -84,10 +91,29 @@ public class DashboardViewModel extends ViewModel {
         return showExpenseReminder;
     }
 
+    public LiveData<List<Budget>> getBudgets()  {
+        return budgetsLive;
+    }
+
+    /**
+     * Gets the LiveData for budget warnings.
+     *
+     * @return LiveData containing budget warnings
+     */
+    public LiveData<BudgetWarning> getBudgetWarning() {
+        return budgetWarning;
+    }
+
     @SuppressWarnings("unchecked")
     public void updateCharts(Map<String, Object> data) {
         updatePieChart(data);
         updateBarChart(data);
+        if (data != null && data.get("budgets") instanceof List) {
+            List<Budget> budgets = (List<Budget>) data.get("budgets");
+            budgetsLive.postValue(budgets);
+        } else {
+            budgetsLive.postValue(new ArrayList<>());
+        }
     }
 
     @SuppressWarnings("unchecked")

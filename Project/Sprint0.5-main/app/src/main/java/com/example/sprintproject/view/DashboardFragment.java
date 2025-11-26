@@ -28,7 +28,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.manager.BudgetWarningManager;
+import com.example.sprintproject.manager.ExpenseReminderManager;
 import com.example.sprintproject.model.BudgetWarning;
+import com.example.sprintproject.model.ExpenseReminder;
 import com.example.sprintproject.utils.Utils;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
 import com.github.mikephil.charting.charts.BarChart;
@@ -231,6 +233,16 @@ public class DashboardFragment extends Fragment {
                     }
                 }
         );
+
+        // Observe Expense reminders
+        ExpenseReminderManager.getInstance().getCurrentReminder().observe(
+                getViewLifecycleOwner(),
+                reminder -> {
+                    if (reminder != null && isAdded()) {
+                        showExpenseReminderDialog(reminder);
+                    }
+                }
+        );
     }
 
     private void updateDashboardUI(@NonNull View view, Map<String, Object> data) {
@@ -310,6 +322,18 @@ public class DashboardFragment extends Fragment {
         if (getParentFragmentManager() != null && !isStateSaved()) {
             BudgetWarningDialog dialog = BudgetWarningDialog.newInstance(warning);
             dialog.show(getParentFragmentManager(), "BudgetWarningDialog");
+        }
+    }
+
+    /**
+     * Shows the expense reminder dialog.
+     *
+     * @param reminder the expense reminder to display
+     */
+    private void showExpenseReminderDialog(ExpenseReminder reminder) {
+        if (getParentFragmentManager() != null && !isStateSaved()) {
+            ExpenseReminderDialog dialog = ExpenseReminderDialog.newInstance(reminder);
+            dialog.show(getParentFragmentManager(), "ExpenseReminderDialog");
         }
     }
 

@@ -1,7 +1,6 @@
 package com.example.sprintproject.view;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,13 +9,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.manager.ExpenseReminderManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -25,8 +20,6 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginBtn;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private static final String PREFS_NAME = "ExpenseTrackerPrefs";
-    private static final String KEY_SESSION_CHECKED = "session_expense_check_done";
 
     private boolean looksLikeEmail(String e) {
         return e != null && e.contains("@") && e.contains(".");
@@ -48,6 +41,12 @@ public class LoginActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
+        // Initialize ExpenseReminderManager
+        ExpenseReminderManager.getInstance().initialize(
+                getApplicationContext(),
+                db
+        );
 
         loginBtn.setOnClickListener(v -> loginUser());
         registerBtn.setOnClickListener(v ->
@@ -78,7 +77,15 @@ public class LoginActivity extends AppCompatActivity {
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
                     Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
-                    checkMissedExpenses();
+                    
+                    // Check for missed expenses using the manager
+                    String userId = auth.getCurrentUser() != null
+                            ? auth.getCurrentUser().getUid() : null;
+                    if (userId != null) {
+                        ExpenseReminderManager.getInstance().checkMissedExpenses(userId);
+                    }
+                    
+                    navigateToDashboard();
                 })
                 .addOnFailureListener(e -> {
                     loginBtn.setEnabled(true);
@@ -87,82 +94,6 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    /**
-     * Checks if user has missed logging expenses and shows dialog if needed.
-     */
-    private void checkMissedExpenses() {
-        String userId = auth.getCurrentUser() != null
-                ? auth.getCurrentUser().getUid() : null;
-
-        if (userId == null) {
-            navigateToDashboard();
-            return;
-        }
-
-        // Check if we've already shown the dialog this session
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        boolean alreadyChecked = prefs.getBoolean(KEY_SESSION_CHECKED, false);
-
-        if (alreadyChecked) {
-            navigateToDashboard();
-            return;
-        }
-
-        // Query Firestore for last expense
-        db.collection("expenses")
-                .whereEqualTo("userId", userId)
-                .orderBy("date", Query.Direction.DESCENDING)
-                .limit(1)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        // User has never logged an expense - don't show dialog
-                        navigateToDashboard();
-                        return;
-                    }
-
-                    // Get the last expense date
-                    QueryDocumentSnapshot lastExpenseDoc =
-                            (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
-                    Date lastExpenseDate = lastExpenseDoc.getDate("date");
-
-                    if (lastExpenseDate != null) {
-                        long daysSinceLastExpense = calculateDaysSince(lastExpenseDate);
-
-                        if (daysSinceLastExpense > 0) {
-                            // Mark that we've checked this session
-                            prefs.edit().putBoolean(KEY_SESSION_CHECKED, true).apply();
-
-                            // Show the dialog
-                            MissedExpenseDialog dialog = new MissedExpenseDialog(
-                                    this,
-                                    (int) daysSinceLastExpense,
-                                    this::navigateToDashboardWithExpenseLog
-                            );
-                            dialog.show();
-                        } else {
-                            navigateToDashboard();
-                        }
-                    } else {
-                        navigateToDashboard();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    // On error, just navigate to dashboard
-                    navigateToDashboard();
-                });
-    }
-
-    /**
-     * Calculates the number of days since a given date.
-     *
-     * @param pastDate The date to calculate from
-     * @return Number of complete days since the date
-     */
-    private long calculateDaysSince(Date pastDate) {
-        long diffInMillis = new Date().getTime() - pastDate.getTime();
-        return TimeUnit.MILLISECONDS.toDays(diffInMillis);
-    }
 
     /**
      * Navigates to the Dashboard activity.

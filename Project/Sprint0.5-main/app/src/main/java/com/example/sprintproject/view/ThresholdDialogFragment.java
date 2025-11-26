@@ -1,23 +1,27 @@
 package com.example.sprintproject.view;
 
-
 import android.app.Dialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
-import com.example.sprintproject.databinding.DialogThresholdBinding;
+
+import com.example.sprintproject.R;
 import com.example.sprintproject.model.ThresholdNotification;
 
-
-public class ThresholdDialogFragment extends DialogFragment{
+public class ThresholdDialogFragment extends DialogFragment {
     public static final String ARG_TITLE = "arg_budget_title";
     public static final String ARG_THRESHOLD = "arg_threshold";
     public static final String ARG_PROGRESS = "arg_progress";
 
-    private DialogThresholdBinding binding;
+    private View rootView;
     private Runnable onComplete;
 
     public static ThresholdDialogFragment newInstance(ThresholdNotification n) {
@@ -35,21 +39,31 @@ public class ThresholdDialogFragment extends DialogFragment{
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        binding = DialogThresholdBinding.inflate(LayoutInflater.from(requireContext()));
+        rootView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_threshold, null);
+        
         Bundle args = getArguments();
-        String title = args != null ? args.getString(ARG_TITLE, "Budget"): "Budget";
+        String title = args != null ? args.getString(ARG_TITLE, "Budget") : "Budget";
         double progress = args != null ? args.getDouble(ARG_PROGRESS, 0.0) : 0.0;
         int percent = (int) Math.round(progress * 100);
 
-        binding.title.setText(title + " budget");
-        binding.message.setText("You've reached " + percent + "% of your " + title + " budget");
-        binding.progressBar.setMax(100);
-        binding.progressBar.setProgress(percent);
+        TextView titleView = rootView.findViewById(R.id.title);
+        TextView messageView = rootView.findViewById(R.id.message);
+        ProgressBar progressBar = rootView.findViewById(R.id.progressBar);
+        Button closeBtn = rootView.findViewById(R.id.closeBtn);
+        Button dontShowBtn = rootView.findViewById(R.id.dontShowBtn);
 
-        binding.closeBtn.setOnClickListener(v -> dismiss());
-        binding.dontShowBtn.setOnClickListener(v -> dismiss());
+        titleView.setText(title + " budget");
+        messageView.setText("You've reached " + percent + "% of your " + title + " budget");
+        progressBar.setMax(100);
+        progressBar.setProgress(percent);
 
-        AlertDialog dialog = new AlertDialog.Builder(requireContext()).setView(binding.getRoot()).create();
+        closeBtn.setOnClickListener(v -> dismiss());
+        dontShowBtn.setOnClickListener(v -> dismiss());
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(rootView)
+                .create();
         dialog.setCanceledOnTouchOutside(false);
         return dialog;
     }
@@ -57,8 +71,11 @@ public class ThresholdDialogFragment extends DialogFragment{
     public void onDestroyView() {
         super.onDestroyView();
         if (onComplete != null) {
-            try { onComplete.run(); } catch (Exception ignored) {}
+            try {
+                onComplete.run();
+            } catch (Exception ignored) {
+            }
         }
-        binding = null;
+        rootView = null;
     }
 }

@@ -15,7 +15,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.sprintproject.R;
 import com.example.sprintproject.utils.Utils;
 import com.example.sprintproject.model.BudgetMonitor;
-import com.example.sprintproject.utils.NotificationQueue;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -25,7 +24,6 @@ public class DashboardActivity extends AppCompatActivity {
     private boolean reminderDialogShown = false;
     private boolean openExpenseLog = false;
 
-    private NotificationQueue queue;
     private BudgetMonitor monitor;
     private static final int[] DEFAULT_THRESHOLDS = new int[] {80, 90};
     private static final String PREFS_KEY = "shownBudgetAlerts";
@@ -33,6 +31,11 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Read Intent extras
+        if (getIntent() != null) {
+            openExpenseLog = getIntent().getBooleanExtra("openExpenseLog", false);
+        }
         
         // Apply saved dark mode preference
         SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
@@ -44,6 +47,9 @@ public class DashboardActivity extends AppCompatActivity {
         }
         
         setContentView(R.layout.activity_dashboard);
+
+        // Initialize BudgetMonitor (without queue for now)
+        monitor = new BudgetMonitor(this, DEFAULT_THRESHOLDS, PREFS_KEY);
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         Button logoutButton = findViewById(R.id.logout_button);
@@ -77,7 +83,9 @@ public class DashboardActivity extends AppCompatActivity {
             }
         });
         viewModel.getBudgets().observe(this, budgets -> {
-            monitor.onBudgetsUpdated(budgets);
+            if (monitor != null && budgets != null) {
+                monitor.onBudgetsUpdated(budgets);
+            }
         });
 
         // Load DashboardFragment by default

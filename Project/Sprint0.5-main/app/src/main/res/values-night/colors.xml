@@ -10,5 +10,7 @@
     <color name="text_primary_dark">#FFFFFFFF</color>
     <color name="text_secondary_light">#FFB0B0B0</color>
     <color name="text_secondary_dark">#FFB0B0B0</color>
+    <color name="logout_button_color">#42A5F5</color>
+    <color name="logout_button_text_color">#FFFFFFFF</color>
 </resources>
 

@@ -360,3 +360,4 @@ This project was more than just a class assignment—it was a real-world softwar
 
 *This article reflects the collaborative work of Team 3 in CS2340 Fall 2025. The project demonstrates practical application of software engineering principles, Agile methodology, and modern Android development practices.*
 
+

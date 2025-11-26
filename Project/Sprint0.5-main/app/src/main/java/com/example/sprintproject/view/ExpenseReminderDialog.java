@@ -12,8 +12,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
+
+import android.content.Intent;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.manager.ExpenseReminderManager;
@@ -120,14 +120,10 @@ public class ExpenseReminderDialog extends DialogFragment {
      * Navigates to the Expense Log fragment.
      */
     private void navigateToExpenseLog() {
-        try {
-            NavController navController = Navigation.findNavController(
-                    requireActivity(), R.id.nav_host_fragment);
-            navController.navigate(R.id.navigation_expense_log);
-        } catch (Exception e) {
-            // If navigation fails, just dismiss
-            dismiss();
-        }
+        Intent intent = new Intent(requireActivity(), DashboardActivity.class);
+        intent.putExtra("openExpenseLog", true);
+        startActivity(intent);
+        requireActivity().finish();
     }
 
     @Override

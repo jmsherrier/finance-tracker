@@ -55,6 +55,10 @@ public class ChatbotFragment extends Fragment {
     private ProgressBar progressLoading;
     private MaterialButton btnConversations;
     private MaterialButton btnImportContext;
+    private MaterialButton btnCmdSummarize;
+    private MaterialButton btnCmdSaveMoney;
+    private MaterialButton btnCmdCompare;
+    private MaterialButton btnCmdBudget;
     
     // Conversation list views
     private View conversationListView;
@@ -173,6 +177,10 @@ public class ChatbotFragment extends Fragment {
         progressLoading = view.findViewById(R.id.progress_loading);
         btnConversations = view.findViewById(R.id.btn_conversations);
         btnImportContext = view.findViewById(R.id.btn_import_context);
+        btnCmdSummarize = view.findViewById(R.id.btn_cmd_summarize);
+        btnCmdSaveMoney = view.findViewById(R.id.btn_cmd_save_money);
+        btnCmdCompare = view.findViewById(R.id.btn_cmd_compare);
+        btnCmdBudget = view.findViewById(R.id.btn_cmd_budget);
     }
 
     /**
@@ -289,6 +297,35 @@ public class ChatbotFragment extends Fragment {
         // Import context button (Phase 4)
         if (btnImportContext != null) {
             btnImportContext.setOnClickListener(v -> showContextImportDialog());
+        }
+
+        // Command buttons (Phase 6)
+        if (btnCmdSummarize != null) {
+            btnCmdSummarize.setOnClickListener(v -> {
+                chatbotViewModel.executeCommand(
+                        com.example.sprintproject.utils.ChatCommandParser.CommandType.SUMMARIZE_SPENDING);
+            });
+        }
+
+        if (btnCmdSaveMoney != null) {
+            btnCmdSaveMoney.setOnClickListener(v -> {
+                chatbotViewModel.executeCommand(
+                        com.example.sprintproject.utils.ChatCommandParser.CommandType.COST_CUT_SUGGESTIONS);
+            });
+        }
+
+        if (btnCmdCompare != null) {
+            btnCmdCompare.setOnClickListener(v -> {
+                chatbotViewModel.executeCommand(
+                        com.example.sprintproject.utils.ChatCommandParser.CommandType.MONTHLY_COMPARISON);
+            });
+        }
+
+        if (btnCmdBudget != null) {
+            btnCmdBudget.setOnClickListener(v -> {
+                chatbotViewModel.executeCommand(
+                        com.example.sprintproject.utils.ChatCommandParser.CommandType.BUDGET_STATUS);
+            });
         }
     }
 

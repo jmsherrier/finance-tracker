@@ -18,6 +18,7 @@ import java.util.Date;
 /**
  * Repository class for managing expense operations.
  * Handles expense creation and budget warning logic.
+ * Implements Singleton pattern for centralized expense state management.
  */
 public class ExpenseRepository {
     private static final String COLLECTION_EXPENSES = "expenses";
@@ -27,19 +28,36 @@ public class ExpenseRepository {
     private static final double WARNING_THRESHOLD_90 = 90.0;
     private static final double BUDGET_MAX_THRESHOLD = 100.0;
 
+    private static ExpenseRepository instance;
     private final FirebaseFirestore db;
     private final BudgetWarningManager warningManager;
 
     /**
-     * Constructor for ExpenseRepository.
+     * Private constructor for Singleton pattern.
      *
      * @param db Firebase Firestore instance
      * @param warningManager BudgetWarningManager instance
      */
-    public ExpenseRepository(FirebaseFirestore db,
-                             BudgetWarningManager warningManager) {
+    private ExpenseRepository(FirebaseFirestore db,
+                              BudgetWarningManager warningManager) {
         this.db = db;
         this.warningManager = warningManager;
+    }
+
+    /**
+     * Gets the singleton instance of ExpenseRepository.
+     *
+     * @param db Firebase Firestore instance
+     * @param warningManager BudgetWarningManager instance
+     * @return the singleton instance
+     */
+    public static synchronized ExpenseRepository getInstance(
+            FirebaseFirestore db,
+            BudgetWarningManager warningManager) {
+        if (instance == null) {
+            instance = new ExpenseRepository(db, warningManager);
+        }
+        return instance;
     }
 
     /**

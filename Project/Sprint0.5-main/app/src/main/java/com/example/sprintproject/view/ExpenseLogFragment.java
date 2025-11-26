@@ -85,10 +85,10 @@ public class ExpenseLogFragment extends Fragment {
         db = firestoreManager.getDb();
         auth = firestoreManager.getAuth();
         
-        // Initialize ExpenseRepository
+        // Initialize ExpenseRepository (Singleton)
         BudgetWarningManager warningManager = BudgetWarningManager.getInstance();
         warningManager.initialize(requireContext().getApplicationContext());
-        expenseRepository = new ExpenseRepository(db, warningManager);
+        expenseRepository = ExpenseRepository.getInstance(db, warningManager);
         
         // Initialize views
         recyclerView = view.findViewById(R.id.recycler_expenses);

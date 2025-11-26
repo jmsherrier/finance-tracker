@@ -8,6 +8,16 @@ android {
     namespace 'com.example.sprintproject'
     compileSdk 34
 
+    // Read API key from local.properties
+    def localProperties = new Properties()
+    def localPropertiesFile = rootProject.file('local.properties')
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.withInputStream { localProperties.load(it) }
+    }
+
+    def huggingFaceApiKey = localProperties.getProperty('HUGGING_FACE_API_KEY', '')
+    def geminiApiKey = localProperties.getProperty('GEMINI_API_KEY', '')
+
     defaultConfig {
         applicationId "com.example.sprintproject"
         minSdk 24
@@ -16,6 +26,10 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Add API keys to BuildConfig
+        buildConfigField "String", "HUGGING_FACE_API_KEY", "\"${huggingFaceApiKey}\""
+        buildConfigField "String", "GEMINI_API_KEY", "\"${geminiApiKey}\""
     }
 
     buildTypes {
@@ -32,6 +46,7 @@ android {
 
     buildFeatures {
         dataBinding true
+        buildConfig true
     }
 }
 
@@ -54,6 +69,12 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-livedata:2.6.1'
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.6.1'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
+    // HTTP client for AI API calls
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    // JSON parsing
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     testImplementation "org.robolectric:robolectric:4.11.1"
     testImplementation "org.mockito:mockito-core:5.11.0"

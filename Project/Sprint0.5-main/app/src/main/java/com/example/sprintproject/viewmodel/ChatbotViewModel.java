@@ -26,6 +26,11 @@ import java.util.UUID;
  */
 public class ChatbotViewModel extends ViewModel {
     private static final String TAG = "ChatbotViewModel";
+    
+    // Constants for error messages and message roles
+    private static final String ERROR_USER_NOT_AUTHENTICATED = "User not authenticated";
+    private static final String ROLE_ASSISTANT = "assistant";
+    private static final String ROLE_USER = "user";
 
     private final ChatbotRepository repository;
     private final MutableLiveData<List<ChatMessage>> messages;
@@ -124,190 +129,75 @@ public class ChatbotViewModel extends ViewModel {
      */
     public void sendMessage(String messageText) {
         try {
-            if (messageText == null || messageText.trim().isEmpty()) {
-                error.setValue("Message cannot be empty");
+            if (!validateMessageInput(messageText)) {
                 return;
             }
 
-            String conversationId = currentConversationId.getValue();
-            if (conversationId == null || conversationId.isEmpty()) {
-                // Start new conversation
-                startNewConversation();
-                conversationId = currentConversationId.getValue();
+            String conversationId = ensureConversationExists();
+            if (conversationId == null) {
+                return;
             }
 
-            if (conversationId == null) {
-                error.setValue("Failed to create conversation");
+            String userId = getCurrentUserId();
+            if (userId == null) {
+                error.setValue(ERROR_USER_NOT_AUTHENTICATED);
                 return;
             }
 
             final String finalConversationId = conversationId;
-            String userId = getCurrentUserId();
-            if (userId == null) {
-                error.setValue("User not authenticated");
-                return;
-            }
+            ChatMessage userMessage = createAndAddUserMessage(finalConversationId, messageText.trim(), userId);
+            saveUserMessageAndSendToAI(userMessage, messageText.trim(), finalConversationId, userId);
+        } catch (Exception e) {
+            Log.e(TAG, "Unexpected error in sendMessage", e);
+            loading.setValue(false);
+            error.setValue("An unexpected error occurred. Please try again.");
+        }
+    }
 
-            // Create user message
-            ChatMessage userMessage = new ChatMessage(
-                    finalConversationId, messageText.trim(), "user", userId);
+    private boolean validateMessageInput(String messageText) {
+        if (messageText == null || messageText.trim().isEmpty()) {
+            error.setValue("Message cannot be empty");
+            return false;
+        }
+        return true;
+    }
 
-            // Add user message to list immediately
-            if (currentMessages == null) {
-                currentMessages = new ArrayList<>();
-            }
-            currentMessages.add(userMessage);
-            messages.setValue(new ArrayList<>(currentMessages));
+    private String ensureConversationExists() {
+        String conversationId = currentConversationId.getValue();
+        if (conversationId == null || conversationId.isEmpty()) {
+            startNewConversation();
+            conversationId = currentConversationId.getValue();
+        }
 
-            // Save user message
-            repository.saveMessage(userMessage, new ChatbotRepository.SaveCallback() {
+        if (conversationId == null) {
+            error.setValue("Failed to create conversation");
+            return null;
+        }
+        return conversationId;
+    }
+
+    private ChatMessage createAndAddUserMessage(String conversationId, String messageText, String userId) {
+        ChatMessage userMessage = new ChatMessage(conversationId, messageText, ROLE_USER, userId);
+        ensureMessagesListInitialized();
+        currentMessages.add(userMessage);
+        messages.setValue(new ArrayList<>(currentMessages));
+        return userMessage;
+    }
+
+    private void ensureMessagesListInitialized() {
+        if (currentMessages == null) {
+            currentMessages = new ArrayList<>();
+        }
+    }
+
+    private void saveUserMessageAndSendToAI(ChatMessage userMessage, String messageText,
+                                           String conversationId, String userId) {
+        repository.saveMessage(userMessage, new ChatbotRepository.SaveCallback() {
             @Override
             public void onSuccess() {
-                // Message saved, now fetch financial context and send to AI (Phase 5)
                 loading.setValue(true);
                 error.setValue(null);
-
-                // Fetch financial context for personalized responses
-                repository.fetchFinancialContext(userId,
-                        new ChatbotRepository.FinancialContextCallback() {
-                            @Override
-                            public void onSuccess(FinancialContext financialContext) {
-                                // Send message with financial context
-                                repository.sendMessage(messageText.trim(), finalConversationId,
-                                        getContextMessages(), financialContext,
-                                        new ChatbotRepository.MessageCallback() {
-                            @Override
-                            public void onSuccess(String response) {
-                                // Post to main thread for thread safety
-                                mainHandler.post(() -> {
-                                    try {
-                                        loading.setValue(false);
-
-                                        // Create assistant message
-                                        ChatMessage assistantMessage = new ChatMessage(
-                                                finalConversationId, response, "assistant", userId);
-
-                                        // Add assistant message
-                                        if (currentMessages == null) {
-                                            currentMessages = new ArrayList<>();
-                                        }
-                                        currentMessages.add(assistantMessage);
-                                        messages.setValue(new ArrayList<>(currentMessages));
-
-                                        // Save assistant message
-                                        repository.saveMessage(assistantMessage,
-                                                new ChatbotRepository.SaveCallback() {
-                                                    @Override
-                                                    public void onSuccess() {
-                                                        // Update conversation timestamp
-                                                        updateConversationTimestamp(finalConversationId);
-                                                        
-                                                        // Generate title after exactly 2 messages (user + assistant)
-                                                        if (currentMessages.size() == 2) {
-                                                            generateConversationTitle(finalConversationId);
-                                                        }
-                                                        
-                                                        // Generate summary periodically (every 10 messages)
-                                                        if (currentMessages.size() % 10 == 0) {
-                                                            generateConversationSummary(finalConversationId);
-                                                        }
-                                                    }
-
-                                                    @Override
-                                                    public void onError(String errorMsg) {
-                                                        Log.e(TAG, "Error saving assistant message: "
-                                                                + errorMsg);
-                                                    }
-                                                });
-                                    } catch (Exception e) {
-                                        Log.e(TAG, "Error handling AI response", e);
-                                        loading.setValue(false);
-                                        error.setValue("Error processing AI response");
-                                    }
-                                });
-                            }
-
-                            @Override
-                            public void onError(String errorMsg) {
-                                // Post to main thread for thread safety
-                                mainHandler.post(() -> {
-                                    loading.setValue(false);
-                                    error.setValue(errorMsg);
-                                    Log.e(TAG, "Error sending message: " + errorMsg);
-                                });
-                            }
-                        });
-                            }
-
-                            @Override
-                            public void onError(String errorMsg) {
-                                // If financial context fetch fails, send message without it
-                                Log.w(TAG, "Failed to fetch financial context: " + errorMsg);
-                                repository.sendMessage(messageText.trim(), finalConversationId,
-                                        getContextMessages(), null,
-                                        new ChatbotRepository.MessageCallback() {
-                                            @Override
-                                            public void onSuccess(String response) {
-                                                // Post to main thread for thread safety
-                                                mainHandler.post(() -> {
-                                                    try {
-                                                        loading.setValue(false);
-
-                                                        // Create assistant message
-                                                        ChatMessage assistantMessage = new ChatMessage(
-                                                                finalConversationId, response, "assistant", userId);
-
-                                                        // Add assistant message
-                                                        if (currentMessages == null) {
-                                                            currentMessages = new ArrayList<>();
-                                                        }
-                                                        currentMessages.add(assistantMessage);
-                                                        messages.setValue(new ArrayList<>(currentMessages));
-
-                                                        // Save assistant message
-                                                        repository.saveMessage(assistantMessage,
-                                                                new ChatbotRepository.SaveCallback() {
-                                                                    @Override
-                                                                    public void onSuccess() {
-                                                                        // Update conversation timestamp
-                                                                        updateConversationTimestamp(finalConversationId);
-                                                                        
-                                                                        // Generate title after exactly 2 messages (user + assistant)
-                                                                        if (currentMessages.size() == 2) {
-                                                                            generateConversationTitle(finalConversationId);
-                                                                        }
-                                                                        
-                                                                        // Generate summary periodically (every 10 messages)
-                                                                        if (currentMessages.size() % 10 == 0) {
-                                                                            generateConversationSummary(finalConversationId);
-                                                                        }
-                                                                    }
-
-                                                                    @Override
-                                                                    public void onError(String errorMsg) {
-                                                                        Log.e(TAG, "Error saving assistant message: "
-                                                                                + errorMsg);
-                                                                    }
-                                                                });
-                                                    } catch (Exception e) {
-                                                        Log.e(TAG, "Error handling AI response", e);
-                                                        loading.setValue(false);
-                                                        error.setValue("Error processing AI response");
-                                                    }
-                                                });
-                                            }
-
-                                            @Override
-                                            public void onError(String errorMsg) {
-                                                // Post to main thread for thread safety
-                                                mainHandler.post(() -> {
-                                                    loading.setValue(false);
-                                                    error.setValue("Error: " + errorMsg);
-                                                });
-                                            }
-                                        });
-                            }
-                        });
+                fetchFinancialContextAndSendMessage(messageText, conversationId, userId);
             }
 
             @Override
@@ -317,10 +207,87 @@ public class ChatbotViewModel extends ViewModel {
                 Log.e(TAG, "Error saving user message: " + errorMsg);
             }
         });
-        } catch (Exception e) {
-            Log.e(TAG, "Unexpected error in sendMessage", e);
+    }
+
+    private void fetchFinancialContextAndSendMessage(String messageText, String conversationId, String userId) {
+        repository.fetchFinancialContext(userId, new ChatbotRepository.FinancialContextCallback() {
+            @Override
+            public void onSuccess(FinancialContext financialContext) {
+                sendMessageToAI(messageText, conversationId, userId, financialContext);
+            }
+
+            @Override
+            public void onError(String errorMsg) {
+                Log.w(TAG, "Failed to fetch financial context: " + errorMsg);
+                sendMessageToAI(messageText, conversationId, userId, null);
+            }
+        });
+    }
+
+    private void sendMessageToAI(String messageText, String conversationId, String userId,
+                                 FinancialContext financialContext) {
+        repository.sendMessage(messageText, conversationId, getContextMessages(), financialContext,
+                new ChatbotRepository.MessageCallback() {
+                    @Override
+                    public void onSuccess(String response) {
+                        mainHandler.post(() -> handleAIResponse(response, conversationId, userId));
+                    }
+
+                    @Override
+                    public void onError(String errorMsg) {
+                        mainHandler.post(() -> {
+                            loading.setValue(false);
+                            error.setValue(errorMsg);
+                            Log.e(TAG, "Error sending message: " + errorMsg);
+                        });
+                    }
+                });
+    }
+
+    private void handleAIResponse(String response, String conversationId, String userId) {
+        try {
             loading.setValue(false);
-            error.setValue("An unexpected error occurred. Please try again.");
+            ChatMessage assistantMessage = new ChatMessage(conversationId, response, ROLE_ASSISTANT, userId);
+            addAssistantMessage(assistantMessage);
+            saveAssistantMessage(assistantMessage, conversationId);
+        } catch (Exception e) {
+            Log.e(TAG, "Error handling AI response", e);
+            loading.setValue(false);
+            error.setValue("Error processing AI response");
+        }
+    }
+
+    private void addAssistantMessage(ChatMessage assistantMessage) {
+        ensureMessagesListInitialized();
+        currentMessages.add(assistantMessage);
+        messages.setValue(new ArrayList<>(currentMessages));
+    }
+
+    private void saveAssistantMessage(ChatMessage assistantMessage, String conversationId) {
+        repository.saveMessage(assistantMessage, new ChatbotRepository.SaveCallback() {
+            @Override
+            public void onSuccess() {
+                updateConversationTimestamp(conversationId);
+                checkAndGenerateTitle(conversationId);
+                checkAndGenerateSummary(conversationId);
+            }
+
+            @Override
+            public void onError(String errorMsg) {
+                Log.e(TAG, "Error saving assistant message: " + errorMsg);
+            }
+        });
+    }
+
+    private void checkAndGenerateTitle(String conversationId) {
+        if (currentMessages != null && currentMessages.size() == 2) {
+            generateConversationTitle(conversationId);
+        }
+    }
+
+    private void checkAndGenerateSummary(String conversationId) {
+        if (currentMessages != null && currentMessages.size() % 10 == 0) {
+            generateConversationSummary(conversationId);
         }
     }
 
@@ -337,7 +304,7 @@ public class ChatbotViewModel extends ViewModel {
 
             String userId = getCurrentUserId();
             if (userId == null) {
-                error.setValue("User not authenticated");
+                error.setValue(ERROR_USER_NOT_AUTHENTICATED);
                 return;
             }
 
@@ -538,55 +505,19 @@ public class ChatbotViewModel extends ViewModel {
      * @param conversationId the conversation ID
      */
     private void generateConversationTitle(String conversationId) {
-        if (currentMessages == null || currentMessages.size() < 2) {
-            return; // Need at least 2 messages (user + assistant)
+        if (!canGenerateTitle()) {
+            return;
         }
 
-        // Check if title is already generated (not "New Conversation")
-        List<ChatConversation> convs = conversations.getValue();
-        if (convs != null) {
-            for (ChatConversation conv : convs) {
-                if (conversationId.equals(conv.getId())) {
-                    String existingTitle = conv.getTitle();
-                    if (existingTitle != null && !existingTitle.isEmpty()
-                            && !existingTitle.equals("New Conversation")
-                            && !existingTitle.toLowerCase().contains("i'm here to help")
-                            && !existingTitle.toLowerCase().contains("i am here to help")) {
-                        // Title already generated, skip
-                        return;
-                    }
-                    break;
-                }
-            }
+        if (isTitleAlreadyGenerated(conversationId)) {
+            return;
         }
 
         repository.generateConversationTitle(currentMessages,
                 new ChatbotRepository.MessageCallback() {
                     @Override
                     public void onSuccess(String title) {
-                        // Update conversation with generated title
-                        List<ChatConversation> convs = conversations.getValue();
-                        if (convs != null) {
-                            for (ChatConversation conv : convs) {
-                                if (conversationId.equals(conv.getId())) {
-                                    conv.setTitle(title);
-                                    repository.saveConversation(conv,
-                                            new ChatbotRepository.SaveCallback() {
-                                                @Override
-                                                public void onSuccess() {
-                                                    loadConversations(); // Refresh list
-                                                    Log.d(TAG, "Title generated: " + title);
-                                                }
-
-                                                @Override
-                                                public void onError(String errorMsg) {
-                                                    Log.e(TAG, "Error saving title: " + errorMsg);
-                                                }
-                                            });
-                                    break;
-                                }
-                            }
-                        }
+                        updateConversationWithTitle(conversationId, title);
                     }
 
                     @Override
@@ -594,6 +525,66 @@ public class ChatbotViewModel extends ViewModel {
                         Log.e(TAG, "Error generating title: " + errorMsg);
                     }
                 });
+    }
+
+    private boolean canGenerateTitle() {
+        return currentMessages != null && currentMessages.size() >= 2;
+    }
+
+    private boolean isTitleAlreadyGenerated(String conversationId) {
+        List<ChatConversation> convs = conversations.getValue();
+        if (convs == null) {
+            return false;
+        }
+
+        for (ChatConversation conv : convs) {
+            if (conversationId.equals(conv.getId())) {
+                return isTitleValid(conv.getTitle());
+            }
+        }
+        return false;
+    }
+
+    private boolean isTitleValid(String existingTitle) {
+        if (existingTitle == null || existingTitle.isEmpty()) {
+            return false;
+        }
+        if (existingTitle.equals("New Conversation")) {
+            return false;
+        }
+        String lowerTitle = existingTitle.toLowerCase();
+        return !lowerTitle.contains("i'm here to help") 
+                && !lowerTitle.contains("i am here to help");
+    }
+
+    private void updateConversationWithTitle(String conversationId, String title) {
+        List<ChatConversation> convs = conversations.getValue();
+        if (convs == null) {
+            return;
+        }
+
+        for (ChatConversation conv : convs) {
+            if (conversationId.equals(conv.getId())) {
+                conv.setTitle(title);
+                saveConversationTitle(conv, title);
+                break;
+            }
+        }
+    }
+
+    private void saveConversationTitle(ChatConversation conv, String title) {
+        repository.saveConversation(conv, new ChatbotRepository.SaveCallback() {
+            @Override
+            public void onSuccess() {
+                loadConversations();
+                Log.d(TAG, "Title generated: " + title);
+            }
+
+            @Override
+            public void onError(String errorMsg) {
+                Log.e(TAG, "Error saving title: " + errorMsg);
+            }
+        });
     }
 
     /**
@@ -666,7 +657,7 @@ public class ChatbotViewModel extends ViewModel {
     public void executeCommand(ChatCommandParser.CommandType commandType) {
         String userId = getCurrentUserId();
         if (userId == null) {
-            error.setValue("User not authenticated");
+            error.setValue(ERROR_USER_NOT_AUTHENTICATED);
             return;
         }
 
@@ -699,7 +690,7 @@ public class ChatbotViewModel extends ViewModel {
 
                                 // Create assistant message with command response
                                 ChatMessage assistantMessage = new ChatMessage(
-                                        finalConversationId, response, "assistant", userId);
+                                        finalConversationId, response, ROLE_ASSISTANT, userId);
 
                                 // Add assistant message
                                 if (currentMessages == null) {
@@ -772,35 +763,49 @@ public class ChatbotViewModel extends ViewModel {
      * Generates spending summary response.
      */
     private String generateSpendingSummary(FinancialContext context) {
-        if (context.getRecentExpenses() == null || context.getRecentExpenses().isEmpty()) {
+        if (hasNoExpenses(context)) {
             return "You haven't recorded any expenses yet. Start tracking your spending to see summaries!";
         }
 
-        Date monthStart = FinancialDataAggregator.getCurrentMonthStart();
-        String summary = FinancialDataAggregator.getSpendingSummary(
-                context.getRecentExpenses(), monthStart, new Date());
-
         StringBuilder response = new StringBuilder();
-        response.append("📊 **Spending Summary (Current Month)**\n\n");
-        response.append(summary).append("\n\n");
+        response.append("📊 **Spending Summary (Current Month)**%n%n");
+        
+        String summary = getSpendingSummaryText(context);
+        response.append(summary).append("%n%n");
+        
+        addTopExpenses(response, context.getRecentExpenses());
+        return response.toString();
+    }
 
-        // Add top expenses
-        List<com.example.sprintproject.model.Expense> expenses = context.getRecentExpenses();
-        if (expenses.size() > 0) {
-            response.append("**Top Expenses:**\n");
-            int count = Math.min(5, expenses.size());
-            for (int i = 0; i < count; i++) {
-                com.example.sprintproject.model.Expense exp = expenses.get(i);
-                if (exp != null) {
-                    response.append(String.format("• %s: $%.2f (%s)\n",
-                            exp.getName() != null ? exp.getName() : "Unnamed",
-                            exp.getAmount(),
-                            exp.getCategory() != null ? exp.getCategory() : "Uncategorized"));
-                }
+    private boolean hasNoExpenses(FinancialContext context) {
+        return context.getRecentExpenses() == null || context.getRecentExpenses().isEmpty();
+    }
+
+    private String getSpendingSummaryText(FinancialContext context) {
+        Date monthStart = FinancialDataAggregator.getCurrentMonthStart();
+        return FinancialDataAggregator.getSpendingSummary(
+                context.getRecentExpenses(), monthStart, new Date());
+    }
+
+    private void addTopExpenses(StringBuilder response, List<com.example.sprintproject.model.Expense> expenses) {
+        if (expenses == null || expenses.isEmpty()) {
+            return;
+        }
+        
+        response.append("**Top Expenses:**%n");
+        int count = Math.min(5, expenses.size());
+        for (int i = 0; i < count; i++) {
+            com.example.sprintproject.model.Expense exp = expenses.get(i);
+            if (exp != null) {
+                response.append(formatExpenseEntry(exp));
             }
         }
+    }
 
-        return response.toString();
+    private String formatExpenseEntry(com.example.sprintproject.model.Expense exp) {
+        String name = exp.getName() != null ? exp.getName() : "Unnamed";
+        String category = exp.getCategory() != null ? exp.getCategory() : "Uncategorized";
+        return String.format("• %s: $%.2f (%s)%n", name, exp.getAmount(), category);
     }
 
     /**
@@ -815,7 +820,7 @@ public class ChatbotViewModel extends ViewModel {
         response.append("💰 **Ways to Save Money**\n\n");
 
         for (int i = 0; i < suggestions.size(); i++) {
-            response.append(String.format("%d. %s\n", i + 1, suggestions.get(i)));
+            response.append(String.format("%d. %s%n", i + 1, suggestions.get(i)));
         }
 
         return response.toString();
@@ -867,14 +872,12 @@ public class ChatbotViewModel extends ViewModel {
                         ? (budget.getSpentAmount() / budget.getTotalAmount()) * 100 : 0;
                 double remaining = budget.getTotalAmount() - budget.getSpentAmount();
                 
-                String status = utilization >= 100 ? "⚠️ Over budget"
-                        : utilization >= 80 ? "⚠️ Close to limit"
-                        : "✅ On track";
+                String status = getBudgetStatusText(utilization);
 
                 response.append(String.format("**%s**\n", budget.getCategory()));
-                response.append(String.format("Budget: $%.2f | Spent: $%.2f | Remaining: $%.2f\n",
+                response.append(String.format("Budget: $%.2f | Spent: $%.2f | Remaining: $%.2f%n",
                         budget.getTotalAmount(), budget.getSpentAmount(), remaining));
-                response.append(String.format("Utilization: %.1f%% %s\n\n",
+                response.append(String.format("Utilization: %.1f%% %s%n%n",
                         utilization, status));
             }
         }
@@ -897,13 +900,29 @@ public class ChatbotViewModel extends ViewModel {
         for (com.example.sprintproject.model.SavingsCircle circle
                 : context.getActiveSavingsCircles()) {
             if (circle != null) {
-                response.append(String.format("**%s**\n", circle.getChallengeTitle()));
-                response.append(String.format("Goal: $%.2f\n", circle.getGoalAmount()));
-                response.append(String.format("Frequency: %s\n\n", circle.getFrequency()));
+                response.append(String.format("**%s**%n", circle.getChallengeTitle()));
+                response.append(String.format("Goal: $%.2f%n", circle.getGoalAmount()));
+                response.append(String.format("Frequency: %s%n%n", circle.getFrequency()));
             }
         }
 
         return response.toString();
+    }
+
+    /**
+     * Gets the budget status text based on utilization percentage.
+     *
+     * @param utilization the utilization percentage
+     * @return the status text
+     */
+    private String getBudgetStatusText(double utilization) {
+        if (utilization >= 100) {
+            return "⚠️ Over budget";
+        } else if (utilization >= 80) {
+            return "⚠️ Close to limit";
+        } else {
+            return "✅ On track";
+        }
     }
 }
 

@@ -129,14 +129,16 @@ public class DashboardFragment extends Fragment {
         handler.post(updateTimeRunnable);
 
         // Dark mode toggle
-        SharedPreferences prefs = requireContext().getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE);
-        boolean isDarkMode = prefs.getBoolean("dark_mode", false);
+        final String PREFS_NAME = "app_prefs";
+        final String KEY_DARK_MODE = "dark_mode";
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE);
+        boolean isDarkMode = prefs.getBoolean(KEY_DARK_MODE, false);
         updateDarkModeButton(darkModeButton, isDarkMode);
         
         darkModeButton.setOnClickListener(v -> {
-            boolean currentMode = prefs.getBoolean("dark_mode", false);
+            boolean currentMode = prefs.getBoolean(KEY_DARK_MODE, false);
             boolean newMode = !currentMode;
-            prefs.edit().putBoolean("dark_mode", newMode).apply();
+            prefs.edit().putBoolean(KEY_DARK_MODE, newMode).apply();
             
             if (newMode) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);

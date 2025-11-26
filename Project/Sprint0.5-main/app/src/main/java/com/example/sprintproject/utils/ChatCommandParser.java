@@ -31,8 +31,31 @@ public class ChatCommandParser {
         
         String lowerMessage = message.toLowerCase().trim();
         
-        // Summarize spending commands
-        List<String> summarizeKeywords = Arrays.asList(
+        CommandType command = checkSummarizeSpending(lowerMessage);
+        if (command != CommandType.UNKNOWN) {
+            return command;
+        }
+        
+        command = checkCostCutSuggestions(lowerMessage);
+        if (command != CommandType.UNKNOWN) {
+            return command;
+        }
+        
+        command = checkMonthlyComparison(lowerMessage);
+        if (command != CommandType.UNKNOWN) {
+            return command;
+        }
+        
+        command = checkBudgetStatus(lowerMessage);
+        if (command != CommandType.UNKNOWN) {
+            return command;
+        }
+        
+        return checkSavingsGoals(lowerMessage);
+    }
+
+    private static CommandType checkSummarizeSpending(String lowerMessage) {
+        List<String> keywords = Arrays.asList(
             "summarize my spending",
             "spending summary",
             "show my expenses",
@@ -40,14 +63,11 @@ public class ChatCommandParser {
             "spending breakdown",
             "expense summary"
         );
-        for (String keyword : summarizeKeywords) {
-            if (lowerMessage.contains(keyword)) {
-                return CommandType.SUMMARIZE_SPENDING;
-            }
-        }
-        
-        // Cost-cutting suggestions commands
-        List<String> costCutKeywords = Arrays.asList(
+        return checkKeywords(lowerMessage, keywords, CommandType.SUMMARIZE_SPENDING);
+    }
+
+    private static CommandType checkCostCutSuggestions(String lowerMessage) {
+        List<String> keywords = Arrays.asList(
             "suggest ways to save",
             "how can i save money",
             "cost cutting",
@@ -56,53 +76,47 @@ public class ChatCommandParser {
             "cut costs",
             "saving suggestions"
         );
-        for (String keyword : costCutKeywords) {
-            if (lowerMessage.contains(keyword)) {
-                return CommandType.COST_CUT_SUGGESTIONS;
-            }
-        }
-        
-        // Monthly comparison commands
-        List<String> comparisonKeywords = Arrays.asList(
+        return checkKeywords(lowerMessage, keywords, CommandType.COST_CUT_SUGGESTIONS);
+    }
+
+    private static CommandType checkMonthlyComparison(String lowerMessage) {
+        List<String> keywords = Arrays.asList(
             "compare this month to last month",
             "monthly comparison",
             "compare months",
             "this month vs last month",
             "spending comparison"
         );
-        for (String keyword : comparisonKeywords) {
-            if (lowerMessage.contains(keyword)) {
-                return CommandType.MONTHLY_COMPARISON;
-            }
-        }
-        
-        // Budget status commands
-        List<String> budgetKeywords = Arrays.asList(
+        return checkKeywords(lowerMessage, keywords, CommandType.MONTHLY_COMPARISON);
+    }
+
+    private static CommandType checkBudgetStatus(String lowerMessage) {
+        List<String> keywords = Arrays.asList(
             "budget status",
             "show my budgets",
             "how am i doing on my budgets",
             "budget progress",
             "budget overview"
         );
-        for (String keyword : budgetKeywords) {
-            if (lowerMessage.contains(keyword)) {
-                return CommandType.BUDGET_STATUS;
-            }
-        }
-        
-        // Savings goals commands
-        List<String> savingsKeywords = Arrays.asList(
+        return checkKeywords(lowerMessage, keywords, CommandType.BUDGET_STATUS);
+    }
+
+    private static CommandType checkSavingsGoals(String lowerMessage) {
+        List<String> keywords = Arrays.asList(
             "savings goals",
             "show my savings goals",
             "savings progress",
             "savings circles"
         );
-        for (String keyword : savingsKeywords) {
-            if (lowerMessage.contains(keyword)) {
-                return CommandType.SAVINGS_GOALS;
+        return checkKeywords(lowerMessage, keywords, CommandType.SAVINGS_GOALS);
+    }
+
+    private static CommandType checkKeywords(String message, List<String> keywords, CommandType commandType) {
+        for (String keyword : keywords) {
+            if (message.contains(keyword)) {
+                return commandType;
             }
         }
-        
         return CommandType.UNKNOWN;
     }
     

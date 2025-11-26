@@ -24,7 +24,6 @@ public class LoginActivity extends AppCompatActivity {
     private EditText passwordField;
     private Button loginBtn;
     private FirebaseAuth auth;
-    private FirebaseFirestore db;
     private static final String PREFS_NAME = "ExpenseTrackerPrefs";
     private static final String KEY_SESSION_CHECKED = "session_expense_check_done";
 
@@ -47,7 +46,6 @@ public class LoginActivity extends AppCompatActivity {
         Button registerBtn = findViewById(R.id.registerBtn);
 
         auth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
 
         loginBtn.setOnClickListener(v -> loginUser());
         registerBtn.setOnClickListener(v ->
@@ -109,6 +107,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // Query Firestore for last expense
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("expenses")
                 .whereEqualTo("userId", userId)
                 .orderBy("date", Query.Direction.DESCENDING)
@@ -137,7 +136,12 @@ public class LoginActivity extends AppCompatActivity {
                             MissedExpenseDialog dialog = new MissedExpenseDialog(
                                     this,
                                     (int) daysSinceLastExpense,
-                                    this::navigateToDashboardWithExpenseLog
+                                    () -> {
+                                        Intent intent = new Intent(this, DashboardActivity.class);
+                                        intent.putExtra("openExpenseLog", true);
+                                        startActivity(intent);
+                                        finish();
+                                    }
                             );
                             dialog.show();
                         } else {
@@ -172,13 +176,4 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
-    /**
-     * Navigates to the Dashboard with intent to open ExpenseLogFragment.
-     */
-    private void navigateToDashboardWithExpenseLog() {
-        Intent intent = new Intent(this, DashboardActivity.class);
-        intent.putExtra("openExpenseLog", true);
-        startActivity(intent);
-        finish();
-    }
 }

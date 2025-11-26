@@ -395,10 +395,8 @@ public class SavingsCircleViewModel extends ViewModel {
 
                     private void updateCircleStatusIfComplete(Double result) {
                         SavingsCircle circle = currentCircleLiveData.getValue();
-                        if (circle == null) {
-                            return;
-                        }
-                        if (circle.isComplete(result) && !"completed".equals(circle.getStatus())) {
+                        if (circle != null && circle.isComplete(result) 
+                                && !"completed".equals(circle.getStatus())) {
                             circle.setStatus("completed");
                             currentCircleLiveData.setValue(circle);
                         }

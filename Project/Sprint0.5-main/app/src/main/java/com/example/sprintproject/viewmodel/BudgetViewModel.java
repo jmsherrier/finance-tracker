@@ -19,6 +19,8 @@ import java.util.Date;
 import java.util.List;
 
 public class BudgetViewModel extends ViewModel {
+    private static final String COLLECTION_USERS = "users";
+    private static final String COLLECTION_BUDGETS = "budgets";
     
     private FirebaseFirestore db;
     private FirebaseAuth auth;
@@ -65,9 +67,9 @@ public class BudgetViewModel extends ViewModel {
         loadingLiveData.setValue(true);
         String userId = getCurrentUserId();
         
-        db.collection("users")
+        db.collection(COLLECTION_USERS)
             .document(userId)
-            .collection("budgets")
+            .collection(COLLECTION_BUDGETS)
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 List<Budget> budgets = new ArrayList<>();
@@ -96,9 +98,9 @@ public class BudgetViewModel extends ViewModel {
         loadingLiveData.setValue(true);
         String userId = getCurrentUserId();
         
-        db.collection("users")
+        db.collection(COLLECTION_USERS)
             .document(userId)
-            .collection("budgets")
+            .collection(COLLECTION_BUDGETS)
             .document(budgetId)
             .get()
             .addOnSuccessListener(documentSnapshot -> {
@@ -158,9 +160,9 @@ public class BudgetViewModel extends ViewModel {
         String userId = getCurrentUserId();
         budget.setUserId(userId);
         
-        db.collection("users")
+        db.collection(COLLECTION_USERS)
             .document(userId)
-            .collection("budgets")
+            .collection(COLLECTION_BUDGETS)
             .add(budget)
             .addOnSuccessListener(documentReference -> {
                 budget.setId(documentReference.getId());
@@ -179,9 +181,9 @@ public class BudgetViewModel extends ViewModel {
         loadingLiveData.setValue(true);
         String userId = getCurrentUserId();
         
-        db.collection("users")
+        db.collection(COLLECTION_USERS)
             .document(userId)
-            .collection("budgets")
+            .collection(COLLECTION_BUDGETS)
             .document(budget.getId())
             .set(budget)
             .addOnSuccessListener(aVoid -> {
@@ -200,9 +202,9 @@ public class BudgetViewModel extends ViewModel {
         loadingLiveData.setValue(true);
         String userId = getCurrentUserId();
         
-        db.collection("users")
+        db.collection(COLLECTION_USERS)
             .document(userId)
-            .collection("budgets")
+            .collection(COLLECTION_BUDGETS)
             .document(budgetId)
             .delete()
             .addOnSuccessListener(aVoid -> {

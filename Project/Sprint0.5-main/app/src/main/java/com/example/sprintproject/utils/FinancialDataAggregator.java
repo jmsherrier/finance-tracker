@@ -18,7 +18,11 @@ import java.util.Map;
  * Provides methods to summarize expenses, budgets, and savings goals.
  */
 public class FinancialDataAggregator {
-    private static final String TAG = "FinancialDataAggregator";
+    
+    // Private constructor to prevent instantiation
+    private FinancialDataAggregator() {
+        throw new UnsupportedOperationException("Utility class - cannot be instantiated");
+    }
 
     /**
      * Gets spending summary for a date range.
@@ -34,46 +38,75 @@ public class FinancialDataAggregator {
             return "No expenses recorded in this period.";
         }
 
+        SpendingData data = calculateSpendingData(expenses, startDate, endDate);
+        if (data.count == 0) {
+            return "No expenses recorded in this period.";
+        }
+
+        return buildSpendingSummaryText(data);
+    }
+
+    private static SpendingData calculateSpendingData(List<Expense> expenses, Date startDate, Date endDate) {
         double total = 0.0;
         Map<String, Double> byCategory = new HashMap<>();
         int count = 0;
 
         for (Expense expense : expenses) {
-            if (expense == null || expense.getDate() == null) {
-                continue;
-            }
-            Date expenseDate = expense.getDate();
-            if ((startDate == null || !expenseDate.before(startDate))
-                    && (endDate == null || !expenseDate.after(endDate))) {
+            if (isExpenseInRange(expense, startDate, endDate)) {
                 total += expense.getAmount();
                 count++;
-                String category = expense.getCategory() != null
-                        ? expense.getCategory() : "Uncategorized";
-                byCategory.put(category,
-                        byCategory.getOrDefault(category, 0.0) + expense.getAmount());
+                String category = getCategory(expense);
+                byCategory.put(category, byCategory.getOrDefault(category, 0.0) + expense.getAmount());
             }
         }
 
-        if (count == 0) {
-            return "No expenses recorded in this period.";
-        }
+        return new SpendingData(total, byCategory, count);
+    }
 
+    private static boolean isExpenseInRange(Expense expense, Date startDate, Date endDate) {
+        if (expense == null || expense.getDate() == null) {
+            return false;
+        }
+        Date expenseDate = expense.getDate();
+        return (startDate == null || !expenseDate.before(startDate))
+                && (endDate == null || !expenseDate.after(endDate));
+    }
+
+    private static String getCategory(Expense expense) {
+        return expense.getCategory() != null ? expense.getCategory() : "Uncategorized";
+    }
+
+    private static String buildSpendingSummaryText(SpendingData data) {
         StringBuilder summary = new StringBuilder();
-        summary.append(String.format("Total spending: $%.2f across %d expenses. ", total, count));
+        summary.append(String.format("Total spending: $%.2f across %d expenses. ", data.total, data.count));
         summary.append("By category: ");
-        List<Map.Entry<String, Double>> sorted = new ArrayList<>(byCategory.entrySet());
+        
+        List<Map.Entry<String, Double>> sorted = new ArrayList<>(data.byCategory.entrySet());
         sorted.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
 
-        for (int i = 0; i < Math.min(5, sorted.size()); i++) {
+        int maxCategories = Math.min(5, sorted.size());
+        for (int i = 0; i < maxCategories; i++) {
             Map.Entry<String, Double> entry = sorted.get(i);
             summary.append(entry.getKey()).append(": $")
                     .append(String.format("%.2f", entry.getValue()));
-            if (i < Math.min(5, sorted.size()) - 1) {
+            if (i < maxCategories - 1) {
                 summary.append(", ");
             }
         }
 
         return summary.toString();
+    }
+
+    private static class SpendingData {
+        final double total;
+        final Map<String, Double> byCategory;
+        final int count;
+
+        SpendingData(double total, Map<String, Double> byCategory, int count) {
+            this.total = total;
+            this.byCategory = byCategory;
+            this.count = count;
+        }
     }
 
     /**
@@ -130,36 +163,52 @@ public class FinancialDataAggregator {
             return suggestions;
         }
 
-        // Find categories with highest spending
+        Map<String, Double> categorySpending = calculateCategorySpending(expenses);
+        addOverBudgetSuggestions(suggestions, budgets, categorySpending);
+        addTopSpendingSuggestion(suggestions, categorySpending);
+
+        if (suggestions.isEmpty()) {
+            suggestions.add("Your spending looks balanced. Keep tracking to maintain good habits!");
+        }
+
+        return suggestions;
+    }
+
+    private static Map<String, Double> calculateCategorySpending(List<Expense> expenses) {
         Map<String, Double> categorySpending = new HashMap<>();
         for (Expense expense : expenses) {
             if (expense != null && expense.getCategory() != null) {
                 String category = expense.getCategory();
                 categorySpending.put(category,
-                        categorySpending.getOrDefault(category, 0.0)
-                                + expense.getAmount());
+                        categorySpending.getOrDefault(category, 0.0) + expense.getAmount());
             }
         }
+        return categorySpending;
+    }
 
-        // Find over-budget categories
-        if (budgets != null) {
-            for (Budget budget : budgets) {
-                if (budget == null) {
-                    continue;
-                }
-                String category = budget.getCategory();
-                double spent = categorySpending.getOrDefault(category, 0.0);
-                double budgetAmount = budget.getTotalAmount();
-                if (spent > budgetAmount && budgetAmount > 0) {
-                    double over = spent - budgetAmount;
-                    suggestions.add(String.format("You're over budget in %s by $%.2f. "
-                                    + "Consider reducing spending in this category.",
-                            category, over));
-                }
+    private static void addOverBudgetSuggestions(List<String> suggestions, List<Budget> budgets,
+                                                 Map<String, Double> categorySpending) {
+        if (budgets == null) {
+            return;
+        }
+        for (Budget budget : budgets) {
+            if (budget == null) {
+                continue;
+            }
+            String category = budget.getCategory();
+            double spent = categorySpending.getOrDefault(category, 0.0);
+            double budgetAmount = budget.getTotalAmount();
+            if (spent > budgetAmount && budgetAmount > 0) {
+                double over = spent - budgetAmount;
+                suggestions.add(String.format("You're over budget in %s by $%.2f. "
+                                + "Consider reducing spending in this category.",
+                        category, over));
             }
         }
+    }
 
-        // Suggest reducing top spending categories
+    private static void addTopSpendingSuggestion(List<String> suggestions,
+                                                  Map<String, Double> categorySpending) {
         List<Map.Entry<String, Double>> sorted = new ArrayList<>(categorySpending.entrySet());
         sorted.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
 
@@ -168,12 +217,6 @@ public class FinancialDataAggregator {
                             + "Look for ways to reduce costs here.",
                     sorted.get(0).getKey(), sorted.get(0).getValue()));
         }
-
-        if (suggestions.isEmpty()) {
-            suggestions.add("Your spending looks balanced. Keep tracking to maintain good habits!");
-        }
-
-        return suggestions;
     }
 
     /**

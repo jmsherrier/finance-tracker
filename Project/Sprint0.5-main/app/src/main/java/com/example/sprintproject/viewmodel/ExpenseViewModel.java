@@ -17,6 +17,10 @@ import java.util.List;
 
 public class ExpenseViewModel extends ViewModel {
     
+    // Constants for Firestore collections
+    private static final String COLLECTION_USERS = "users";
+    private static final String COLLECTION_EXPENSES = "expenses";
+    
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private MutableLiveData<List<Expense>> expensesLiveData = new MutableLiveData<>();
@@ -52,7 +56,7 @@ public class ExpenseViewModel extends ViewModel {
         loadingLiveData.setValue(true);
         String userId = getCurrentUserId();
         
-        db.collection("users").document(userId).collection("expenses")
+        db.collection(COLLECTION_USERS).document(userId).collection(COLLECTION_EXPENSES)
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 List<Expense> expenses = new ArrayList<>();
@@ -82,7 +86,7 @@ public class ExpenseViewModel extends ViewModel {
         String userId = getCurrentUserId();
         expense.setUserId(userId);
         
-        db.collection("users").document(userId).collection("expenses")
+        db.collection(COLLECTION_USERS).document(userId).collection(COLLECTION_EXPENSES)
             .add(expense)
             .addOnSuccessListener(documentReference -> {
                 expense.setId(documentReference.getId());
@@ -101,7 +105,7 @@ public class ExpenseViewModel extends ViewModel {
         loadingLiveData.setValue(true);
         String userId = getCurrentUserId();
         
-        db.collection("users").document(userId).collection("expenses")
+        db.collection(COLLECTION_USERS).document(userId).collection(COLLECTION_EXPENSES)
             .document(expenseId)
             .delete()
             .addOnSuccessListener(aVoid -> {
@@ -120,7 +124,7 @@ public class ExpenseViewModel extends ViewModel {
         loadingLiveData.setValue(true);
         String userId = getCurrentUserId();
         
-        db.collection("users").document(userId).collection("expenses")
+        db.collection(COLLECTION_USERS).document(userId).collection(COLLECTION_EXPENSES)
             .document(expense.getId())
             .set(expense)
             .addOnSuccessListener(aVoid -> {
@@ -139,7 +143,7 @@ public class ExpenseViewModel extends ViewModel {
         loadingLiveData.setValue(true);
         String userId = getCurrentUserId();
         
-        db.collection("users").document(userId).collection("expenses")
+        db.collection(COLLECTION_USERS).document(userId).collection(COLLECTION_EXPENSES)
             .whereEqualTo("category", category)
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {

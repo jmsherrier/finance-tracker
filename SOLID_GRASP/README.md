@@ -1,2 +1,5 @@
-# SOLID/GRASP
-This directory will be used later in the semester for your group assignments related to SOLID/GRASP.
+# SOLID & GRASP Design Patterns
+
+Design analysis applying SOLID principles and GRASP patterns to a project management system.
+
+Includes a class diagram, written analysis, and Java source implementing the designed architecture.

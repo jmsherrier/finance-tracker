@@ -1,2 +1,3 @@
-# Code Smells
-This directory will be used later in the semester for your group assignments related to Code Smells.
+# Code Smells Analysis
+
+Static analysis identifying and refactoring code smells in the project codebase.

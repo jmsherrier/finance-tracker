@@ -52,11 +52,19 @@ MVVM keeps views decoupled from data. Repositories abstract Firebase and externa
 
 ---
 
-## Screenshots
+## Design
 
-| Dashboard | Expense Log | Budget | Savings Circle | Chatbot |
-|---|---|---|---|---|
-| ![Dashboard](Project/Sprint0.5-main/docs/MVVM.png) | — | — | — | — |
+### Use Case Diagram
+
+![Use Case Diagram](Project/Sprint0.5-main/docs/Use_Case.png)
+
+### Domain Model
+
+![Domain Model](Project/Sprint0.5-main/docs/Domain_Model.png)
+
+### Sequence Diagram — Log Expense
+
+![Log Expense Sequence](Project/Sprint0.5-main/docs/sequence/log_expense_sequence.png)
 
 ---
 
@@ -79,15 +87,6 @@ MVVM keeps views decoupled from data. Repositories abstract Firebase and externa
 4. Build and run on a device or emulator (API 26+).
 
 See [API_KEY_SETUP.md](Project/Sprint0.5-main/API_KEY_SETUP.md) for full Hugging Face setup instructions.
-
----
-
-## Design Documentation
-
-- [SOLID & GRASP analysis](SOLID_GRASP/) — design pattern writeup and supporting class diagram
-- [Code smells review](Code_Smells/) — static analysis and refactoring notes
-- [Sequence diagram](SequenceDiagram_GroupSavings.drawio) — Group Savings Circle flow
-- [Use case diagram](Project/Sprint0.5-main/docs/Use_Case.png)
 
 ---
 

@@ -1,5 +1,14 @@
 # FinTrack
 
+![Android](https://img.shields.io/badge/Android-API%2026+-3DDC84?style=flat-square&logo=android&logoColor=white)
+![Java](https://img.shields.io/badge/Java-Android-007396?style=flat-square&logo=openjdk&logoColor=white)
+![Architecture](https://img.shields.io/badge/architecture-MVVM-2496ED?style=flat-square)
+![Firebase](https://img.shields.io/badge/Firebase-Firestore%20%26%20Auth-FFCA28?style=flat-square&logo=firebase&logoColor=black)
+![Mistral-7B](https://img.shields.io/badge/AI-Mistral--7B-FFD21E?style=flat-square&logo=huggingface&logoColor=black)
+![Material Design 3](https://img.shields.io/badge/Material%20Design-3-757575?style=flat-square&logo=materialdesign&logoColor=white)
+![SonarQube](https://img.shields.io/badge/SonarQube-analyzed-4E9BCD?style=flat-square&logo=sonarqube&logoColor=white)
+![Georgia Tech](https://img.shields.io/badge/Georgia%20Tech-CS2340-B3A369?style=flat-square)
+
 An Android personal finance app featuring expense tracking, budget management, collaborative savings circles, and an AI-powered financial advisor chatbot.
 
 Built by a 6-person team at Georgia Institute of Technology using MVVM architecture, Firebase, and the Hugging Face Inference API.
@@ -65,6 +74,15 @@ MVVM keeps views decoupled from data. Repositories abstract Firebase and externa
 ### Sequence Diagram — Log Expense
 
 ![Log Expense Sequence](Project/Sprint0.5-main/docs/sequence/log_expense_sequence.png)
+
+### Further Documentation
+
+Supporting design and code-quality artifacts live in [`docs/`](docs/):
+
+- [SOLID Principles write-up](docs/SOLID-Principles-Writeup.pdf) — applying the five SOLID principles to the codebase
+- [SOLID & GRASP analysis](docs/SOLID_GRASP/) — class diagram, write-up, and a reference Java implementation
+- [Code smells analysis](docs/Code_Smells/) — identified smells and refactorings
+- [Group Savings sequence diagram](docs/SequenceDiagram_GroupSavings.drawio) — editable `.drawio` source
 
 ---
 

@@ -22,7 +22,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       - name: Warn when SonarQube scan fails
         if: ${{ steps.sonarqube_scan.outcome == 'failure' }}
-        run: >
+        run: |
           echo "::warning::SonarQube scan failed. This can be caused by transient Sonar host connectivity issues.
           Check the SonarQube step logs at ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           and re-run the workflow if needed."

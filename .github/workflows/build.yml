@@ -22,7 +22,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       - name: Warn when SonarQube scan fails
         if: ${{ steps.sonarqube_scan.outcome == 'failure' }}
-        run: echo "::warning::SonarQube scan failed (for example due to Sonar host connectivity)."
+        run: echo "::warning::SonarQube scan failed. This can be caused by transient Sonar host connectivity issues. Check the SonarQube step logs and re-run the workflow if needed."
       # If you wish to fail your job when the Quality Gate is red, uncomment the
       # following lines. This would typically be used to fail a deployment.
       # - uses: sonarsource/sonarqube-quality-gate-action@master
